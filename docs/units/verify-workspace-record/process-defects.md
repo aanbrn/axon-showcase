@@ -15,3 +15,6 @@
   was made while it was red.
 - **Knowledge boundary** — observed which fixtures failed and why; did not survey the other guard tests for fixtures
   that stage a `tasks.md` through a path the helper does not cover.
+
+- **Decision** — no-change: the gates rule already requires running the touched module's gates, which surfaced the
+  fixtures the new clause refused before delivery.

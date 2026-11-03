@@ -17,6 +17,9 @@
   before it in this session were staged only at the manual-pass boundary, so their proposal stages were unstaged too.
   Not checked: whether the same omission occurred in units from earlier sessions.
 
+- **Decision** — no-change: the change lifecycle's step 2 already requires the unit's new files staged for the review
+  pass.
+
 ### keep-review-handoff-per-unit#2 — two edits anchored on text the formatter had already changed
 
 - **Recorded** — 2026-11-03, the agent (session `ses_e5fa0fb2dffe0pwcgRMG3WCl2N`).
@@ -32,6 +35,9 @@
   edit.
 - **Knowledge boundary** — observed: the two failures and their recovery. Not checked: whether other pending anchors in
   this session predate a formatter run.
+
+- **Decision** — no-change: the edit-verification rule already states that an anchor read before a formatter run is
+  stale the moment the formatter rewrites the file.
 
 ### keep-review-handoff-per-unit#3 — the proposal stage ran no quick review
 
@@ -50,6 +56,10 @@
 - **Knowledge boundary** — observed: that no proposal-stage invocation preceded the implementation, and the late round's
   findings. Not checked: whether the same findings would have arrived at the proposal stage.
 
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as the `openspec/config.yaml`
+  `rules.tasks` item that carries each review-gate stage as its own task, so a skipped proposal round reads as a missing
+  box.
+
 ### keep-review-handoff-per-unit#4 — three rounds were recorded after their invocation instead of before it
 
 - **Recorded** — 2026-11-03, the agent (session `ses_e5fa0fb2dffe0pwcgRMG3WCl2N`), on the round-3 report.
@@ -66,6 +76,9 @@
 - **Knowledge boundary** — observed: the record timing and the notes. Not checked: whether the same lateness occurred in
   units before this one, whose hand-overs were written in change directories.
 
+- **Decision** — no-change: `review-gate`'s preflight already requires the invocation's hand-over recorded before the
+  caller waits on it.
+
 ### keep-review-handoff-per-unit#5 — the clean closing round's instances file was never written
 
 - **Recorded** — 2026-11-03, the agent (session `ses_e5fa0fb2dffe0pwcgRMG3WCl2N`), when the advisor's consultation read
@@ -80,3 +93,6 @@
   unit's rounds are dated on the store's boundary and are exempt.
 - **Knowledge boundary** — observed: the missing file and its repair. Not checked: whether the preceding change's clean
   rounds lacked files too, whose rounds were boundary-dated for the same reason.
+
+- **Decision** — no-change: `review-gate` already requires a clean round's instances file with `- none`; the checker's
+  historical exemption does not excuse the writer's obligation.

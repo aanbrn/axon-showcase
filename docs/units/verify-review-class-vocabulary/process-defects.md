@@ -17,6 +17,9 @@
 - **Knowledge boundary** — observed the stale index and the two reports; did not check whether an earlier `git add` of a
   single path (rather than the directory) would have fed the scan without staling the rest.
 
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as `review-gate` §2's mid-loop
+  re-stage bullet; the staging-snapshot rule already named the state.
+
 ### verify-review-class-vocabulary#2 — The stale-index defect recurred after every fix round
 
 - **Recorded** — 2026-11-02, by the unit's agent.
@@ -31,3 +34,6 @@
   step is the last check before the manual pass.
 - **Knowledge boundary** — observed the recurrence and the reviewer's report; did not test whether staging once at the
   end, rather than after each round, would avoid the limitation without staling the scan's input.
+
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as `review-gate` §2's mid-loop
+  re-stage bullet, which applies §5's explicit-add remedy after each round's fixes.

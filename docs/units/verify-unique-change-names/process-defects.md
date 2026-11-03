@@ -17,5 +17,8 @@
 - **Knowledge boundary** — observed the omission and the stop; did not check whether the hand-over file's `Packs:` line
   would have sufficed had the reviewer been told to read it first.
 
+- **Decision** — no-change: the delegation rule already requires the caller to name every applicable subject pack in the
+  subagent's prompt.
+
 Implementation stage: no process defect observed beyond entry #1 — the mode, its controls, the build wiring, and the
 shared archive walk landed with all gates green, and the three mutations reproduced the failures they claim.

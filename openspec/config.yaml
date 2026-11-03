@@ -119,6 +119,10 @@ rules:
     - Carry the pre-write derivation pass as a task in every change — the pass the `review-gate` skill's first stage
       names, whose output is the claims table, never restated here — so a skipped pass is a missing box rather than
       looking like a pass that found nothing
+    - Carry each review-gate stage as its own task — the proposal quick review, the implementation quick review, the
+      routed deep review the routing decision selects, the manual pass — never one aggregate review-gate item, so a
+      skipped stage reads as a missing box; the stages belong to `.opencode/skills/review-gate/SKILL.md` and the
+      `showcase/quality/agent-skills` requirement, and this item points at them rather than restating their procedure
     - A claim, a rule set, or a record stated in more than one artifact is single-sourced, the rest referencing it by
       name
     - Every count — and every universal claim, its absence form included — is re-derived by grepping the set it counts,

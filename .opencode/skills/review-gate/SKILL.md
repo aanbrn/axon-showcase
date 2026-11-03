@@ -166,6 +166,11 @@ its format.
    match count — before the next round and before any record reports it fixed: a replacement aimed at re-wrapped prose
    matches nothing and leaves the finding live, and a grep hit for the replacement token is not that check
    (`AGENTS.md`'s edit-verification gotcha owns the mechanism). captured: correct-subagent-reload-rule
+   - **After a round's fixes, re-stage the unit's already-staged paths it changed, before the next invocation.** A fix
+     that edits a staged path leaves the index holding the previous round's copy, which the next round reports as an
+     additional limitation on the work it screens; §5 owns the readiness check and its explicit-add remedy, and this
+     step applies that remedy mid-loop rather than only before the ask. captured: verify-review-class-vocabulary
+     captured: adopt-process-bindings captured: report-unmapped-round-classes
 
 No semantic self-review precedes the loop — a re-read shares the blind spot that produced the claim — so the author owes
 only the pre-write pass above and the mechanical pre-flight (the formatter and the touched module's gates after the

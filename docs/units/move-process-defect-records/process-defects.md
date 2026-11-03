@@ -16,6 +16,9 @@
 - **Knowledge boundary** — observed: the wrong count and the rebuild. Not checked: whether an earlier change's delta
   carried the same over-copy, which `openspec validate` would not flag because it accepts unchanged blocks.
 
+- **Decision** — no-change: the programmatic-edit rule already requires verifying at the granularity edited (the
+  requirement-header count); the advisor declined a separate delta-bound clause as a restatement.
+
 ### move-process-defect-records#2 — a bulk fixture rename left two routing tests exercising a same-path move
 
 - **Recorded** — 2026-11-03, the agent (session `ses_e5fa0fb2dffe0pwcgRMG3WCl2N`).
@@ -29,6 +32,9 @@
 - **Consequence** — two test runs failed before the fix; no committed state carried it.
 - **Knowledge boundary** — observed: the two errors and their repair. Not checked: whether other textual replacements in
   this unit produced a semantically empty fixture that still passes.
+
+- **Decision** — no-change: the programmatic-edit rule already requires scoping a file-wide substring replacement or
+  asserting its intended match count.
 
 ### move-process-defect-records#3 — the proposal-stage quick review was skipped in every unit of the session
 
@@ -47,6 +53,9 @@
   six issues, including a missing claims table, that an earlier screen would have surfaced before the work.
 - **Knowledge boundary** — observed: the ordering in this session's three units and the reviewer's finding. Not checked:
   whether units before this session did the same, whose records do not state a stage for their first round.
+
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as the `rules.tasks` gate-stage
+  item; the `agent-skills` requirement already owns the stage list.
 
 ### move-process-defect-records#4 — the plan's review-gate item was copied from the previous plan, not derived from the gate
 
@@ -69,6 +78,9 @@
 - **Knowledge boundary** — observed: the four plans and the corpus count. Not checked: which earlier plan first
   collapsed the item, and whether units outside this session inherit the same shape.
 
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as the `rules.tasks` gate-stage
+  item; the recurring-unit floor rule already required reconciling the copied plan with what the rules mandate now.
+
 ### move-process-defect-records#5 — one gate item carried five independently actionable steps
 
 - **Recorded** — 2026-11-03, the agent (session `ses_e5fa0fb2dffe0pwcgRMG3WCl2N`), on the owner's question.
@@ -83,6 +95,9 @@
   rounds against the gate's stages, on the third unit.
 - **Knowledge boundary** — observed: the item text in the four plans. Not checked: whether other aggregate items in
   those plans hide further omissions.
+
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as the `rules.tasks` gate-stage
+  item; the writing standard already required one actionable statement per item.
 
 ### move-process-defect-records#6 — no gate reads whether a plan carries the gate's stages
 
@@ -100,6 +115,9 @@
 - **Knowledge boundary** — observed: the gates' passes over the deficient plans. Not checked: whether a check over a
   plan's stage list is feasible without pinning wording, which this unit's own tasks do not attempt.
 
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as the `rules.tasks` gate-stage
+  item, an authoring-system correction; no check over a plan's stage list is proposed, its feasibility unchecked.
+
 ### move-process-defect-records#7 — the pull request was merged before its archive commit
 
 - **Recorded** — 2026-11-03, the agent (session `ses_e5fa0fb2dffe0pwcgRMG3WCl2N`).
@@ -116,3 +134,6 @@
   affected; the implementation commit is unchanged.
 - **Knowledge boundary** — observed: the post-merge state and the repair. Not checked: whether the merge sequence (a
   watch and a merge in one command) omitted the archive step by construction or by my ordering.
+
+- **Decision** — no-change: "A change merged without its archive is incomplete" already requires the archive commit in
+  the same pull request before the merge.

@@ -21,6 +21,9 @@
   reply directs continuing in this session rather than changing the pause rule. Not checked: whether any harness or
   provider signal would have justified a pause at that point.
 
+- **Decision** — no-change: `pause-resume-unit`'s decision point already records that a session limitation the agent
+  could not measure is its own assessment, which the proposed signal requirement would contradict.
+
 ### split-the-review-ledger#2 — the split's verification task carried counts the change itself falsified
 
 - **Recorded** — 2026-11-03, the agent (session `ses_e5fa0fb2dffe0pwcgRMG3WCl2N`).
@@ -35,6 +38,9 @@
   verification itself was run and passed against those figures, so no wrong result shipped.
 - **Knowledge boundary** — observed: the two counts and the header block. Assumed: the 40-line figure was measured
   before this unit's round was appended. Not checked: whether round 1 had already flagged the count.
+
+- **Decision** — no-change: the point-in-time-count rule already requires stating the mechanism rather than a count the
+  corpus moves.
 
 ### split-the-review-ledger#3 — a resume reply guessed the reply language instead of asking
 
@@ -55,6 +61,9 @@
 - **Knowledge boundary** — verified: the reply language and the request's content, both in this session. Reported but
   not verified: that the previous session ran in another language, which this session cannot read. Not checked: whether
   the unit record or any artifact records a language a resume could take up.
+
+- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-10-27 reply-language entry, whose reopening
+  condition this instance meets and which now carries it as a third instance.
 
 ### split-the-review-ledger#4 — work the design named but did not deliver was never parked
 
@@ -77,3 +86,6 @@
   verified: that the prior session discussed these as ideas and agreed to park them; that session's messages are not
   readable here. Not checked: whether the pause checkpoint's "Blockers and open decisions" field was expected to carry
   them.
+
+- **Decision** — no-change: the parked-work rule already requires a companion change the design names to be parked in
+  `docs/ideas.md`.

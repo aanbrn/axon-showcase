@@ -25,6 +25,18 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
+## 2026-11-03
+
+- Settle a corrected unit's shape with the advisor before its artifacts are written — parked; no change yet. Two units
+  in one session (`discover-paused-units` and `bound-self-learning-loop-consolidation`) wrote their proposal, design,
+  tasks and deltas before the consultation that then reversed the scope; in the second, the owner asked why the advisor
+  had not been consulted first. No rule makes that ordering mandatory, and a condition-triggered automatic consultation
+  would relax `showcase/quality/agent-skills`' "No automatic consultation SHALL be added", so the vehicle is a
+  `MODIFIED` delta on that requirement plus a scenario (the owner widened or corrected the unit's scope, and the
+  consultation on the resulting shape precedes the artifacts it governs) rather than an `AGENTS.md` bullet. Recorded by
+  `generalize-process-defects-2026-11-03`, whose advisor consultation on this entry narrowed it to the problem it
+  states.
+
 ## 2026-11-01
 
 - Gate a `Decision` line's link with a check — parked; no change yet. The generalization workflow requires `proposed`
@@ -171,6 +183,18 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   report English, so the direction stays compliance rather than another wording expansion; whether the hand-off itself
   was English, and whether asking for a non-English report needs its own clause, remain part of this entry's
   investigation.
+
+  **Third instance, 2026-11-03** — the same condition on the resume path. The triggering request carried the English
+  `/resume-unit` command text and a unit name, and no owner prose, so the owner's language could not be established and
+  the convention's ask-instead-of-guess clause applied; the agent replied in English through the resolution report, the
+  live-state table, the writer-handover question and the pause report, and the owner's next message was in Russian. The
+  evidence is `docs/units/split-the-review-ledger/process-defects.md#3`, which records that sequence and states that the
+  reply language and the request's content are verified in that session; neither the request's text nor an offending
+  message is reproduced in the repository, so the excerpt this entry's retention clause asks for stays with that record.
+  The applicable instruction state: `AGENTS.md`'s output-language convention and the `agent-skills` requirement that
+  defers to it — the ask-instead-of-guess clause and #713's widened scenario (`a4da4287`) were in effect. The direction
+  stays compliance, not another wording expansion: the violated clause already states the ask, and what this instance
+  adds is an input class — a bare command invocation plus a unit name, which carries no owner prose at all.
 
 ## 2026-10-26
 

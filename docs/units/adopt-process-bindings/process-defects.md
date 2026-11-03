@@ -20,3 +20,7 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   One review round was spent on an artifact defect rather than a content defect.
 - **Knowledge boundary** — observed: the staged-set state and the finding. Assumed: that the guard's refusal is what
   would have surfaced it next. Not checked: whether any earlier unit shipped a stale copy the same way.
+
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as `review-gate` §2's mid-loop
+  re-stage bullet; the staging-snapshot rule already named the state, and §5's explicit-add remedy now applies between
+  rounds.

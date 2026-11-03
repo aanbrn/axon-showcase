@@ -18,3 +18,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed: the duplicated headings and the rewrite. Assumed: that no other file in this unit
   was rebuilt the same way, which the single `grep` covered for this file only. Not checked: the same pattern in other
   units' artifacts.
+
+- **Decision** — no-change: the programmatic-edit rule already requires diffing the level edited and reconciling a
+  deletion against the span removed, which the duplicated heading list would have shown.

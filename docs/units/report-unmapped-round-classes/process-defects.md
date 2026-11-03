@@ -16,3 +16,6 @@
   implementation; no commit was made, and the readiness step and the re-stage before the manual pass repair it.
 - **Knowledge boundary** — observed the stale index and the paths; did not check whether a `git add` of the single
   script paths at the proposal would have avoided it.
+
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as `review-gate` §2's mid-loop
+  re-stage bullet; the staging-snapshot rule already named the stale-index state.

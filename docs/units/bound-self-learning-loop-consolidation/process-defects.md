@@ -20,3 +20,7 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed: the edit sequence and the reverts. Assumed: that the advisor would have caught both
   problems before the edits, which the later report supports but does not prove. Not checked: whether the same
   edit-before-agreeing happened in earlier units.
+
+- **Decision** — no-change: already parked — the `docs/ideas.md` 2026-11-03 entry, because a condition-triggered
+  consultation would relax `agent-skills`' "No automatic consultation SHALL be added" and the vehicle is a spec
+  amendment.

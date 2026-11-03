@@ -1824,6 +1824,12 @@ contract, and capture challenge are its definition's; the caller's steps — the
 session preflight, the ledger row and its checkpoint — are the review-gate skill's; the ledger row's format and
 verification are `showcase/quality/commit-hygiene`'s.
 
+Each round's finding instances SHALL be written to the unit's store (`docs/units/<unit>/findings/round-<N>.md`) when its
+report arrives, so a round's classes and counts in the record have the instances beside them rather than only in the
+reviewer's report or a pause checkpoint. A round recorded before the store existed SHALL fall back to the checkpoint or
+the hand-over, and a unit holding neither SHALL be read as unrecovered context rather than as a round that raised
+nothing.
+
 A replacement reviewer session SHALL be started only after one of the recovery cases the review gate's rule names is
 evidenced; an independent screen is not a recovery case, and a session change without an evidenced case is recorded as a
 continuity violation rather than as a permitted replacement.
@@ -1902,6 +1908,18 @@ continuity violation rather than as a permitted replacement.
   claims table when a planning artifact changed, then the quick loop, then the routing decision reassessed on the
   changed tree and any deep review the routing selects — rather than treating the closing round as covering the
   rewritten tree
+
+#### Scenario: A round's finding instances are persisted beside its record
+
+- **WHEN** a quick-review round's report arrives
+- **THEN** the caller writes its finding instances to `docs/units/<unit>/findings/round-<N>.md`, one entry per finding
+  with its class, its location, and its claim, in the reviewer's order
+- **AND** the round's `rounds.tsv` row keeps its fixed fields, so the instances live beside the record rather than
+  inside it, and the record format stays as `showcase/quality/commit-hygiene` states it
+- **AND** the review gate's hand-over and a resumed unit's checkpoint read that store, so an instance is not carried
+  only in a checkpoint field
+- **AND** a round recorded before the store existed falls back to the checkpoint or the hand-over, and a unit holding
+  neither reads as unrecovered context rather than as a clean round
 
 ### Requirement: The deep review is routed and bounded
 

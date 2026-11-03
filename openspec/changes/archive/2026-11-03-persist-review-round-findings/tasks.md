@@ -45,5 +45,5 @@ The unit record — its `Workspace:`, state, and pause checkpoint — is `docs/u
       implementation.
 - [x] 4.6 Before the archive commit, `FINDING_INSTANCES_THROUGH` is re-derived to the landing date and
       `verifyFindingInstances` passes over the records at that date.
-- [ ] 4.7 At the archive, the `showcase/quality/commit-hygiene` `## Purpose` is refreshed to name the finding-instances
+- [x] 4.7 At the archive, the `showcase/quality/commit-hygiene` `## Purpose` is refreshed to name the finding-instances
       verification among the checks it enumerates, as the archive commit's own edit.

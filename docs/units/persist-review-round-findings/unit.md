@@ -3,7 +3,7 @@
 Workspace:
 `unit=persist-review-round-findings; path=/Users/afanasyev/Development/axon-showcase; branch=persist-review-round-findings; writer=ses_e5fa0fb2dffe0pwcgRMG3WCl2N`
 
-State: active
+State: closed
 
 The unit's plan and tasks live in `openspec/changes/persist-review-round-findings/`.
 

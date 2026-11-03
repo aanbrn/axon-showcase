@@ -88,3 +88,10 @@ Two statements above no longer hold as written, and this amendment qualifies the
 - The two reasons the alternative was rejected are answered only in the narrow sense that made this check possible: a
   recorded claim supplies the attribution a branch name cannot, and comparing change identity replaces rename detection.
   Neither makes a write attributable to its author, which is why the revisit gate above is unchanged.
+
+## Amendment — 2026-11-03
+
+The Context above says the `Workspace:` record lives "inside the unit's own artifacts (`tasks.md`, else the hand-off and
+the pull-request checklist)". ADR-0029 moved it to `docs/units/<unit>/unit.md`, for every kind of unit, and a change's
+`tasks.md` now references that record instead of carrying its fields. The Decision stands unchanged: the amendment
+qualifies where the record lives, not what a matching tree proves.

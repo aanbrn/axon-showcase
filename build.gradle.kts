@@ -632,6 +632,16 @@ tasks.register<Exec>("testReviewRouting") {
     commandLine(pythonExecutable, "scripts/test-review-routing.py")
 }
 
+tasks.register<Exec>("testPausedUnits") {
+    group = "verification"
+    description = "Runs the paused-unit resolver's tests"
+    inputs.file("scripts/paused-units.py")
+    inputs.file("scripts/commit-hygiene.py")
+    inputs.file("scripts/test-paused-units.py")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/test-paused-units.py")
+}
+
 tasks.register<Exec>("testReconnectMcp") {
     group = "verification"
     description = "Runs the MCP reconnect tool's tests"
@@ -747,9 +757,10 @@ tasks.register<Exec>("verifyIdeasSections") {
 
 tasks.register<Exec>("verifyWorkspaceRecords") {
     group = "verification"
-    description = "Verifies each live change's tasks.md records its workspace, and each archive after the gate's date"
+    description = "Verifies every unit record, each live change's reference to it, and each archive in scope"
     inputs.file("scripts/commit-hygiene.py")
     inputs.dir("openspec/changes")
+    inputs.dir("docs/units")
     outputs.upToDateWhen { false }
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--workspace-records")
 }
@@ -844,6 +855,7 @@ tasks.named("check") {
     dependsOn("testReviewRounds")
     dependsOn("testExperienceAnalysis")
     dependsOn("testReviewRouting")
+    dependsOn("testPausedUnits")
     dependsOn("testReconnectMcp")
     dependsOn("verifyTrackedIgnoredFiles")
     dependsOn("verifyConflictMarkers")

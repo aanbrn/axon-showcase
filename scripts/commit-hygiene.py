@@ -20,9 +20,10 @@ verifies the ledger's reviewer-session fields record each round's session and it
 verifies no tracked file exceeds the configured size limit; `--table-rows` verifies each markdown file it is given
 carries table rows whose cell count matches their delimiter row's; `--ideas-sections` verifies every dated section of
 `docs/ideas.md` carries an entry, failing when the file itself is missing — a judgment the guard applies to a staged
-copy through the same reporter; `--workspace-records` verifies each live change's `tasks.md` carries the unit's
-`Workspace:` record, and each archive dated at or after the gate's introduction, apart from one it acknowledges by name
-— the guard applies the same judgment to a staged copy and adds the tree and branch the record names; and
+copy through the same reporter; `--workspace-records` verifies every unit record at `docs/units/<unit>/unit.md`, each
+live change's reference to it, and each archive in scope — judged by its inline record or by its reference according to
+its date, apart from one it acknowledges by name — the guard applies the same judgment to a staged copy and adds the tree
+and branch the record names; and
 `--class-vocabulary` verifies every class in a review-round row dated after the
 digest script's canonical boundary is one the reviewer's definition names, reading both rather than restating either,
 and exempting only a label a class-acknowledgement comment names on that row.
@@ -96,8 +97,27 @@ WORKSPACE_MARKER = "Workspace:"
 WORKSPACE_FIELDS = ("unit", "path", "branch", "writer")
 WORKSPACE_WRITER_RE = re.compile(r"^ses_[A-Za-z0-9]+$")
 WORKSPACE_MARKER_RE = re.compile(r"^`?Workspace:")
+# A record ends at the next field or heading, so `State: active` on the following line is not part of a value.
+RECORD_FIELD_RE = re.compile(r"^[A-Za-z][A-Za-z ]*:")
 WORKSPACE_RECORD_ARCHIVE_SINCE = "2026-11-02"
 ACKNOWLEDGED_RECORDLESS_ARCHIVES: dict[str, str] = {}
+# A unit's own record: its workspace, state, and pause checkpoint (ADR-0029). `UNIT_RECORD_SINCE` is the boundary from
+# which an archive is judged by its reference to that record instead of the fields inside its `tasks.md`; a boundary-dated
+# archive that landed before the record is acknowledged by name and keeps its inline record.
+UNIT_RECORD_DIR = "docs/units"
+UNIT_RECORD_BASENAME = "unit.md"
+UNIT_RECORD_SINCE = "2026-11-03"
+ACKNOWLEDGED_UNIT_RECORD_ARCHIVES: dict[str, str] = {
+    directory: "landed before the unit record existed; its inline record stands"
+    for directory in (
+        "2026-11-03-adopt-branch-refresh-role",
+        "2026-11-03-adopt-remaining-guidance-roles",
+        "2026-11-03-adopt-spec-delta-role",
+        "2026-11-03-classify-actionlint-required",
+        "2026-11-03-require-marker-ends-rule",
+        "2026-11-03-verify-doctor-install-hints",
+    )
+}
 TASK_LINE_RE = re.compile(r"^[ \t]*(?:[-*+]|\d{1,9}[.)])[ \t]+\[(?P<mark>[^\]]{0,1})\](?!\()")
 CHANGES_PREFIX = "openspec/changes/"
 SPECS_PREFIX = "openspec/specs/"
@@ -1642,16 +1662,56 @@ def staged_change_name(path: str) -> Optional[str]:
     return None
 
 
-def archived_change_out_of_scope(directory: str) -> bool:
-    """Whether an archived change is outside this verification's scope: dated before the boundary, or acknowledged.
+def archive_record_contract(directory: str) -> str:
+    """Which contract an archived change is judged by: "exempt", "inline", or "reference".
 
     One predicate serves both entry points, so the build check and the guard cannot disagree about which archive they
-    judge. A name that carries no date is no archived change and is outside the predicate's subject.
+    judge. An archive dated before the gate's introduction, and one the gate acknowledges as record-less, is exempt; an
+    archive dated on or after the record boundary is judged by its reference, apart from a boundary-dated one that landed
+    before the change, which keeps its inline record. A name that carries no date is no archived change.
     """
     match = ARCHIVED_CHANGE_RE.match(directory)
     if match is None:
+        return "exempt"
+    date = match.group("date")
+    if date < WORKSPACE_RECORD_ARCHIVE_SINCE or directory in ACKNOWLEDGED_RECORDLESS_ARCHIVES:
+        return "exempt"
+    if date >= UNIT_RECORD_SINCE and directory not in ACKNOWLEDGED_UNIT_RECORD_ARCHIVES:
+        return "reference"
+    return "inline"
+
+
+def archived_change_out_of_scope(directory: str) -> bool:
+    """Whether an archived change is outside this verification's scope; a non-archive path is not an archived change."""
+    if ARCHIVED_CHANGE_RE.match(directory) is None:
         return False
-    return match.group("date") < WORKSPACE_RECORD_ARCHIVE_SINCE or directory in ACKNOWLEDGED_RECORDLESS_ARCHIVES
+    return archive_record_contract(directory) == "exempt"
+
+
+def unit_record_relative(unit: str) -> str:
+    """The unit's record path, relative to the repository root."""
+    return "{0}/{1}/{2}".format(UNIT_RECORD_DIR, unit, UNIT_RECORD_BASENAME)
+
+
+def unit_record_units(repo: Path) -> list[str]:
+    """Every unit whose record exists, named by its own directory."""
+    root = repo / UNIT_RECORD_DIR
+    if not root.is_dir():
+        return []
+    return sorted(entry.name for entry in root.iterdir() if entry.is_dir() and (entry / UNIT_RECORD_BASENAME).is_file())
+
+
+def find_invalid_unit_records(repo: Path) -> list[tuple[str, str]]:
+    """The (path, defect) of each unit record the verification rejects, judged against its directory's name."""
+    offenders: list[tuple[str, str]] = []
+    for unit in unit_record_units(repo):
+        path = unit_record_relative(unit)
+        fields, reason = parse_workspace_record((repo / path).read_text(encoding="utf-8"))
+        if reason is not None:
+            offenders.append((path, reason))
+        elif fields["unit"] != unit:
+            offenders.append((path, "'unit' names '{0}', not the directory's '{1}'".format(fields["unit"], unit)))
+    return offenders
 
 
 def staged_archive_directory(path: str) -> str:
@@ -1661,20 +1721,32 @@ def staged_archive_directory(path: str) -> str:
     return path[len(ARCHIVE_PREFIX) :].split("/", 1)[0]
 
 
+def staged_unit_record(path: str) -> Optional[str]:
+    """The unit a staged record belongs to, or None for a path outside `docs/units/<unit>/unit.md`."""
+    if not path.startswith(UNIT_RECORD_DIR + "/") or not path.endswith("/" + UNIT_RECORD_BASENAME):
+        return None
+    return path[len(UNIT_RECORD_DIR) + 1 : -len("/" + UNIT_RECORD_BASENAME)]
+
+
 def check_staged_workspace_records(repo: Path, paths: Sequence[str]) -> int:
     """The guard's judgment over the staged set: the build check's rule and scope, plus the tree and branch it names.
 
+    A staged unit record is judged against the tree, branch, and unit it names. A staged `tasks.md` is judged by its
+    reference when the unit record exists, and by the fields it carries otherwise, so a unit in flight keeps committing.
     An archive dated before the boundary, or one the acknowledgement names, is outside the same scope the build check
-    applies, so an edit to history is not re-judged. A record a merge brings unchanged is exempt, since merged content
-    is not the committing unit's own. The branch comparison is skipped on a detached head, which is git's answer rather
-    than a failed read; an unreadable top level or branch raises, which `main` reports as the check having failed.
+    applies, so an edit to history is not re-judged. A record a merge brings unchanged is exempt, since merged content is
+    not the committing unit's own. The branch comparison is skipped on a detached head, which is git's answer rather than
+    a failed read; an unreadable top level or branch raises, which `main` reports as the check having failed.
     """
     staged = [
         path
         for path in paths
-        if (path.startswith(CHANGES_PREFIX) or path.startswith(ARCHIVE_PREFIX))
-        and path.endswith(ARCHIVED_TASKS_BASENAME)
-        and not archived_change_out_of_scope(staged_archive_directory(path))
+        if (staged_unit_record(path) is not None)
+        or (
+            (path.startswith(CHANGES_PREFIX) or path.startswith(ARCHIVE_PREFIX))
+            and path.endswith(ARCHIVED_TASKS_BASENAME)
+            and not archived_change_out_of_scope(staged_archive_directory(path))
+        )
     ]
     if not staged:
         return 0
@@ -1685,10 +1757,37 @@ def check_staged_workspace_records(repo: Path, paths: Sequence[str]) -> int:
     for path in staged:
         if revisions and merge_carries_unchanged(repo, path, revisions):
             continue
+        unit = staged_unit_record(path)
+        if unit is not None:
+            fields, reason = parse_workspace_record(staged_file_text(repo, path))
+            if reason is not None:
+                offenders.append((path, reason))
+                continue
+            if fields["unit"] != unit:
+                offenders.append((path, "'unit' names '{0}', not the directory's '{1}'".format(fields["unit"], unit)))
+                continue
+            if fields["path"].rstrip("/") != toplevel:
+                offenders.append(
+                    (path, "'path' names '{0}', not the worktree's '{1}'".format(fields["path"], toplevel))
+                )
+                continue
+            if branch and fields["branch"] != branch:
+                offenders.append((path, "'branch' names '{0}', not '{1}'".format(fields["branch"], branch)))
+            continue
         name = staged_change_name(path)
         if name is None:
             continue
-        fields, reason = parse_workspace_record(staged_file_text(repo, path))
+        text = staged_file_text(repo, path)
+        archived = path.startswith(ARCHIVE_PREFIX)
+        contract = archive_record_contract(staged_archive_directory(path)) if archived else "live"
+        record = unit_record_relative(name)
+        if contract == "reference" or (contract == "live" and (repo / record).is_file()):
+            if record not in text:
+                offenders.append((path, "no reference to the unit record: {0}".format(record)))
+            elif any(WORKSPACE_MARKER_RE.match(line) for line in text.splitlines()):
+                offenders.append((path, "the record's fields are copied here as well as referenced"))
+            continue
+        fields, reason = parse_workspace_record(text)
         if reason is not None:
             offenders.append((path, reason))
             continue
@@ -1727,7 +1826,7 @@ def parse_workspace_record(text: str) -> tuple[dict[str, str], Optional[str]]:
         return {}, "no {0} record".format(WORKSPACE_MARKER)
     collected: list[str] = []
     for line in lines[start:]:
-        if collected and not line.strip():
+        if collected and (not line.strip() or RECORD_FIELD_RE.match(line) or line.startswith("#")):
             break
         collected.append(line.strip())
     record = " ".join(collected).strip().strip("`").strip()
@@ -1777,10 +1876,25 @@ def workspace_record_paths(repo: Path) -> list[tuple[str, str]]:
 
 
 def find_invalid_workspace_records(repo: Path) -> list[tuple[str, str]]:
-    """The (path, defect) of each record the workspace-record verification rejects."""
+    """The (path, defect) of each `tasks.md` the workspace-record verification rejects.
+
+    A change whose unit record exists is judged by its reference to that record; one without a record is still judged by
+    the fields it carries, so a unit in flight before the move keeps committing. An archive is judged by the contract its
+    date selects, and a reference contract requires the record it names to be present.
+    """
     offenders: list[tuple[str, str]] = []
     for path, name in workspace_record_paths(repo):
-        fields, reason = parse_workspace_record((repo / path).read_text(encoding="utf-8"))
+        text = (repo / path).read_text(encoding="utf-8")
+        archived = path.startswith(ARCHIVE_PREFIX)
+        contract = archive_record_contract(staged_archive_directory(path)) if archived else "live"
+        record = unit_record_relative(name)
+        if contract == "reference" or (contract == "live" and (repo / record).is_file()):
+            if record not in text:
+                offenders.append((path, "no reference to the unit record: {0}".format(record)))
+            elif any(WORKSPACE_MARKER_RE.match(line) for line in text.splitlines()):
+                offenders.append((path, "the record's fields are copied here as well as referenced"))
+            continue
+        fields, reason = parse_workspace_record(text)
         if reason is not None:
             offenders.append((path, reason))
         elif fields["unit"] != name:
@@ -1795,9 +1909,50 @@ def report_invalid_workspace_records(offenders: list[tuple[str, str]]) -> int:
     return len(offenders)
 
 
+def assigned_unit(repo: Path) -> Optional[str]:
+    """The unit this tree is assigned to: its claim's change, a change-named branch, or any other named branch.
+
+    A detached head and the primary's `main` name no unit, so neither is an assignment to assert.
+    """
+    claim = claim_file(repo)
+    recorded = None
+    if claim.is_file():
+        lines = [line.strip() for line in claim.read_text(encoding="utf-8").splitlines() if line.strip()]
+        recorded = lines[0] if len(lines) == 1 else None
+    if recorded and recorded != CLAIM_NONE:
+        return recorded
+    branch = current_branch(repo)
+    if not branch or branch in ("main", "master"):
+        return None
+    if branch in change_names(repo):
+        return branch
+    for unit in unit_record_units(repo):
+        fields, _ = parse_workspace_record((repo / unit_record_relative(unit)).read_text(encoding="utf-8"))
+        if fields.get("branch") == branch:
+            return unit
+    if recorded == CLAIM_NONE:
+        return branch
+    return None
+
+
+def find_missing_assignments(repo: Path) -> list[tuple[str, str]]:
+    """The unit record this tree's assignment requires, reported when neither it nor a legacy record exists."""
+    unit = assigned_unit(repo)
+    if unit is None:
+        return []
+    record = unit_record_relative(unit)
+    if (repo / record).is_file():
+        return []
+    tasks = repo / CHANGES_PREFIX / unit / "tasks.md"
+    if tasks.is_file():
+        return []
+    return [(record, "the unit's record is missing for the unit this tree is assigned to")]
+
+
 def check_workspace_records(repo: Path) -> int:
-    """Verify every live change's record, and every archive dated at or after the boundary."""
-    return report_invalid_workspace_records(find_invalid_workspace_records(repo))
+    """Verify every unit record, every live change's record or reference, every archive in scope, and the assignment."""
+    offenders = find_invalid_unit_records(repo) + find_invalid_workspace_records(repo) + find_missing_assignments(repo)
+    return report_invalid_workspace_records(offenders)
 
 
 def check_idea_sections(repo: Path) -> int:

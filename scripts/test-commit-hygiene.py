@@ -3450,12 +3450,14 @@ class WorkspaceRecordTests(unittest.TestCase):
 
     def test_a_tree_with_no_change_directory_passes(self):
         repo = make_repo(self)
+        write_claim(repo, "none")
         (repo / "openspec" / "changes").mkdir(parents=True)
 
         self.assertEqual((0, ""), self._check(repo))
 
     def test_a_change_without_tasks_is_not_judged(self):
         repo = make_repo(self)
+        write_claim(repo, "none")
         (repo / "openspec" / "changes" / "unit-a").mkdir(parents=True)
 
         self.assertEqual(0, self._check(repo)[0])
@@ -3486,6 +3488,7 @@ class WorkspaceRecordTests(unittest.TestCase):
 
     def test_an_archive_before_the_boundary_passes(self):
         repo = make_repo(self)
+        write_claim(repo, "none")
         self._archive(repo, "2026-01-01-demo", "no record here")
 
         self.assertEqual(0, self._check(repo)[0])
@@ -3654,6 +3657,228 @@ MODE_TEST_COVERAGE = {
     "--class-vocabulary": ("ClassVocabularyTests", "find_unknown_classes"),
     "--workspace-records": ("WorkspaceRecordTests", "check_workspace_records"),
 }
+
+
+class UnitRecordTests(unittest.TestCase):
+    """The unit record at `docs/units/<unit>/unit.md`, the `tasks.md` reference to it, and the archive boundary."""
+
+    def _git(self, repo: Path, *args: str) -> str:
+        return subprocess.run(("git", *args), cwd=repo, capture_output=True, text=True, check=True).stdout.strip()
+
+    def _record(self, repo: Path, directory: str, **overrides: str) -> str:
+        fields = {
+            "unit": directory,
+            "path": self._git(repo, "rev-parse", "--show-toplevel"),
+            "branch": self._git(repo, "symbolic-ref", "--short", "HEAD"),
+            "writer": "ses_abc123",
+        }
+        fields.update(overrides)
+        return "Workspace: unit={unit}; path={path}; branch={branch}; writer={writer}".format(**fields)
+
+    def _repo(self, unit: str = "unit-a", state: str | None = "active") -> Path:
+        repo = make_repo(self)
+        write_claim(repo, unit)
+        change = repo / "openspec" / "changes" / unit
+        change.mkdir(parents=True)
+        (change / "tasks.md").write_text(
+            "# Tasks\n\nThe unit record is `docs/units/{0}/unit.md`.\n".format(unit), encoding="utf-8"
+        )
+        self._write_unit_record(repo, unit, state=state)
+        return repo
+
+    def _write_unit_record(self, repo: Path, directory: str, state: str | None = "active", **overrides: str) -> Path:
+        place = repo / "docs" / "units" / directory
+        place.mkdir(parents=True, exist_ok=True)
+        path = place / "unit.md"
+        text = "# Unit: {0}\n\n{1}\n".format(directory, self._record(repo, directory, **overrides))
+        if state is not None:
+            text += "\nState: {0}\n".format(state)
+        path.write_text(text, encoding="utf-8")
+        return path
+
+    def _check(self, repo: Path) -> tuple[int, str]:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--workspace-records", "--repo", str(repo)])
+        return code, stderr.getvalue()
+
+    def _guard(self, repo: Path, paths: list[str]) -> tuple[int, str]:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.check_staged_workspace_records(repo, paths)
+        return code, stderr.getvalue()
+
+    def _archive(self, repo: Path, directory: str, text: str) -> str:
+        path = repo / "openspec" / "changes" / "archive" / directory / "tasks.md"
+        path.parent.mkdir(parents=True)
+        path.write_text(text, encoding="utf-8")
+        return "openspec/changes/archive/{0}/tasks.md".format(directory)
+
+    def test_a_unit_record_passes(self):
+        repo = self._repo()
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_a_live_change_with_a_record_must_reference_it(self):
+        repo = self._repo()
+        (repo / "openspec/changes/unit-a/tasks.md").write_text("# Tasks\n\nnothing\n", encoding="utf-8")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("no reference to the unit record", stderr)
+
+    def test_a_unit_record_naming_another_unit_fails(self):
+        repo = self._repo()
+        self._write_unit_record(repo, "unit-a", unit="other")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/units/unit-a/unit.md", stderr)
+
+    def test_a_legacy_tasks_record_still_passes(self):
+        repo = make_repo(self)
+        write_claim(repo, "unit-a")
+        change = repo / "openspec" / "changes" / "unit-a"
+        change.mkdir(parents=True)
+        (change / "tasks.md").write_text(
+            "# Tasks\n\nWorkspace: unit=unit-a; path={0}; branch={1}; writer=ses_abc123\n".format(
+                self._git(repo, "rev-parse", "--show-toplevel"), self._git(repo, "symbolic-ref", "--short", "HEAD")
+            ),
+            encoding="utf-8",
+        )
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_an_archive_after_the_record_boundary_requires_a_reference(self):
+        repo = self._repo()
+        path = self._archive(repo, "2026-11-04-archived-unit", "# Tasks\n\nWorkspace: unit=archived-unit; path=/x; branch=y; writer=ses_abc123\n")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn(path, stderr)
+
+    def test_an_acknowledged_boundary_archive_keeps_its_inline_record(self):
+        repo = self._repo()
+        directory = "2026-11-03-require-marker-ends-rule"
+        self._archive(
+            repo,
+            directory,
+            "# Tasks\n\nWorkspace: unit=require-marker-ends-rule; path=/x; branch=y; writer=ses_abc123\n",
+        )
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_a_missing_record_for_an_assigned_unit_fails(self):
+        repo = make_repo(self)
+        write_claim(repo, "unit-a")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/units/unit-a/unit.md", stderr)
+
+    def test_a_tasks_md_carrying_the_fields_and_the_reference_fails(self):
+        repo = self._repo()
+        (repo / "openspec/changes/unit-a/tasks.md").write_text(
+            "# Tasks\n\nThe record is `docs/units/unit-a/unit.md`.\n\n" + self._record(repo, "unit-a") + "\n",
+            encoding="utf-8",
+        )
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("copied here as well as referenced", stderr)
+
+    def test_a_reference_naming_another_unit_fails(self):
+        repo = self._repo()
+        (repo / "openspec/changes/unit-a/tasks.md").write_text(
+            "# Tasks\n\nThe record is `docs/units/other/unit.md`.\n", encoding="utf-8"
+        )
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("no reference to the unit record", stderr)
+
+    def test_a_record_without_a_blank_line_before_its_state_passes(self):
+        repo = self._repo()
+        (repo / "docs/units/unit-a/unit.md").write_text(
+            "# Unit: unit-a\n\n{0}\nState: active\n".format(self._record(repo, "unit-a")), encoding="utf-8"
+        )
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_a_continued_branch_without_a_claim_is_not_assigned_by_its_name(self):
+        repo = make_repo(self)
+        subprocess.run(("git", "checkout", "-q", "-b", "opencode/123"), cwd=repo, check=True)
+        write_claim(repo, "none")
+        self._write_unit_record(repo, "alpha", branch="opencode/123")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_a_deleted_record_for_a_no_change_unit_still_fails(self):
+        repo = make_repo(self)
+        subprocess.run(("git", "checkout", "-q", "-b", "docs-only"), cwd=repo, check=True)
+        write_claim(repo, "none")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/units/docs-only/unit.md", stderr)
+
+    def test_a_malformed_record_field_fails(self):
+        repo = self._repo()
+        self._write_unit_record(repo, "unit-a", path="relative/path")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("a relative 'path'", stderr)
+
+    def test_the_guard_refuses_a_record_naming_another_tree(self):
+        repo = self._repo()
+        path = "docs/units/unit-a/unit.md"
+        self._write_unit_record(repo, "unit-a", path="/somewhere/else")
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+
+        code, stderr = self._guard(repo, [path])
+
+        self.assertEqual(1, code)
+        self.assertIn("'path' names '/somewhere/else'", stderr)
+
+    def test_the_guard_judges_a_staged_unit_record(self):
+        repo = self._repo()
+        path = "docs/units/unit-a/unit.md"
+        self._write_unit_record(repo, "unit-a", branch="another-branch")
+        subprocess.run(("git", "add", "--", path), cwd=repo, check=True)
+
+        code, stderr = self._guard(repo, [path])
+
+        self.assertEqual(1, code)
+        self.assertIn("'branch' names 'another-branch'", stderr)
+
+    def test_the_guard_refuses_a_reference_less_live_change(self):
+        repo = self._repo()
+        (repo / "openspec/changes/unit-a/tasks.md").write_text("# Tasks\n\nnothing\n", encoding="utf-8")
+        subprocess.run(("git", "add", "--", "openspec/changes/unit-a/tasks.md"), cwd=repo, check=True)
+
+        code, stderr = self._guard(repo, ["openspec/changes/unit-a/tasks.md"])
+
+        self.assertEqual(1, code)
+        self.assertIn("no reference to the unit record", stderr)
 
 
 class ModeCoverageTests(unittest.TestCase):

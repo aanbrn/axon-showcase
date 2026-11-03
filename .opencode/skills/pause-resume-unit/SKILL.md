@@ -1,16 +1,16 @@
 ---
 name: pause-resume-unit
 description:
-  The pause-and-resume procedure for a unit of work — the `Resume checkpoint` recorded before work stops, and the
-  verification, writer handover, and restored decision a session owes before it continues an unfinished unit. Load it
-  before a pause and before continuing one, whether or not a pause was announced.
+  The pause-and-resume procedure for a unit of work — the `Resume checkpoint` recorded before work stops, the unit
+  record's state, and the verification, writer handover, unit resolution, and restored decision a session owes before it
+  continues an unfinished unit. Load it before a pause and before continuing one, whether or not a pause was announced.
 ---
 
 # Pausing and resuming a unit
 
-The procedure the lifecycle the bindings declare triggers. This skill owns the `Resume checkpoint`'s field set, the
-pause's steps, and the resume's steps; the lifecycle and the review gate the bindings declare own the approval stop and
-the gate's entry point, and this skill adds no permission of its own.
+The procedure the lifecycle the bindings declare triggers. This skill owns the unit record's pause fields, the pause's
+steps, and the resume's steps; the lifecycle and the review gate the bindings declare own the approval stop and the
+gate's entry point, and this skill adds no permission of its own.
 
 Before using a binding — the lifecycle, the review gate, the review ledger, the workspace record, the change artifacts,
 or the prior finding instances — read `docs/contracts/process-bindings.md`; it declares this repository's values.
@@ -19,24 +19,37 @@ or the prior finding instances — read `docs/contracts/process-bindings.md`; it
 unit in this session; or a session continues an unfinished unit, whether a pause was announced or the unit was simply
 left waiting, and whether it invokes `/resume-unit` or not.
 
+## The unit record
+
+A unit has one record at `docs/units/<unit>/unit.md`, and it is the only authority for the unit's workspace, state, and
+pause (ADR-0029).
+
+- Its `Workspace:` line binds the tree, branch, and writer.
+- Its `State:` line holds `active`, `paused`, or `closed`.
+- Its `Resume checkpoint` section holds the pause's fields.
+- A change's `tasks.md` references the record; it carries no copy of those fields.
+
+A record without a state, or a record still inside a change's `tasks.md`, is **legacy**: it reads as unknown, never as a
+pause, and it blocks the automatic choice until the unit mints its record.
+
 ## 1. Pausing
 
 **Procedure**
 
 1. Finish the operation in hand at a boundary — a command, an edit, a review round — and start nothing new.
-2. Write the unit's `Resume checkpoint` in the unit's own record: its `tasks.md` when it has a change dir, otherwise its
-   hand-off. Create it once and update it in place; never append a second section.
+2. Write the unit's `Resume checkpoint` in the unit record, and set its `State:` line to `paused`; a record the unit has
+   not minted yet is written first, at the boundary, never in the middle of an edit.
 3. Fill the field set below.
 4. Read the record back and fix what it does not say.
-5. End the turn with the pause reported: name the saved `Resume checkpoint` and the tree, state the next step, and tell
-   the owner to continue in a new session with `/resume-unit`.
+5. End the turn with the pause reported: name the saved `Resume checkpoint`, the unit, and the tree, state the next
+   step, and tell the owner to continue in a new session with `/resume-unit <unit>`.
 
 **The field set**
 
 | Field                       | What it states                                                                                                                                                   |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Time and revision           | When the pause was recorded, and the revision observed (`git rev-parse HEAD`)                                                                                    |
-| Workspace                   | The unit's `Workspace:` record — its path, branch, and writer                                                                                                    |
+| Workspace                   | A pointer to the record's `Workspace:` line — never a copy of its writer                                                                                         |
 | Stage                       | Where the unit is: the proposal, a review round, the implementation, the record, the generalization, the manual pass, or shipping                                |
 | Next step                   | One step, specific enough that a session can start it without re-deriving the plan                                                                               |
 | Change set                  | What `git status` showed — the staged, unstaged, and untracked sets, with nothing cleaned up                                                                     |
@@ -73,38 +86,62 @@ left waiting, and whether it invokes `/resume-unit` or not.
 
 **Procedure**
 
-1. Read this skill, the lifecycle the bindings declare, and the unit's `Resume checkpoint` when it exists.
-2. Establish which unit continues: read its `Workspace:` record for the tree, branch, and writer, then confirm the live
-   state — absolute path, branch, revision, and the staged, unstaged, and untracked set.
-3. Compare that live state with the checkpoint when there is one; without one, state what no record holds as unrecovered
-   and continue from the artifacts that do.
-4. Hand the writer role over when this session is not the writer the record names: take the owner's confirmation —
+1. Read this skill, the lifecycle the bindings declare, and the unit record when one exists.
+2. Establish the unit.
+   - A unit the request names is resolved by `python3 scripts/paused-units.py --unit <unit>`: exactly one registered
+     tree assigns it, from the record whose `path` and `branch` name that tree.
+   - Otherwise run `python3 scripts/paused-units.py` and read its document.
+   - IF it is incomplete, or it carries any `unknown` entry, THEN end the turn: report what is unresolved and continue
+     nothing, because the set of paused units is not established.
+   - IF it carries one candidate, THEN continue it. Several are presented with their trees and end the turn for the
+     owner's choice. None is reported and the turn ends.
+   - The document's `selectable` flag says the same thing for this bare form: a caller continues nothing where it is
+     false.
+   - A named resolution reads `assignments`, not `candidates`: in that mode `selectable` means exactly one tree assigns
+     the unit, and that assignment is what the resume continues or migrates.
+3. Confirm the tree the resolution named: read the record's `Workspace:` line, then the live state — absolute path,
+   branch, revision, and the staged, unstaged, and untracked set. A session in another tree moves there (`session_move`)
+   only after the resolution, and re-verifies the path and branch afterwards.
+4. Compare that live state with the record's `Resume checkpoint` when it exists; without one, state what no record holds
+   as unrecovered and continue from the artifacts that do.
+5. Hand the writer role over when this session is not the writer the record names: take the owner's confirmation —
    carried by the continuation request when it says the prior writer ended, asked for otherwise — then record this
-   session as the writer in the unit's `Workspace:` record.
-5. Reclassify the resumed work's decisions and state the `Packs:` line, per `AGENTS.md`'s subject-pack table.
-6. Read the records the stage needs: the review rounds in the review ledger the bindings declare, the change dir's
+   session as the writer in the record's `Workspace:` line.
+6. Migrate a legacy unit, if the record is still inside its `tasks.md`, in that unit's own tree: read the legacy record,
+   verify the tree, establish the handover, write `docs/units/<unit>/unit.md`, carry its checkpoint across unchanged,
+   remove the fields from `tasks.md` leaving the reference, and verify both sides with no second live record. A resume
+   that stops before the handover migrates nothing.
+7. Reclassify the resumed work's decisions and state the `Packs:` line, per `AGENTS.md`'s subject-pack table.
+8. Read the records the stage needs: the review rounds in the review ledger the bindings declare, the change dir's
    artifacts, and the finding instances the checkpoint preserves from the prior round's report.
-7. For each operation the record lists as in flight — or one the live state shows as interrupted — establish its outcome
+9. For each operation the record lists as in flight — or one the live state shows as interrupted — establish its outcome
    before relying on it or re-running it.
-8. Restore what the unit was waiting on: a decision the owner has not answered stays open, and an answer the request
-   carries is applied rather than asked for again.
-9. Continue at the recorded next step, or end the turn with the question the unit is waiting on.
+10. Restore what the unit was waiting on: a decision the owner has not answered stays open, and an answer the request
+    carries is applied rather than asked for again.
+11. Set the record's `State:` line to `active` only at the point the work continues, after the verification and the
+    handover; the checkpoint is frozen there as the pause's snapshot, and a later pause replaces it.
+12. Continue at the recorded next step, or end the turn with the question the unit is waiting on.
 
 **Decision points**
 
 - The state verification is read-only and comes first; the writer handover is the first write the resume makes, and no
   work write precedes it.
+- Membership comes from the record's `path` and `branch`; the tree's claim is consulted only to contradict them, never
+  to establish the unit's name. A unit without a change directory resolves the same way, its claim being `none`.
+- A working tree matching the record is not evidence that the prior writer ended: ADR-0024 records that nothing binds a
+  write to a session.
 - A handover does not depend on a checkpoint existing: a unit left waiting with neither a pause nor a checkpoint still
   hands over.
-- A handover is a discipline, not a mechanism: ADR-0024 records that nothing binds a write to a session, so a matching
-  tree is not evidence that the prior writer ended.
+- The name establishes the unit to continue; it establishes neither the writer handover nor an answer to a pending
+  decision.
 - No replacement reviewer session is started because of a pause; the review gate's own recovery cases govern that.
 - A resume does not lift an approval its continuation request does not answer.
 - A bare resume request is neither a writer confirmation nor an answer to a pending decision.
+- A closed record with no tree assigning it is not reopened.
 
 **Failure handling**
 
-- IF the live state disagrees with the checkpoint, THEN stop and report the disagreement; do not repair the tree.
+- IF the live state disagrees with the record, THEN stop and report the disagreement; do not repair the tree.
 - IF the record names no writer, or a handover is required and its confirmation is not given, THEN stop for the owner's
   decision and write no work in the tree; no build or container must be stopped for that decision.
 - IF the live state shows an interrupted operation the record does not list, THEN treat its outcome as unknown and
@@ -116,8 +153,10 @@ left waiting, and whether it invokes `/resume-unit` or not.
 
 ## Completion criteria
 
-A pause is complete when the `Resume checkpoint` is written, re-read, and reported, and no delivery state changed.
+A pause is complete when the record carries the checkpoint and `paused`, it is read back and reported with the unit and
+the tree, and no delivery state changed.
 
-A resume is complete when the state has been verified; the writer handover is established, already held because this
-session is the recorded writer, or asked of the owner; the packs are reloaded; and the work has continued at the
-recorded step or the unit's question is back with the owner.
+A resume is complete when the unit is established; the state has been verified; the writer handover is established,
+already held because this session is the recorded writer, or asked of the owner; a legacy record is migrated or the
+resume stopped before the handover; the packs are reloaded; and the work has continued with the record `active`, or the
+unit's question is back with the owner.

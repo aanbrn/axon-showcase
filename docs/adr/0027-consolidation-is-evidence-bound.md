@@ -79,3 +79,11 @@ One Consequences statement is already superseded, and this amendment records it 
   pause for that unit the same day, and `adopt-heading-roles` is the first change admitted under this criterion: it
   names thirteen commands by path, adopts the roles in that change, and records what stops being component-specific with
   the obligations the review preserved. The sentence remains accurate for any consolidation not admitted this way.
+
+## Amendment — 2026-11-03
+
+One Context statement is qualified, and this amendment records it without reopening the Decision.
+
+- The Context says the pause was "lifted … by explicit instruction, for one unit and the first consolidation" and that
+  "unrelated parked moves remain paused". Its scope is now stated by ADR-0025's 2026-11-03 amendment, which this
+  decision does not restate. This decision's criterion continues to govern every consolidation, adoption included.

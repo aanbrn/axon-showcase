@@ -109,15 +109,20 @@ its format.
      session-continuity failure if they differ; start a replacement only after the invocation you are replacing has
      produced one of the recovery cases the rule names, recording the concrete reason and both identifiers — the failed
      session and its replacement's — before you replace; and bound each invocation with a deadline your policy supplies,
-     recording the invocation's hand-over **before** you wait on it. A reviewer invocation cannot be cancelled and
-     reports nothing while it runs, so a stall is recovered from that record rather than from the stalled session. The
-     rule, its recovery cases, the record's contract, the deadline's source, and the hand-over's fields are
-     `showcase/quality/agent-skills`'s and the review ledger's, not restated here. Do not restart the quick reviewer to
-     obtain an independent screen, including at the proposal-to-implementation boundary: independence is not a recovery
-     case. IF no permitted recovery case is evidenced, THEN stop before starting a replacement and report the blocker —
-     never select an allowed reason merely to satisfy the ledger checker; IF an unsupported restart has already
-     occurred, THEN preserve the invocation evidence, record the continuity violation, and stop the gate for the owner's
-     recovery decision.
+     recording the invocation's hand-over **before** you wait on it, at `docs/units/<unit>/review-handover.md` — one
+     section per quick-review invocation appended to the unit's file.
+   - A hand-over recorded before that location existed is read where it was recorded, in the change directory or its
+     archive.
+   - The unit's missing file is not evidence that no earlier invocation happened.
+   - The deep review's hand-over stays `/review-thorough`'s.
+   - A reviewer invocation cannot be cancelled and reports nothing while it runs, so a stall is recovered from that
+     record rather than from the stalled session. The rule, its recovery cases, the record's contract, the deadline's
+     source, and the hand-over's fields are `showcase/quality/agent-skills`'s and the review ledger's, not restated
+     here. Do not restart the quick reviewer to obtain an independent screen, including at the
+     proposal-to-implementation boundary: independence is not a recovery case. IF no permitted recovery case is
+     evidenced, THEN stop before starting a replacement and report the blocker — never select an allowed reason merely
+     to satisfy the ledger checker; IF an unsupported restart has already occurred, THEN preserve the invocation
+     evidence, record the continuity violation, and stop the gate for the owner's recovery decision.
    - **Run** — `review-quick` against the change's planning artifacts: for the proposal round, the
      proposal/design/tasks/spec-delta coherence and repo fit; for the implementation round, the tasks and delta spec.
      For a generalizing unit, supply the process-defect records it analyzes, the existing rules each proposal names (or

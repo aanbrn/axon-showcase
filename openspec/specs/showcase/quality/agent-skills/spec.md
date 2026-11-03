@@ -1865,11 +1865,15 @@ continuity violation rather than as a permitted replacement.
 - **AND** the only cases that justify a replacement are: the prior session expired, the reviewer's definition changed
   after that session began, or the reviewer stopped responding mid-round (the loop has observed a session stall with no
   reply, which no wait resolves)
-- **AND** the handover it gives the replacement is the record it wrote **before** waiting — the unit's identity, its
-  base and current revisions, the unit's assigned working tree and branch, the supplied artifacts, the scope, the prior
-  findings with their instance-level evidence, the completed checks, and the known limitations — so the context a
-  replacement needs never depends on the stalled invocation reporting, and cancelling it loses no progress that record
-  does not already hold
+- **AND** the handover it gives the replacement is the record it wrote **before** waiting, at
+  `docs/units/<unit>/review-handover.md` in the section for that invocation — the unit's identity, its base and current
+  revisions, the unit's assigned working tree and branch, the supplied artifacts, the scope, the prior findings with
+  their instance-level evidence, the completed checks, and the known limitations — so the context a replacement needs
+  never depends on the stalled invocation reporting, and cancelling it loses no progress that record does not already
+  hold
+- **AND** a hand-over recorded before the per-unit location existed is read where it was recorded, in the change
+  directory or its archive
+- **AND** the unit's missing file is not evidence that no earlier invocation happened
 - **AND** the deadline comes from the invocation or the caller's policy, never a universal figure stated as a measured
   fact, because no measurement of a reviewer's duration is reproducible from the repository
 - **AND** the replacement reviews the current state independently, treating the handover as context rather than as proof

@@ -65,7 +65,9 @@ install_hint() {
     case "$platform:$tool" in
     macos:java) echo "brew install --cask temurin@21, or SDKMAN" ;;
     macos:docker) echo "Docker Desktop, or brew install colima docker" ;;
-    macos:compose) echo "Docker Desktop, or brew install docker-compose" ;;
+    macos:compose) echo "Docker Desktop, or brew install docker-compose, symlinked to" \
+        "~/.docker/cli-plugins/docker-compose" ;;
+
     macos:actionlint) echo "brew install actionlint" ;;
     macos:pack) echo "brew install buildpacks/tap/pack" ;;
     macos:helm) echo "brew install helm" ;;
@@ -76,7 +78,7 @@ install_hint() {
     macos:opencode) echo "brew install anomalyco/tap/opencode-v2, or https://opencode.ai/v2" ;;
     macos:ast-grep) echo "brew install ast-grep" ;;
     debian:java) echo "sudo apt install openjdk-21-jdk, or SDKMAN" ;;
-    debian:docker) echo "sudo apt install docker.io docker-compose-v2" ;;
+    debian:docker) echo "sudo apt install docker.io" ;;
     debian:compose) echo "sudo apt install docker-compose-v2" ;;
     debian:actionlint) echo "go install github.com/rhysd/actionlint/cmd/actionlint@latest, or a release binary" ;;
     debian:pack) echo "a release binary from buildpacks/pack" ;;

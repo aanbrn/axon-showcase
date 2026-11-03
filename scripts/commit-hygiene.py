@@ -74,6 +74,16 @@ class GitFailure(CheckFailure):
 class FileFailure(CheckFailure):
     """A file a check cannot measure, which it reports rather than skipping."""
 LEAD_RE = re.compile(r"^(- |\*\*)")
+# The line begins a bullet, a numbered step, a bold-lead paragraph, a heading, a table row, or a fence, so it starts a
+# block of its own rather than carrying on the one above it.
+PARAGRAPH_START_RE = re.compile(r"^(?:\s*(?:[-*+] |\d+[.)] )|\*\*|#|\||```|~~~)")
+MARKDOWN_FENCE_RE = re.compile(r"^\s*(?:```|~~~)")
+# The marker chain that must end a rule: one or more `captured: <name>` tokens, each name optionally wrapped onto the
+# next line and optionally followed by a `(#NNN)` citation.
+CHAIN_END_RE = re.compile(r"(?:captured:\s+[\w.-]+(?:\s*\(#\d+\))?\s*)+$")
+# An `evidence:` tag line follows a rule's chain in the documentation rating; it is provenance, not rule text.
+EVIDENCE_TAG_RE = re.compile(r"^\s*evidence:")
+INLINE_CODE_RE = re.compile(r"`[^`]*`")
 CONFLICT_MARKER_RE = r"^(<<<<<<< |>>>>>>> )"
 VENDORED_SKILL_PREFIXES = (".opencode/skills/ast-grep/", ".opencode/skills/axon4to5-", ".opencode/skills/openspec-")
 ARCHIVE_PREFIX = "openspec/changes/archive/"
@@ -562,23 +572,95 @@ def marker_paths(repo: Path) -> list[str]:
 
 
 def find_misplaced_markers(text: str) -> list[tuple[int, str]]:
+    """The markers that are not the trailing provenance of their rule, with the line each sits on.
+
+    A marker belongs to the nearest bold-lead rule above it and must end the bullet or paragraph it sits in: the block
+    from that block's first line to its end, at the next bullet, numbered step, bold-lead paragraph, heading, table row,
+    fence, or blank line. The text from the marker to the block's end therefore has to parse as a marker chain, apart
+    from trailing blank lines and an `evidence:` tag line. A marker followed by more of its block reads as part of the
+    sentence around it, which is the defect this verification exists for. A marker inside a fenced block is not rule
+    prose and is not judged, whether it annotates a command example or records the origin of a command block's comment
+    guidance.
+    """
     lines = text.split("\n")
     leads = [i for i, line in enumerate(lines) if LEAD_RE.match(line)]
     offenders = []
+    fenced = False
     for number, line in enumerate(lines):
-        for match in re.finditer(re.escape(MARKER), line):
-            if match.start() > 0 and line[match.start() - 1] == "`":
+        if MARKDOWN_FENCE_RE.match(line):
+            fenced = not fenced
+            continue
+        if fenced:
+            continue
+        for column in _marker_matches(line):
+            if _rule_lead(lines, leads, number) is None:
+                offenders.append((number + 1, line.strip()))
                 continue
-            if line[match.end() :].startswith("`"):
-                continue
-            if not _marker_is_in_rule_block(lines, leads, number):
+            chain = _trailing_chain_start(lines, *_own_block_bounds(lines, number))
+            if chain is None or (number, column) < chain:
                 offenders.append((number + 1, line.strip()))
     return offenders
 
 
-def _marker_is_in_rule_block(lines: list[str], leads: list[int], number: int) -> bool:
+def _marker_matches(line: str) -> list[int]:
+    """The columns of the line's `captured:` markers, skipping a token quoted as inline code."""
+    columns = []
+    for match in re.finditer(re.escape(MARKER), line):
+        if match.start() > 0 and line[match.start() - 1] == "`":
+            continue
+        if line[match.end() :].startswith("`"):
+            continue
+        columns.append(match.start())
+    return columns
+
+
+def _rule_lead(lines: list[str], leads: list[int], number: int) -> int | None:
+    """The bold-lead line of the rule the line belongs to, or None when the nearest block above it is not a rule."""
     lead = next((i for i in reversed(leads) if i <= number), None)
-    return lead is not None and lines[lead].startswith(("- **", "**"))
+    if lead is None or not lines[lead].startswith(("- **", "**")):
+        return None
+    return lead
+
+
+def _own_block_bounds(lines: list[str], number: int) -> tuple[int, int]:
+    """The (first, end-exclusive) lines of the bullet or paragraph the line sits in."""
+    first = number
+    while first > 0 and _continues(lines[first - 1]):
+        first -= 1
+    last = number + 1
+    while last < len(lines) and _continues(lines[last]):
+        last += 1
+    return first, last
+
+
+def _continues(line: str) -> bool:
+    """Whether the line carries on the block above it: not a bullet, step, heading, fence, table row, or blank line."""
+    return bool(line.strip()) and not PARAGRAPH_START_RE.match(line)
+
+
+def _trailing_chain_start(lines: list[str], first: int, last: int) -> tuple[int, int] | None:
+    """The (line, column) where the block's trailing marker chain begins, or None when no chain ends the block.
+
+    Trailing blank lines and `evidence:` tag lines are the chain's trailer, so they are dropped before the chain is
+    read. Inline code is blanked rather than removed, so a backticked mention cannot match the chain and every column
+    stays aligned with the line it was measured on.
+    """
+    while last > first:
+        line = lines[last - 1]
+        if not line.strip() or EVIDENCE_TAG_RE.match(line):
+            last -= 1
+            continue
+        break
+    if last == first:
+        return None
+    block = "\n".join(lines[first:last])
+    text = INLINE_CODE_RE.sub(lambda match: " " * len(match.group(0)), block)
+    chain = CHAIN_END_RE.search(text)
+    if chain is None:
+        return None
+    line_offset = first + text[: chain.start()].count("\n")
+    column_offset = chain.start() - (text.rfind("\n", 0, chain.start()) + 1)
+    return line_offset, column_offset
 
 
 def formatter_owned(paths: list[str]) -> list[str]:

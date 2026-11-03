@@ -92,13 +92,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   and Helm 3 declares it `Ignored.`, so the option cannot work with any client the plugin supports. The proposal reads
   the registered repositories and fails the task instead. The build does not set the option.
 
-- Make `--markers` require that a marker ends its rule, not only that it sits inside one — parked; no change yet.
-  `commit-hygiene.py`'s `_marker_is_in_rule_block` accepts a `captured:` marker anywhere within a bold-lead block, so a
-  marker inserted mid-rule passes green while reading as part of the sentence around it; this unit introduced one that
-  way and its round 2 caught it, not the gate. The check could require the marker chain to be the last text before the
-  rule's next sibling, or that no prose follows a marker inside the block. Surfaced by the
-  `annotate-the-reviewer-wrapper-recurrence` unit's round 2.
-
 - Read a changed procedure's narrative, not only its name — parked; no change yet. When `#706` added the branch-refresh
   step and `#707` added the base check, the README's manual-review paragraph kept saying only that the agent stages the
   new files, and a name search for `origin/main` hit the `/sync-branch` table row and read as coverage. A candidate rule

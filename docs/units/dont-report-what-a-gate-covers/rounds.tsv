@@ -1,0 +1,8 @@
+2026-10-14	dont-report-what-a-gate-covers	1	claims-table-source,contradiction,missing-task,boundary,claims-table-omission	-	3
+2026-10-14	dont-report-what-a-gate-covers	2	task-state,missing-record,incomplete-enumeration	-	3
+2026-10-14	dont-report-what-a-gate-covers	3	boundary,claims-table-omission	boundary,claims-table-omission	1
+2026-10-14	dont-report-what-a-gate-covers	4	boundary,claims-table-source	boundary,claims-table-source	2
+2026-10-14	dont-report-what-a-gate-covers	5	claims-table-omission	claims-table-omission	1
+2026-10-14	dont-report-what-a-gate-covers	6	claims-table-omission,claims-table-source	claims-table-omission,claims-table-source	2
+2026-10-14	dont-report-what-a-gate-covers	7	claims-table-omission,claims-table-source	claims-table-omission,claims-table-source	2
+2026-10-14	dont-report-what-a-gate-covers	8	-	-	0

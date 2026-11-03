@@ -8,13 +8,14 @@ Revisit when **any** of the following is met — each alone reopens this decisio
 admission and authorizes no consolidation:
 
 - **A review record shows an otherwise justified consolidation excluded by one clause of this criterion** — that clause
-  may then be too strict (internal trigger: the unit's `docs/review-rounds.tsv` rows and its archived `design.md`).
+  may then be too strict (internal trigger: the unit's `docs/units/<unit>/rounds.tsv` rows and its archived
+  `design.md`).
 - **ADR-0025's `Revisit when:` clauses are met** — this criterion's scope then has to be reconciled with that ADR's,
   which may revise one of the clauses; the mechanism's own decision still governs its admission (internal trigger: that
   ADR's own list).
 - **A consolidation shipped without a named adopting component is later shown necessary** — the named-adopter clause may
   then be narrowed, never the evidence clause (internal trigger: that unit's archived `design.md` and its
-  `docs/review-rounds.tsv` rows).
+  `docs/units/<unit>/rounds.tsv` rows).
 
 ## Context
 

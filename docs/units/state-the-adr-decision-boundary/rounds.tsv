@@ -1,0 +1,7 @@
+2026-10-30	state-the-adr-decision-boundary	1	impact-omission,coherence,contradiction,single-sourcing,structured-writing	-	2	ses_e760a602fffeH8uHMELRKAZFfG	created	-
+2026-10-30	state-the-adr-decision-boundary	2	coherence	coherence	0	ses_e760a602fffeH8uHMELRKAZFfG	continued	-
+2026-10-30	state-the-adr-decision-boundary	3	coherence	coherence	0	ses_e760a602fffeH8uHMELRKAZFfG	continued	-
+2026-10-30	state-the-adr-decision-boundary	4	staging	-	1	ses_e760a602fffeH8uHMELRKAZFfG	continued	-
+# --- Acknowledged class: state-the-adr-decision-boundary round 4 staging - the round's report was never
+# --- reconstructed; its defect record describes the stale index without a canonical class.
+2026-10-30	state-the-adr-decision-boundary	5	-	-	0	ses_e760a602fffeH8uHMELRKAZFfG	continued	-

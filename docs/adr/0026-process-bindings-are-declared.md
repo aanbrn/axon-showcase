@@ -18,13 +18,13 @@ Revisit when **any** of the following is met — each alone would change this de
 
 ADR-0025 §4 deferred the path and heading abstraction: "The path and heading bindings stay explicit; abstracting them is
 later work, not this decision." The two reuse pilots measured what that later work must cover. The pause/resume slice
-mapped six identifier/path bindings — the review ledger (`docs/review-rounds.tsv`), the lifecycle heading, the
-review-gate heading, the `Workspace:` record, the review gate's handover rule, and its approval stop — and the
-lesson-capture slice mapped the review ledger among its six mappings. The change-artifacts role comes from this
-repository's pause/resume skill, which reads the change dir's artifacts. The pilot's handover-rule and approval-stop
-bindings are folded into the prior-findings and review-gate roles' referenced owners, so the transition from the pilot's
-six bindings to the declaration's six roles is explicit. The subject-pack table and the ADR citation were missing
-contracts, not locations.
+mapped six identifier/path bindings — the review ledger (`docs/review-rounds.tsv`; now per unit, see Amendment —
+2026-11-03), the lifecycle heading, the review-gate heading, the `Workspace:` record, the review gate's handover rule,
+and its approval stop — and the lesson-capture slice mapped the review ledger among its six mappings. The
+change-artifacts role comes from this repository's pause/resume skill, which reads the change dir's artifacts. The
+pilot's handover-rule and approval-stop bindings are folded into the prior-findings and review-gate roles' referenced
+owners, so the transition from the pilot's six bindings to the declaration's six roles is explicit. The subject-pack
+table and the ADR citation were missing contracts, not locations.
 
 The bindings are not interchangeable strings. The prior finding instances have no fixed filename: they come from the
 prior review round's report and survive context loss through the `Resume checkpoint`'s `Findings no record holds` field
@@ -87,3 +87,14 @@ One statement above is replaced, and this amendment records it without reopening
   recurrence routing.
 - The `Revisit when:` clause reading "the six roles may then be confirmed or revised" therefore now applies to seven; a
   reader holding this file's conditions against the repository counts the declaration's rows, not the sentence above.
+
+## Amendment — 2026-11-03
+
+One Context statement's location changed, and this amendment records it without reopening the Decision.
+
+- The Context above names the review ledger as `docs/review-rounds.tsv`. The ledger is now the set of per-unit records
+  at `docs/units/<unit>/rounds.tsv`, and the `review-ledger` binding's value names that set. The record format is owned
+  by the `showcase/quality/commit-hygiene` requirement "The review-round record format is stated once", so the binding's
+  owner cell names the requirement rather than a file header.
+- The Decision stands unchanged: the ledger's location is bound, not its format, and the role remains one of the
+  declaration's roles.

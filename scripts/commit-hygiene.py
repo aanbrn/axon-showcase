@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Check commit hygiene: the staged set, `captured:` marker placement, and the tracked set.
 
-The `--staged` mode is the pre-commit guard: it refuses a mechanically defective staged set, including a staged
-review-round ledger whose checks fail or that loses a row. The complete list of its refusals is the
+The `--staged` mode is the pre-commit guard: it refuses a mechanically defective staged set, including staged
+review-round records whose checks fail or that lose a row. The complete list of its refusals is the
 `showcase/quality/commit-hygiene` spec's: the pre-commit requirement's own set, and the workspace record's judgment it
 also applies. This docstring states only that a mode exists and what it is for. The
 `--markers` mode checks marker placement in the working-tree guidance files; the `--tracked-ignored`,
@@ -13,10 +13,10 @@ the commit's own merge accounts for, whose content is not the commit's own; `--u
 verifies the workflow
 `cron` schedules do not collide; `--unique-change-names` verifies no two archived change directories carry one change
 name, which is the directory's own name with one leading `YYYY-MM-DD-` segment removed, apart from the one historical
-pair it acknowledges; `--unique-rounds` verifies the review-round ledger carries one row per unit and
-round, that each unit's rounds are contiguous from 1, that a round named with `--expect` is recorded, and that a unit
+pair it acknowledges; `--unique-rounds` verifies each unit's review-round record carries at most one row per round, that
+each unit's rounds are contiguous from 1, that a round named with `--expect` is recorded, and that a unit
 named with `--expect-clean` closes on a round carrying no finding class (both need that mode); `--session-continuity`
-verifies the ledger's reviewer-session fields record each round's session and its transition; `--large-files`
+verifies each record's reviewer-session fields record each round's session and its transition; `--large-files`
 verifies no tracked file exceeds the configured size limit; `--table-rows` verifies each markdown file it is given
 carries table rows whose cell count matches their delimiter row's; `--ideas-sections` verifies every dated section of
 `docs/ideas.md` carries an entry, failing when the file itself is missing — a judgment the guard applies to a staged
@@ -46,7 +46,7 @@ import subprocess
 import sys
 from datetime import date
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Mapping, Optional, Sequence
 
 # The shared vocabulary module sits beside this script; load it by that path, whatever the caller's working
 # directory or import route.
@@ -106,6 +106,8 @@ ACKNOWLEDGED_RECORDLESS_ARCHIVES: dict[str, str] = {}
 # archive that landed before the record is acknowledged by name and keeps its inline record.
 UNIT_RECORD_DIR = "docs/units"
 UNIT_RECORD_BASENAME = "unit.md"
+# Each unit's review-round rows live beside its record, in the same directory.
+ROUND_RECORD_BASENAME = "rounds.tsv"
 UNIT_RECORD_SINCE = "2026-11-03"
 ACKNOWLEDGED_UNIT_RECORD_ARCHIVES: dict[str, str] = {
     directory: "landed before the unit record existed; its inline record stands"
@@ -172,11 +174,10 @@ SESSION_REPLACEMENT_REASONS = (
 # and the reason.
 SESSION_ROW_FIELDS = 9
 
-# The review-round ledger the class-vocabulary check reads and the digest script that owns the canonical boundary. The
-# canonical list itself is `review_vocabulary`'s, imported above.
-LEDGER_PATH = "docs/review-rounds.tsv"
+# The digest script that owns the canonical class boundary. The canonical list itself is `review_vocabulary`'s,
+# imported above.
 REVIEW_ROUNDS_SCRIPT = "scripts/review-rounds.py"
-# The ledger's two class columns, in the order its header states them.
+# The records' two class columns, in the order the format states them.
 LEDGER_CLASS_COLUMNS = (("classes raised", 3), ("classes that repeated", 4))
 # A class recorded before this check landed, whose round's report was never reconstructed, is acknowledged by a comment
 # naming the unit, the round, and the label, so the exemption covers one label on one row rather than a unit or a label.
@@ -187,6 +188,11 @@ ACKNOWLEDGED_CLASS_RE = re.compile(
 # The ledger's row width before the session fields were appended. A row above the boundary whose field count is not
 # this means the boundary was moved past a row the fields apply to, which would exempt that row silently.
 SESSION_PRE_FIELDS = 6
+
+# The last day a round row was recorded without the session fields. A record whose rows all predate them is one of the
+# split's historical records and is read as exempt; a six-field row dated later is missing the fields and fails, so the
+# exemption cannot be claimed by writing the old width today.
+PRE_SESSION_FIELDS_THROUGH = date(2026, 10, 18)
 
 
 def git(repo: Path, *args: str) -> subprocess.CompletedProcess:
@@ -978,23 +984,39 @@ def check_staged(repo: Path, formatter: list[str]) -> int:
         failures += 1
         print(f"An archived change's task is not ticked ({kind}): {path}:{line}: {content}", file=sys.stderr)
 
-    ledger = "docs/review-rounds.tsv"
-    ledger_removed = bool(
-        git_output(repo, "diff", "--cached", "--name-status", "--diff-filter=DR", "--", ledger).strip()
+    record_paths = {
+        path.split("/")[-2]: path
+        for path in paths
+        if re.fullmatch(re.escape(UNIT_RECORD_DIR) + r"/[^/]+/" + re.escape(ROUND_RECORD_BASENAME), path)
+    }
+    removed_records: set[str] = set()
+    status = git_output(
+        repo, "diff", "--cached", "--name-status", "-z", "--diff-filter=DR", "--", UNIT_RECORD_DIR
     )
-    if ledger in paths or ledger_removed:
-        absent = ledger_removed and ledger not in paths
-        staged_ledger = "" if absent else staged_file_text(repo, ledger)
-        if not absent:
-            try:
-                failures += check_unique_review_rounds(repo, text=staged_ledger)
-                failures += check_session_continuity(repo, text=staged_ledger)
-            except ValueError as failure:
-                failures += 1
-                print(
-                    "The review-round ledger ({0}) cannot be checked: {1}".format(ledger, failure), file=sys.stderr
-                )
-        failures += check_ledger_preservation(repo, staged_ledger)
+    tokens = [token for token in status.split("\0") if token]
+    index = 0
+    while index < len(tokens):
+        code = tokens[index]
+        source = tokens[index + 1] if index + 1 < len(tokens) else ""
+        # A rename lists its source then its destination; only the source's rows leave the unit they were filed under.
+        index += 3 if code.startswith(("R", "C")) else 2
+        if source.endswith("/" + ROUND_RECORD_BASENAME):
+            removed_records.add(source.split("/")[-2])
+    if record_paths or removed_records:
+        staged_records = {unit: staged_file_text(repo, path) for unit, path in sorted(record_paths.items())}
+        try:
+            failures += check_unique_review_rounds(repo, records=staged_records)
+            failures += check_session_continuity(repo, records=staged_records)
+        except ValueError as failure:
+            failures += 1
+            print("The staged review-round records cannot be checked: {0}".format(failure), file=sys.stderr)
+        affected = sorted(set(staged_records) | removed_records)
+        before = predecessor_records(repo, affected) or {}
+        effective = dict(before)
+        effective.update(staged_records)
+        for unit in removed_records:
+            effective.pop(unit, None)
+        failures += check_ledger_preservation(repo, effective, before)
 
     failures += check_staged_idea_sections(repo, paths)
 
@@ -1279,18 +1301,59 @@ def check_unique_crons(repo: Path) -> int:
     return len(collisions)
 
 
-def ledger_source(repo: Path, text: str | None = None) -> str:
-    """The ledger's text: the supplied one, or the repository file's.
+def round_record_paths(repo: Path) -> dict[str, Path]:
+    """Each unit's round record path, keyed by the unit whose directory holds it."""
+    root = repo / UNIT_RECORD_DIR
+    if not root.is_dir():
+        return {}
+    return {path.parent.name: path for path in sorted(root.glob("*/" + ROUND_RECORD_BASENAME))}
 
-    `None` reads the repository file, and `""` is an empty ledger, so a caller that judged the staged content never
-    falls back to the working tree.
+
+def round_records(repo: Path, records: Mapping[str, str] | None = None) -> dict[str, str]:
+    """Each unit's record text, keyed by unit.
+
+    A supplied mapping is judged as-is, so the guard judges staged content and never falls back to the working tree.
     """
-    if text is not None:
-        return text
-    ledger = repo / "docs" / "review-rounds.tsv"
-    if not ledger.is_file():
-        return ""
-    return ledger.read_text(encoding="utf-8")
+    if records is not None:
+        return dict(records)
+    return {unit: path.read_text(encoding="utf-8") for unit, path in round_record_paths(repo).items()}
+
+
+def record_label(unit: str) -> str:
+    """The repository path a message names for a unit's round record."""
+    return UNIT_RECORD_DIR + "/" + unit + "/" + ROUND_RECORD_BASENAME
+
+
+def record_data_rows(unit: str, text: str) -> list[tuple[int, list[str]]]:
+    """One record's data rows with their line numbers."""
+    rows: list[tuple[int, list[str]]] = []
+    for number, line in enumerate(text.splitlines(), start=1):
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        fields = line.split("\t")
+        if len(fields) < 3:
+            continue
+        if not fields[2].isdigit():
+            raise ValueError(
+                "{0}:{1}: unit '{2}' has a non-numeric round '{3}': the round column must be a number".format(
+                    record_label(unit), number, fields[1], fields[2]
+                )
+            )
+        rows.append((number, fields))
+    return rows
+
+
+def find_misfiled_rows(records: Mapping[str, str]) -> list[tuple[str, int, str]]:
+    """The (directory unit, line, recorded unit) rows filed under another unit's directory."""
+    misfiled: list[tuple[str, int, str]] = []
+    for unit, text in sorted(records.items()):
+        for number, line in enumerate(text.splitlines(), start=1):
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            fields = line.split("\t")
+            if len(fields) >= 2 and fields[1] != unit:
+                misfiled.append((unit, number, fields[1]))
+    return misfiled
 
 
 def ledger_row_keys(text: str) -> tuple[set[tuple[str, str]], list[str]]:
@@ -1310,70 +1373,67 @@ def ledger_row_keys(text: str) -> tuple[set[tuple[str, str]], list[str]]:
     return keys, malformed
 
 
-def find_duplicate_review_rounds(repo: Path, text: str | None = None) -> list[tuple[str, str, int, int]]:
-    """The duplicated (unit, round) rows in the review-round ledger, with both line numbers.
+def find_duplicate_review_rounds(
+    repo: Path, records: Mapping[str, str] | None = None
+) -> list[tuple[str, str, int, int]]:
+    """The duplicated (unit, round) rows in the records, each with the file's two line numbers.
 
-    The ledger declares one row per review round and `scripts/experience-analysis.sh` sums a column, so a duplicate
+    A record declares one row per round and `scripts/experience-analysis.sh` sums a column, so a duplicate
     double-counts a round. Its leading `#` lines are comments, and a row whose pair is absent is not a pair.
     """
-    first_seen: dict[tuple[str, str], int] = {}
     duplicates: list[tuple[str, str, int, int]] = []
-    for number, line in enumerate(ledger_source(repo, text).splitlines(), start=1):
-        if not line.strip() or line.lstrip().startswith("#"):
-            continue
-        fields = line.split("\t")
-        if len(fields) < 3:
-            continue
-        key = (fields[1], fields[2])
-        if key in first_seen:
-            duplicates.append((key[0], key[1], first_seen[key], number))
-        else:
-            first_seen[key] = number
+    for unit, text in sorted(round_records(repo, records).items()):
+        first_seen: dict[tuple[str, str], int] = {}
+        for number, line in enumerate(text.splitlines(), start=1):
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            fields = line.split("\t")
+            if len(fields) < 3:
+                continue
+            key = (fields[1], fields[2])
+            if key in first_seen:
+                duplicates.append((key[0], key[1], first_seen[key], number))
+            else:
+                first_seen[key] = number
     return duplicates
 
 
-def ledger_data_rows(repo: Path, text: str | None = None) -> list[list[str]]:
-    """The ledger's data rows, comment and blank lines dropped, so every reader parses and validates it once."""
+def ledger_data_rows(repo: Path, records: Mapping[str, str] | None = None) -> list[list[str]]:
+    """Every record's data rows, comment and blank lines dropped, so every reader parses and validates them once."""
     rows: list[list[str]] = []
-    for line in ledger_source(repo, text).splitlines():
-        if not line.strip() or line.lstrip().startswith("#"):
-            continue
-        fields = line.split("\t")
-        if len(fields) < 3:
-            continue
-        if not fields[2].isdigit():
-            raise ValueError(
-                "unit '{0}' has a non-numeric round '{1}': the ledger's round column must be a number".format(
-                    fields[1], fields[2]
-                )
-            )
-        rows.append(fields)
+    for unit, text in sorted(round_records(repo, records).items()):
+        rows.extend(fields for _, fields in record_data_rows(unit, text))
     return rows
 
 
-def ledger_rounds(repo: Path, text: str | None = None) -> dict[str, set[int]]:
-    """The recorded round numbers per unit, from the ledger's data rows."""
+def ledger_rounds(repo: Path, records: Mapping[str, str] | None = None) -> dict[str, set[int]]:
+    """The recorded round numbers per unit, from the records' data rows."""
     rounds: dict[str, set[int]] = {}
-    for fields in ledger_data_rows(repo, text):
+    for fields in ledger_data_rows(repo, records):
         rounds.setdefault(fields[1], set()).add(int(fields[2]))
     return rounds
 
 
-def acknowledged_gaps(repo: Path, text: str | None = None) -> set[tuple[str, int]]:
-    """The (unit, round) gaps the ledger acknowledges as unrecoverable or as a misfiled deep pass."""
+def acknowledged_gaps(repo: Path, records: Mapping[str, str] | None = None) -> set[tuple[str, int]]:
+    """The (unit, round) gaps a record acknowledges as unrecoverable or as a misfiled deep pass.
+
+    Only a comment in the unit's own record counts, as the format requires, so a comment filed under another unit
+    exempts nothing.
+    """
     gaps: set[tuple[str, int]] = set()
-    for line in ledger_source(repo, text).splitlines():
-        match = ACKNOWLEDGED_GAP_RE.match(line.strip())
-        if match:
-            gaps.add((match.group("unit"), int(match.group("round"))))
+    for unit, text in round_records(repo, records).items():
+        for line in text.splitlines():
+            match = ACKNOWLEDGED_GAP_RE.match(line.strip())
+            if match and match.group("unit") == unit:
+                gaps.add((unit, int(match.group("round"))))
     return gaps
 
 
-def find_round_gaps(repo: Path, text: str | None = None) -> list[tuple[str, int]]:
+def find_round_gaps(repo: Path, records: Mapping[str, str] | None = None) -> list[tuple[str, int]]:
     """The (unit, missing round) pairs that break a unit's contiguity from 1, unacknowledged ones only."""
-    acknowledged = acknowledged_gaps(repo, text)
+    acknowledged = acknowledged_gaps(repo, records)
     gaps: list[tuple[str, int]] = []
-    for unit, recorded in sorted(ledger_rounds(repo, text).items()):
+    for unit, recorded in sorted(ledger_rounds(repo, records).items()):
         for number in range(1, max(recorded) + 1):
             if number not in recorded and (unit, number) not in acknowledged:
                 gaps.append((unit, number))
@@ -1381,10 +1441,10 @@ def find_round_gaps(repo: Path, text: str | None = None) -> list[tuple[str, int]
 
 
 def find_unrecorded_expected(
-    repo: Path, expected: Sequence[str], text: str | None = None
+    repo: Path, expected: Sequence[str], records: Mapping[str, str] | None = None
 ) -> list[tuple[str, int]]:
-    """The (unit, round) pairs named by the caller whose row the ledger does not carry."""
-    recorded = ledger_rounds(repo, text)
+    """The (unit, round) pairs named by the caller whose row the records do not carry."""
+    recorded = ledger_rounds(repo, records)
     missing: list[tuple[str, int]] = []
     for pair in expected:
         unit, _, number = pair.rpartition(":")
@@ -1406,11 +1466,11 @@ def parse_expected_clean(units: Sequence[str]) -> list[str]:
 
 
 def find_unclean_closing_rounds(
-    repo: Path, units: Sequence[str], text: str | None = None
+    repo: Path, units: Sequence[str], records: Mapping[str, str] | None = None
 ) -> list[tuple[str, str]]:
     """The (unit, reason) pairs for named units whose closing round is not recorded as clean."""
     rows: dict[str, list[list[str]]] = {}
-    for fields in ledger_data_rows(repo, text):
+    for fields in ledger_data_rows(repo, records):
         rows.setdefault(fields[1], []).append(fields)
     failures: list[tuple[str, str]] = []
     for unit in parse_expected_clean(units):
@@ -1427,31 +1487,39 @@ def find_unclean_closing_rounds(
 
 
 def check_unique_review_rounds(
-    repo: Path, expected: Sequence[str] = (), expect_clean: Sequence[str] = (), text: str | None = None
+    repo: Path, expected: Sequence[str] = (), expect_clean: Sequence[str] = (), records: Mapping[str, str] | None = None
 ) -> int:
-    """The ledger's duplicate pairs, contiguity gaps, expected-but-unrecorded rounds, and unclean closing rounds."""
+    """Each record's duplicate pairs, contiguity gaps, expected-but-unrecorded rounds, and unclean closing rounds."""
     failures = 0
-    for unit, round_number, first, second in find_duplicate_review_rounds(repo, text):
+    for unit, line, recorded_unit in find_misfiled_rows(round_records(repo, records)):
         print(
-            "Two review-round rows share unit '{0}' round {1}: lines {2} and {3}".format(
-                unit, round_number, first, second
+            "A review-round row in {0} names unit '{1}' at line {2}: a record carries only its own unit's rows".format(
+                record_label(unit), recorded_unit, line
             ),
             file=sys.stderr,
         )
         failures += 1
-    for unit, number in find_round_gaps(repo, text):
+    for unit, round_number, first, second in find_duplicate_review_rounds(repo, records):
+        print(
+            "Two review-round rows share unit '{0}' round {1}: {2} lines {3} and {4}".format(
+                unit, round_number, record_label(unit), first, second
+            ),
+            file=sys.stderr,
+        )
+        failures += 1
+    for unit, number in find_round_gaps(repo, records):
         print(
             "Unit '{0}' is missing round {1}: its rounds must be contiguous from 1".format(unit, number),
             file=sys.stderr,
         )
         failures += 1
-    for unit, number in find_unrecorded_expected(repo, expected, text):
+    for unit, number in find_unrecorded_expected(repo, expected, records):
         print(
             "Unit '{0}' has no row for round {1}, the round whose report arrived".format(unit, number),
             file=sys.stderr,
         )
         failures += 1
-    for unit, reason in find_unclean_closing_rounds(repo, expect_clean, text):
+    for unit, reason in find_unclean_closing_rounds(repo, expect_clean, records):
         print(
             "Unit '{0}' is named with --expect-clean, but {1}".format(unit, reason),
             file=sys.stderr,
@@ -1460,161 +1528,177 @@ def check_unique_review_rounds(
     return failures
 
 
-def session_rows(
-    repo: Path, text: str | None = None
-) -> tuple[bool, list[tuple[int, list[str]]], list[tuple[int, list[str]]]]:
-    """The ledger's data rows split at the session-fields boundary, plus whether that boundary is present.
-
-    The return is `(present, above, below)`, each row a (line number, fields) pair. A row is in scope once the ledger's
-    own boundary comment has been read; the rows above it predate the fields, so the continuity verification exempts
-    them rather than requiring an identifier the record cannot evidence — which is only sound while those rows carry the
-    pre-fields width.
-    """
-    above: list[tuple[int, list[str]]] = []
-    below: list[tuple[int, list[str]]] = []
-    seen_boundary = False
-    source = ledger_source(repo, text)
-    if not source:
-        return False, [], []
-    for number, line in enumerate(source.splitlines(), start=1):
-        if line.startswith(SESSION_FIELDS_MARKER):
-            seen_boundary = True
-            continue
-        if not line.strip() or line.lstrip().startswith("#"):
-            continue
-        (below if seen_boundary else above).append((number, line.split("\t")))
-    return seen_boundary, above, below
-
-
-def find_session_continuity_violations(repo: Path, text: str | None = None) -> list[str]:
-    """The reviewer-session continuity violations the ledger carries, each as a message naming its line.
+def find_session_continuity_violations(
+    repo: Path, records: Mapping[str, str] | None = None
+) -> list[str]:
+    """The reviewer-session continuity violations the records carry, each naming its file and line.
 
     The rule is per unit: the first row below the boundary creates the session, a later row whose identifier equals its
     preceding row's continues it, and a row whose identifier differs replaces it and must name one of the recorded
-    reasons. Distinct units may name distinct sessions. The verification validates the recorded fields; it does not
-    attest that a replacement's reason occurred.
+    reasons. A record carrying no boundary marker is read as having all its rows on the side its own rows show; one
+    holding both widths without the marker is a violation rather than a guess. The verification validates the recorded
+    fields; it does not attest that a replacement's reason occurred.
     """
-    present, above, rows = session_rows(repo, text)
-    if not present:
-        return ["the review-round ledger carries no '{0}' boundary comment".format(SESSION_FIELDS_MARKER)]
     violations: list[str] = []
-    for number, fields in above:
-        if len(fields) != SESSION_PRE_FIELDS:
-            violations.append(
-                "line {0}: a row above the session-fields boundary carries {1} field(s), not the {2} it carried before "
-                "the fields existed, so the boundary was moved past it".format(
-                    number, len(fields), SESSION_PRE_FIELDS
-                )
-            )
-    previous: dict[str, str] = {}
-    for number, fields in rows:
-        if len(fields) != SESSION_ROW_FIELDS:
-            violations.append(
-                "line {0}: a row below the session-fields boundary carries {1} field(s), not {2}".format(
-                    number, len(fields), SESSION_ROW_FIELDS
-                )
-            )
-            continue
-        unit, round_number = fields[1], fields[2]
-        session, transition, reason = fields[6], fields[7], fields[8]
-        if not session.strip() or session.strip() == "-":
-            violations.append(
-                "line {0}: unit '{1}' round {2} carries no session identifier".format(
-                    number, unit, round_number
-                )
-            )
-            continue
-        session = session.strip()
-        if transition not in SESSION_TRANSITIONS:
-            violations.append(
-                "line {0}: unit '{1}' round {2} carries transition '{3}', not one of {4}".format(
-                    number, unit, round_number, transition, ", ".join(SESSION_TRANSITIONS)
-                )
-            )
-            continue
-        if reason not in ("", "-") and transition != SESSION_REPLACED:
-            violations.append(
-                "line {0}: unit '{1}' round {2} carries reason '{3}' with the '{4}' transition, which is not a "
-                "replacement".format(number, unit, round_number, reason, transition)
-            )
-        prior = previous.get(unit)
-        if prior is None:
-            if transition != SESSION_CREATED:
+    for unit, source in sorted(round_records(repo, records).items()):
+        label = record_label(unit)
+        present = False
+        above: list[tuple[int, list[str]]] = []
+        below: list[tuple[int, list[str]]] = []
+        for number, line in enumerate(source.splitlines(), start=1):
+            if line.startswith(SESSION_FIELDS_MARKER):
+                present = True
+                continue
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            (below if present else above).append((number, line.split("\t")))
+        if not present:
+            widths = {len(fields) for _, fields in above}
+            if widths == {SESSION_ROW_FIELDS}:
+                below, above = above, []
+            elif not widths or widths == {SESSION_PRE_FIELDS}:
+                pass
+            else:
                 violations.append(
-                    "line {0}: unit '{1}' round {2} is the unit's first recorded row, so its transition must be "
-                    "'{3}', not '{4}'".format(number, unit, round_number, SESSION_CREATED, transition)
+                    "{0} carries rows on both sides of the session-fields boundary without its marker".format(label)
                 )
-        elif session == prior:
-            if transition != SESSION_CONTINUED:
+                continue
+        for number, fields in above:
+            if len(fields) != SESSION_PRE_FIELDS:
                 violations.append(
-                    "line {0}: unit '{1}' round {2} continues session '{3}', so its transition must be '{4}', not "
-                    "'{5}'".format(number, unit, round_number, session, SESSION_CONTINUED, transition)
+                    "{0}:{1}: a row above the session-fields boundary carries {2} field(s), not the {3} it carried "
+                    "before the fields existed, so the boundary was moved past it".format(
+                        label, number, len(fields), SESSION_PRE_FIELDS
+                    )
                 )
-        elif transition != SESSION_REPLACED:
-            violations.append(
-                "line {0}: unit '{1}' round {2} names session '{3}' where its preceding row named '{4}', without a "
-                "'{5}' transition".format(number, unit, round_number, session, prior, SESSION_REPLACED)
-            )
-        elif reason in ("", "-") or reason not in SESSION_REPLACEMENT_REASONS:
-            violations.append(
-                "line {0}: unit '{1}' round {2} replaces a session with reason '{3}', not one of {4}".format(
-                    number, unit, round_number, reason, ", ".join(SESSION_REPLACEMENT_REASONS)
+                continue
+            row_date = ledger_date(fields[0])
+            if row_date is None or row_date > PRE_SESSION_FIELDS_THROUGH:
+                violations.append(
+                    "{0}:{1} carries no session fields and is dated {2!r}: the fields are required for a row after "
+                    "{3}".format(label, number, fields[0], PRE_SESSION_FIELDS_THROUGH.isoformat())
                 )
-            )
-        previous[unit] = session
+        previous: str | None = None
+        for number, fields in below:
+            if len(fields) != SESSION_ROW_FIELDS:
+                violations.append(
+                    "{0}:{1}: a row below the session-fields boundary carries {2} field(s), not {3}".format(
+                        label, number, len(fields), SESSION_ROW_FIELDS
+                    )
+                )
+                continue
+            round_number = fields[2]
+            session, transition, reason = fields[6], fields[7], fields[8]
+            if not session.strip() or session.strip() == "-":
+                violations.append(
+                    "{0}:{1}: unit '{2}' round {3} carries no session identifier".format(
+                        label, number, unit, round_number
+                    )
+                )
+                continue
+            session = session.strip()
+            if transition not in SESSION_TRANSITIONS:
+                violations.append(
+                    "{0}:{1}: unit '{2}' round {3} carries transition '{4}', not one of {5}".format(
+                        label, number, unit, round_number, transition, ", ".join(SESSION_TRANSITIONS)
+                    )
+                )
+                continue
+            if reason not in ("", "-") and transition != SESSION_REPLACED:
+                violations.append(
+                    "{0}:{1}: unit '{2}' round {3} carries reason '{4}' with the '{5}' transition, which is not a "
+                    "replacement".format(label, number, unit, round_number, reason, transition)
+                )
+            if previous is None:
+                if transition != SESSION_CREATED:
+                    violations.append(
+                        "{0}:{1}: unit '{2}' round {3} is the unit's first recorded row, so its transition must be "
+                        "'{4}', not '{5}'".format(label, number, unit, round_number, SESSION_CREATED, transition)
+                    )
+            elif session == previous:
+                if transition != SESSION_CONTINUED:
+                    violations.append(
+                        "{0}:{1}: unit '{2}' round {3} continues session '{4}', so its transition must be '{5}', not "
+                        "'{6}'".format(label, number, unit, round_number, session, SESSION_CONTINUED, transition)
+                    )
+            elif transition != SESSION_REPLACED:
+                violations.append(
+                    "{0}:{1}: unit '{2}' round {3} names session '{4}' where its preceding row named '{5}', without a "
+                    "'{6}' transition".format(label, number, unit, round_number, session, previous, SESSION_REPLACED)
+                )
+            elif reason in ("", "-") or reason not in SESSION_REPLACEMENT_REASONS:
+                violations.append(
+                    "{0}:{1}: unit '{2}' round {3} replaces a session with reason '{4}', not one of {5}".format(
+                        label, number, unit, round_number, reason, ", ".join(SESSION_REPLACEMENT_REASONS)
+                    )
+                )
+            previous = session
     return violations
 
 
-def predecessor_ledger_text(repo: Path) -> str | None:
-    """`HEAD`'s review-round ledger, or None when HEAD or the ledger is absent.
+def predecessor_records(repo: Path, units: Sequence[str] | None = None) -> dict[str, str] | None:
+    """`HEAD`'s round records for `units` (all records when None), keyed by unit, or None when HEAD is absent.
 
-    An unborn HEAD and a ledger absent at HEAD are legitimate (a first commit, a first ledger); a failed inspection is
-    a read failure that raises, so an unreadable predecessor is never mistaken for an absent one.
+    An unborn HEAD is legitimate (a first commit); a failed inspection is a read failure that raises, so an unreadable
+    predecessor is never mistaken for an absent one. A caller naming units reads only those blobs, so a check of a few
+    staged records costs a few reads rather than one per record in the corpus.
     """
     if git(repo, "rev-parse", "--verify", "--quiet", "HEAD").returncode != 0:
         return None
-    listing = git(repo, "ls-tree", "-z", "HEAD", "--", "docs/review-rounds.tsv")
+    listing = git(repo, "ls-tree", "-r", "-z", "--name-only", "HEAD", "--", UNIT_RECORD_DIR)
     if listing.returncode != 0:
-        raise CheckFailure("cannot inspect the predecessor ledger: {0}".format(listing.stderr.strip()))
-    if not listing.stdout.strip("\0"):
-        return None
-    return git_output(repo, "show", "HEAD:docs/review-rounds.tsv")
+        raise CheckFailure("cannot inspect the predecessor records: {0}".format(listing.stderr.strip()))
+    wanted = set(units) if units is not None else None
+    records: dict[str, str] = {}
+    for path in listing.stdout.split("\0"):
+        if not path.endswith("/" + ROUND_RECORD_BASENAME):
+            continue
+        unit = path.split("/")[-2]
+        if wanted is not None and unit not in wanted:
+            continue
+        records[unit] = git_output(repo, "show", "HEAD:" + path)
+    return records
 
 
-def check_ledger_preservation(repo: Path, staged_text: str) -> int:
-    """Refuse a staged ledger whose rows the commit removes without a surviving (unit, round) row.
+def check_ledger_preservation(
+    repo: Path, records: Mapping[str, str], before: Mapping[str, str] | None = None
+) -> int:
+    """Refuse a commit whose records remove a (unit, round) row without a surviving one in that unit.
 
-    The comparison is against the parent commit's ledger, so a duplicated row's repair passes (its key survives) while
-    a removed highest row, a unit's whole set, or a deleted or renamed-away ledger fails.
+    The comparison is per unit against the parent commit's records, so a duplicated row's repair passes (its key
+    survives) while a removed highest row, a deleted or renamed-away record, or a unit's whole set fails. A supplied
+    `before` is the predecessor of the units under judgment, so the caller that already read them reads them once.
     """
-    before = predecessor_ledger_text(repo)
     if before is None:
-        return 0
-    before_keys, malformed = ledger_row_keys(before)
-    after_keys, unparseable = ledger_row_keys(staged_text)
+        before = predecessor_records(repo) or {}
     failures = 0
-    if unparseable:
-        print(
-            "Review-round row preservation was not assessed until the staged ledger's parsing is repaired",
-            file=sys.stderr,
-        )
-        return failures
-    for line in malformed:
-        failures += 1
-        print("A removed review-round row cannot be identified: {0}".format(line), file=sys.stderr)
-    for unit, round_number in sorted(before_keys - after_keys):
-        failures += 1
-        print(
-            "A review-round row is removed and no row keeps unit '{0}' round {1}: the ledger is append-only".format(
-                unit, round_number
-            ),
-            file=sys.stderr,
-        )
+    for unit, text in sorted(before.items()):
+        before_keys, malformed = ledger_row_keys(text)
+        after_text = records.get(unit)
+        after_keys, unparseable = ledger_row_keys(after_text) if after_text is not None else (set(), [])
+        if unparseable:
+            print(
+                "Review-round row preservation was not assessed for {0} until its parsing is repaired".format(
+                    record_label(unit)
+                ),
+                file=sys.stderr,
+            )
+            continue
+        for line in malformed:
+            failures += 1
+            print("A removed review-round row cannot be identified: {0}".format(line), file=sys.stderr)
+        for _, round_number in sorted(before_keys - after_keys, key=lambda key: int(key[1])):
+            failures += 1
+            print(
+                "A review-round row is removed and no row keeps unit '{0}' round {1}: the records are "
+                "append-only".format(unit, round_number),
+                file=sys.stderr,
+            )
     return failures
 
 
-def check_session_continuity(repo: Path, text: str | None = None) -> int:
-    violations = find_session_continuity_violations(repo, text)
+def check_session_continuity(repo: Path, records: Mapping[str, str] | None = None) -> int:
+    violations = find_session_continuity_violations(repo, records)
     for violation in violations:
         print("Review-round session continuity: {0}".format(violation), file=sys.stderr)
     return len(violations)
@@ -2032,7 +2116,7 @@ def review_rounds_boundary(repo: Path) -> date:
 
 
 def acknowledged_class_triples(text: str) -> set[tuple[str, int, str]]:
-    """The (unit, round, label) triples the ledger's acknowledgement comments exempt."""
+    """The (unit, round, label) triples a record's acknowledgement comments exempt."""
     triples: set[tuple[str, int, str]] = set()
     for line in text.splitlines():
         match = ACKNOWLEDGED_CLASS_RE.match(line.strip())
@@ -2041,63 +2125,64 @@ def acknowledged_class_triples(text: str) -> set[tuple[str, int, str]]:
     return triples
 
 
-def find_unknown_classes(repo: Path) -> list[tuple[int, str, int, str, str]]:
-    """Every post-boundary ledger class the canonical list does not name and no acknowledgement exempts.
+def find_unknown_classes(repo: Path) -> list[tuple[str, int, str, int, str, str]]:
+    """Every post-boundary class the canonical list does not name and no acknowledgement exempts.
 
-    A row whose date, round, or classes column cannot be read raises rather than being skipped, and a missing ledger
+    A row whose date, round, or classes column cannot be read raises rather than being skipped, and no record at all
     raises rather than reading as zero rows.
     """
-    if not (repo / LEDGER_PATH).is_file():
-        raise FileFailure("the review-round ledger is missing: {0}".format(LEDGER_PATH))
-    ledger_text = ledger_source(repo)
+    records = round_records(repo)
+    if not records:
+        raise FileFailure("the review-round records are missing: {0}".format(UNIT_RECORD_DIR))
     classes, reason = canonical_classes(read_review_definition(repo))
     if reason is not None:
         raise CheckFailure(reason)
     canonical = set(classes)
     boundary = review_rounds_boundary(repo)
-    acknowledged = acknowledged_class_triples(ledger_text)
-    offenders: list[tuple[int, str, int, str, str]] = []
-    for number, line in enumerate(ledger_text.splitlines(), start=1):
-        if not line.strip() or line.lstrip().startswith("#"):
-            continue
-        fields = line.split("\t")
-        if len(fields) < len(LEDGER_CLASS_COLUMNS) + 3:
-            raise CheckFailure(
-                "{0}:{1} carries {2} field(s): the ledger's rows carry both class columns".format(
-                    LEDGER_PATH, number, len(fields)
-                )
-            )
-        row_date = ledger_date(fields[0])
-        if row_date is None:
-            raise CheckFailure("{0}:{1} carries an unreadable date {2!r}".format(LEDGER_PATH, number, fields[0]))
-        if row_date <= boundary:
-            continue
-        if not fields[2].isdigit():
-            raise CheckFailure("{0}:{1} carries an unreadable round {2!r}".format(LEDGER_PATH, number, fields[2]))
-        unit = fields[1]
-        round_number = int(fields[2])
-        for column, index in LEDGER_CLASS_COLUMNS:
-            for raw in fields[index].split(","):
-                label = raw.strip()
-                if label == "-":
-                    continue
-                if not label:
-                    raise CheckFailure(
-                        "{0}:{1} carries no readable label in its {2} column".format(LEDGER_PATH, number, column)
+    offenders: list[tuple[str, int, str, int, str, str]] = []
+    for unit, text in sorted(records.items()):
+        path = record_label(unit)
+        acknowledged = acknowledged_class_triples(text)
+        for number, line in enumerate(text.splitlines(), start=1):
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            fields = line.split("\t")
+            if len(fields) < len(LEDGER_CLASS_COLUMNS) + 3:
+                raise CheckFailure(
+                    "{0}:{1} carries {2} field(s): the rows carry both class columns".format(
+                        path, number, len(fields)
                     )
-                if label in canonical or (unit, round_number, label) in acknowledged:
-                    continue
-                offenders.append((number, unit, round_number, column, label))
+                )
+            row_date = ledger_date(fields[0])
+            if row_date is None:
+                raise CheckFailure("{0}:{1} carries an unreadable date {2!r}".format(path, number, fields[0]))
+            if row_date <= boundary:
+                continue
+            if not fields[2].isdigit():
+                raise CheckFailure("{0}:{1} carries an unreadable round {2!r}".format(path, number, fields[2]))
+            round_number = int(fields[2])
+            for column, index in LEDGER_CLASS_COLUMNS:
+                for raw in fields[index].split(","):
+                    label = raw.strip()
+                    if label == "-":
+                        continue
+                    if not label:
+                        raise CheckFailure(
+                            "{0}:{1} carries no readable label in its {2} column".format(path, number, column)
+                        )
+                    if label in canonical or (unit, round_number, label) in acknowledged:
+                        continue
+                    offenders.append((path, number, unit, round_number, column, label))
     return offenders
 
 
 def check_class_vocabulary(repo: Path) -> int:
-    """Name each post-boundary ledger class the reviewer's canonical list does not name; return their count."""
+    """Name each post-boundary class the reviewer's canonical list does not name; return their count."""
     offenders = find_unknown_classes(repo)
-    for number, unit, round_number, column, label in offenders:
+    for path, number, unit, round_number, column, label in offenders:
         print(
             '{0}:{1} {2} round {3} {4} "{5}" is not in the reviewer\'s canonical class list ({6})'.format(
-                LEDGER_PATH, number, unit, round_number, column, label, REVIEW_QUICK_DEFINITION
+                path, number, unit, round_number, column, label, REVIEW_QUICK_DEFINITION
             ),
             file=sys.stderr,
         )

@@ -23,7 +23,7 @@ _spec = importlib.util.spec_from_file_location("review_rounds", TOOL_PATH)
 review_rounds = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(review_rounds)
 
-LEDGER = REPO / "docs" / "review-rounds.tsv"
+LEDGER = REPO / "docs" / "units"
 ARCHIVED_MAPPING = (
     REPO
     / "openspec"

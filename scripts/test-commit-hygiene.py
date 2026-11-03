@@ -9,6 +9,8 @@ import contextlib
 import importlib.util
 import inspect
 import io
+import re
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -987,10 +989,8 @@ class LargeFileTests(unittest.TestCase):
 
 class UniqueReviewRoundTests(unittest.TestCase):
     def _write_ledger(self, repo: Path, body: str) -> Path:
-        ledger = repo / "docs" / "review-rounds.tsv"
-        ledger.parent.mkdir(parents=True, exist_ok=True)
-        ledger.write_text("# One row per review round.\n" + body, encoding="utf-8")
-        return ledger
+        write_records(repo, body.splitlines())
+        return repo / "docs" / "units" / "unit-a" / "rounds.tsv"
 
     def test_a_duplicated_round_is_reported_with_both_lines(self):
         repo = make_repo(self)
@@ -1001,7 +1001,7 @@ class UniqueReviewRoundTests(unittest.TestCase):
             "2026-10-16\tunit-a\t2\t-\t-\t0\n",
         )
 
-        self.assertEqual(commit_hygiene.find_duplicate_review_rounds(repo), [("unit-a", "2", 3, 4)])
+        self.assertEqual(commit_hygiene.find_duplicate_review_rounds(repo), [("unit-a", "2", 2, 3)])
         with contextlib.redirect_stderr(io.StringIO()):
             self.assertEqual(commit_hygiene.check_unique_review_rounds(repo), 1)
 
@@ -1016,6 +1016,38 @@ class UniqueReviewRoundTests(unittest.TestCase):
         self.assertEqual(commit_hygiene.find_duplicate_review_rounds(repo), [])
         with contextlib.redirect_stderr(io.StringIO()):
             self.assertEqual(commit_hygiene.check_unique_review_rounds(repo), 0)
+
+    def test_a_row_filed_under_another_unit_fails(self):
+        repo = make_repo(self)
+        record = repo / "docs" / "units" / "unit-a" / "rounds.tsv"
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text("2026-10-16\tunit-b\t1\t-\t-\t0\n", encoding="utf-8")
+
+        self.assertEqual(
+            [("unit-a", 1, "unit-b")], commit_hygiene.find_misfiled_rows(commit_hygiene.round_records(repo))
+        )
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(commit_hygiene.check_unique_review_rounds(repo), 1)
+        self.assertIn("docs/units/unit-a/rounds.tsv", stderr.getvalue())
+        self.assertIn("unit-b", stderr.getvalue())
+
+    def test_a_gap_acknowledgement_filed_under_another_unit_exempts_nothing(self):
+        repo = make_repo(self)
+        records = repo / "docs" / "units"
+        (records / "unit-a").mkdir(parents=True)
+        (records / "unit-a" / "rounds.tsv").write_text(
+            "2026-10-16\tunit-a\t1\t-\t-\t0\n2026-10-16\tunit-a\t3\t-\t-\t0\n", encoding="utf-8"
+        )
+        (records / "unit-b").mkdir(parents=True)
+        (records / "unit-b" / "rounds.tsv").write_text(
+            "# --- Acknowledged gap: unit-a round 2 - misfiled\n2026-10-16\tunit-b\t1\t-\t-\t0\n", encoding="utf-8"
+        )
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(commit_hygiene.check_unique_review_rounds(repo), 1)
+        self.assertIn("missing round 2", stderr.getvalue())
 
     def test_a_missing_ledger_is_not_reported(self):
         repo = make_repo(self)
@@ -1853,14 +1885,51 @@ CONTINUED = commit_hygiene.SESSION_CONTINUED
 REPLACED = commit_hygiene.SESSION_REPLACED
 
 
+COMMENT_UNIT_RE = re.compile(r"^#\s*(?:---\s*Acknowledged (?:gap|class):|Correction:)\s*(\S+)")
+
+
+def write_records(repo: Path, lines: list[str]) -> None:
+    """Write the given lines to each unit's record, with the boundary marker only where it divides rows."""
+    units: dict[str, list[str]] = {}
+    comments: dict[str, list[str]] = {}
+    current: str | None = None
+    for line in lines:
+        if not line.strip():
+            continue
+        if line.startswith("#"):
+            match = COMMENT_UNIT_RE.match(line)
+            if match:
+                current = match.group(1)
+            if current is not None:
+                comments.setdefault(current, []).append(line)
+            continue
+        fields = line.split("\t")
+        if len(fields) < 2:
+            continue
+        units.setdefault(fields[1], []).append(line)
+    for unit, rows in units.items():
+        narrow = [row for row in rows if len(row.split("\t")) == commit_hygiene.SESSION_PRE_FIELDS]
+        wide = [row for row in rows if len(row.split("\t")) == commit_hygiene.SESSION_ROW_FIELDS]
+        other = [row for row in rows if row not in narrow and row not in wide]
+        body = list(narrow)
+        if narrow and (wide or other):
+            body.append(MARKER)
+        elif not narrow and other:
+            body.append(MARKER)
+        body.extend(wide)
+        body.extend(other)
+        body.extend(comments.get(unit, []))
+        path = repo / "docs" / "units" / unit / "rounds.tsv"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("\n".join(body) + "\n", encoding="utf-8")
+
+
 def ledger_repo(test: unittest.TestCase, lines: list[str]) -> Path:
-    """A temporary repository whose review-round ledger carries the given data lines, the boundary included."""
+    """A temporary repository whose per-unit records carry the given data lines."""
     directory = tempfile.TemporaryDirectory()
     test.addCleanup(directory.cleanup)
     repo = Path(directory.name)
-    ledger = repo / "docs" / "review-rounds.tsv"
-    ledger.parent.mkdir(parents=True, exist_ok=True)
-    ledger.write_text("\n".join([MARKER] + lines) + "\n", encoding="utf-8")
+    write_records(repo, lines)
     return repo
 
 
@@ -1967,7 +2036,13 @@ class SessionContinuityTests(unittest.TestCase):
         self.assertIn("no session identifier", violations[0])
 
     def test_a_row_below_the_boundary_with_too_few_fields_fails(self):
-        violations = self.violations(["\t".join(["2026-10-18", "unit-a", "1", "-", "-", "0"])])
+        repo = make_repo(self)
+        record = repo / "docs" / "units" / "unit-a" / "rounds.tsv"
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text(
+            MARKER + "\n" + "\t".join(["2026-10-18", "unit-a", "1", "-", "-", "0"]) + "\n", encoding="utf-8"
+        )
+        violations = commit_hygiene.find_session_continuity_violations(repo)
         self.assertEqual(1, len(violations))
         self.assertIn("6 field(s), not 9", violations[0])
 
@@ -2012,39 +2087,71 @@ class SessionContinuityTests(unittest.TestCase):
         self.assertIn("not one of created, continued, replaced", violations[0])
 
     def test_rows_above_the_boundary_are_exempt(self):
-        repo = ledger_repo(self, [row("unit-a", 1, "ses_a", CREATED)])
-        ledger = repo / "docs" / "review-rounds.tsv"
-        ledger.write_text(
-            "2026-01-01\tunit-old\t1\t-\t-\t0\n" + ledger.read_text(encoding="utf-8"), encoding="utf-8"
-        )
+        repo = ledger_repo(self, ["2026-01-01\tunit-old\t1\t-\t-\t0", row("unit-a", 1, "ses_a", CREATED)])
         self.assertEqual([], commit_hygiene.find_session_continuity_violations(repo))
 
-    def test_a_marker_moved_past_a_wider_row_fails(self):
-        repo = ledger_repo(self, [])
-        (repo / "docs" / "review-rounds.tsv").write_text(
-            row("unit-a", 1, "ses_a", CREATED) + "\n" + MARKER + "\n", encoding="utf-8"
+    def test_a_record_with_rows_on_both_sides_carries_the_marker(self):
+        repo = ledger_repo(self, ["2026-01-01\tunit-a\t1\t-\t-\t0", row("unit-a", 2, "ses_a", CREATED)])
+        record = repo / "docs" / "units" / "unit-a" / "rounds.tsv"
+        self.assertIn(MARKER, record.read_text(encoding="utf-8").splitlines())
+        self.assertEqual([], commit_hygiene.find_session_continuity_violations(repo))
+
+    def test_a_markerless_record_whose_rows_are_all_on_one_side_passes(self):
+        repo = ledger_repo(self, ["2026-01-01\tunit-old\t1\t-\t-\t0", row("unit-a", 1, "ses_a", CREATED)])
+        for record in (repo / "docs" / "units").glob("*/rounds.tsv"):
+            self.assertNotIn(MARKER, record.read_text(encoding="utf-8").splitlines())
+        self.assertEqual([], commit_hygiene.find_session_continuity_violations(repo))
+
+    def test_a_six_field_record_dated_before_the_fields_passes(self):
+        repo = ledger_repo(self, ["2026-10-18\tunit-old\t1\t-\t-\t0"])
+        self.assertEqual([], commit_hygiene.find_session_continuity_violations(repo))
+
+    def test_a_six_field_row_dated_after_the_fields_fails_rather_than_claiming_the_exemption(self):
+        repo = ledger_repo(self, ["2026-11-03\tunit-new\t1\t-\t-\t0"])
+        violations = commit_hygiene.find_session_continuity_violations(repo)
+        self.assertEqual(1, len(violations))
+        self.assertIn("the fields are required", violations[0])
+
+    def test_a_six_field_row_above_the_marker_dated_after_the_fields_fails(self):
+        repo = make_repo(self)
+        record = repo / "docs" / "units" / "unit-new" / "rounds.tsv"
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text(
+            "2026-11-03\tunit-new\t1\t-\t-\t0\n" + MARKER + "\n" + row("unit-new", 2, "ses_a", CREATED) + "\n",
+            encoding="utf-8",
         )
+        violations = commit_hygiene.find_session_continuity_violations(repo)
+        self.assertEqual(1, len(violations))
+        self.assertIn("the fields are required", violations[0])
+
+    def test_a_marker_moved_past_a_wider_row_fails(self):
+        repo = make_repo(self)
+        record = repo / "docs" / "units" / "unit-a" / "rounds.tsv"
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text(row("unit-a", 1, "ses_a", CREATED) + "\n" + MARKER + "\n", encoding="utf-8")
         violations = commit_hygiene.find_session_continuity_violations(repo)
         self.assertEqual(1, len(violations))
         self.assertIn("the boundary was moved past it", violations[0])
 
     def test_a_marker_moved_past_a_narrower_row_fails(self):
-        repo = ledger_repo(self, [])
-        (repo / "docs" / "review-rounds.tsv").write_text(
-            "\t".join(["2026-01-01", "unit-old", "1", "-", "-"]) + "\n" + MARKER + "\n", encoding="utf-8"
-        )
+        repo = make_repo(self)
+        record = repo / "docs" / "units" / "unit-old" / "rounds.tsv"
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text("\t".join(["2026-01-01", "unit-old", "1", "-", "-"]) + "\n" + MARKER + "\n", encoding="utf-8")
         violations = commit_hygiene.find_session_continuity_violations(repo)
         self.assertEqual(1, len(violations))
         self.assertIn("not the 6 it carried before", violations[0])
 
-    def test_a_missing_boundary_comment_fails(self):
-        repo = ledger_repo(self, [])
-        (repo / "docs" / "review-rounds.tsv").write_text(
-            row("unit-a", 1, "ses_a", CREATED) + "\n", encoding="utf-8"
+    def test_a_markerless_record_holding_rows_on_both_sides_fails(self):
+        repo = make_repo(self)
+        record = repo / "docs" / "units" / "unit-a" / "rounds.tsv"
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text(
+            "2026-01-01\tunit-a\t1\t-\t-\t0\n" + row("unit-a", 2, "ses_a", CREATED) + "\n", encoding="utf-8"
         )
         violations = commit_hygiene.find_session_continuity_violations(repo)
         self.assertEqual(1, len(violations))
-        self.assertIn("boundary comment", violations[0])
+        self.assertIn("without its marker", violations[0])
 
     def test_distinct_units_may_start_with_distinct_sessions(self):
         self.assertEqual(
@@ -2913,17 +3020,16 @@ class LedgerGuardTests(unittest.TestCase):
     """The pre-commit guard's review-round ledger checks, over a committed ledger and a staged change."""
 
     def _commit(self, repo: Path, lines: list[str]) -> None:
-        ledger = repo / "docs" / "review-rounds.tsv"
-        ledger.parent.mkdir(parents=True, exist_ok=True)
-        ledger.write_text("\n".join([MARKER] + lines) + "\n", encoding="utf-8")
-        subprocess.run(("git", "add", "docs/review-rounds.tsv"), cwd=repo, check=True)
-        subprocess.run(("git", "commit", "-q", "-m", "ledger"), cwd=repo, check=True)
+        write_records(repo, lines)
+        subprocess.run(("git", "add", "-A", "docs/units"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "records"), cwd=repo, check=True)
 
     def _stage(self, repo: Path, lines: list[str]) -> None:
-        ledger = repo / "docs" / "review-rounds.tsv"
-        ledger.parent.mkdir(parents=True, exist_ok=True)
-        ledger.write_text("\n".join([MARKER] + lines) + "\n", encoding="utf-8")
-        subprocess.run(("git", "add", "docs/review-rounds.tsv"), cwd=repo, check=True)
+        records = repo / "docs" / "units"
+        if records.is_dir():
+            shutil.rmtree(records)
+        write_records(repo, lines)
+        subprocess.run(("git", "add", "-A", "docs/units"), cwd=repo, check=True)
 
     def _check(self, repo: Path) -> tuple[int, str]:
         stderr = io.StringIO()
@@ -2993,7 +3099,7 @@ class LedgerGuardTests(unittest.TestCase):
 
         self.assertGreaterEqual(code, 1)
         self.assertIn("cannot be checked", stderr)
-        self.assertIn("docs/review-rounds.tsv", stderr)
+        self.assertIn("docs/units/unit-a/rounds.tsv", stderr)
         self.assertIn("non-numeric round", stderr)
         self.assertNotIn("A review-round row is removed", stderr)
         self.assertIn("not assessed", stderr)
@@ -3034,7 +3140,7 @@ class LedgerGuardTests(unittest.TestCase):
         with mock.patch.object(commit_hygiene, "git", side_effect=[ok, failed]):
             with self.assertRaises(commit_hygiene.CheckFailure):
                 commit_hygiene.check_ledger_preservation(
-                    repo, row("unit-a", 1, "ses_a", CREATED) + "\n"
+                    repo, {"unit-a": row("unit-a", 1, "ses_a", CREATED) + "\n"}
                 )
 
     def test_a_clean_append_proceeds(self):
@@ -3046,12 +3152,9 @@ class LedgerGuardTests(unittest.TestCase):
 
         self.assertEqual(0, code, stderr)
 
-    def test_an_unstaged_defective_ledger_is_not_checked(self):
+    def test_an_unstaged_defective_record_is_not_checked(self):
         repo = make_repo(self)
-        ledger = repo / "docs" / "review-rounds.tsv"
-        ledger.parent.mkdir(parents=True, exist_ok=True)
-        rows = [MARKER, row("unit-a", 1, "ses_a", CREATED), row("unit-a", 1, "ses_a", CREATED)]
-        ledger.write_text("\n".join(rows) + "\n", encoding="utf-8")
+        write_records(repo, [row("unit-a", 1, "ses_a", CREATED), row("unit-a", 1, "ses_a", CREATED)])
         (repo / "a.txt").write_text("x", encoding="utf-8")
         subprocess.run(("git", "add", "a.txt"), cwd=repo, check=True)
 
@@ -3064,35 +3167,60 @@ class LedgerGuardTests(unittest.TestCase):
         self._commit(repo, self._valid_pair())
         duplicate = row("unit-a", 2, "ses_a", CONTINUED)
         self._stage(repo, self._valid_pair() + [duplicate])
-        ledger = repo / "docs" / "review-rounds.tsv"
-        ledger.write_text("\n".join([MARKER] + self._valid_pair()) + "\n", encoding="utf-8")
+        write_records(repo, self._valid_pair())
 
         code, stderr = self._check(repo)
 
         self.assertGreaterEqual(code, 1)
         self.assertIn("share unit 'unit-a' round 2", stderr)
 
-    def test_a_deleted_ledger_is_refused(self):
+    def test_a_deleted_record_is_refused(self):
         repo = make_repo(self)
         self._commit(repo, self._valid_pair())
-        subprocess.run(("git", "rm", "-q", "docs/review-rounds.tsv"), cwd=repo, check=True)
+        subprocess.run(("git", "rm", "-q", "docs/units/unit-a/rounds.tsv"), cwd=repo, check=True)
 
         code, stderr = self._check(repo)
 
         self.assertGreaterEqual(code, 1)
         self.assertIn("A review-round row is removed", stderr)
-        self.assertNotIn("boundary comment", stderr)
 
-    def test_a_renamed_away_ledger_is_refused(self):
+    def test_a_renamed_away_record_is_refused(self):
         repo = make_repo(self)
         self._commit(repo, self._valid_pair())
-        subprocess.run(("git", "mv", "docs/review-rounds.tsv", "docs/old-ledger.tsv"), cwd=repo, check=True)
+        subprocess.run(
+            ("git", "mv", "docs/units/unit-a/rounds.tsv", "docs/old-ledger.tsv"), cwd=repo, check=True
+        )
 
         code, stderr = self._check(repo)
 
         self.assertGreaterEqual(code, 1)
         self.assertIn("A review-round row is removed", stderr)
-        self.assertNotIn("boundary comment", stderr)
+
+    def test_a_record_renamed_to_another_unit_does_not_report_the_destination_as_removed(self):
+        repo = make_repo(self)
+        self._commit(repo, self._valid_pair())
+        (repo / "docs" / "units" / "unit-b").mkdir(parents=True)
+        subprocess.run(
+            ("git", "mv", "docs/units/unit-a/rounds.tsv", "docs/units/unit-b/rounds.tsv"),
+            cwd=repo,
+            check=True,
+        )
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("no row keeps unit 'unit-a'", stderr)
+        self.assertNotIn("no row keeps unit 'unit-b'", stderr)
+
+    def test_a_deleted_non_ascii_record_is_refused(self):
+        repo = make_repo(self)
+        self._commit(repo, [row("ü", 1, "ses_a", CREATED), row("ü", 2, "ses_a", CONTINUED)])
+        subprocess.run(("git", "rm", "-q", "docs/units/ü/rounds.tsv"), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("A review-round row is removed", stderr)
 
 # The mode-to-test mapping the coverage requirement names: each mode the checker exposes, the test class that covers it,
 # and the checker function that class names. The mapping is asserted complete against the checker's own mode list, and
@@ -3122,8 +3250,7 @@ class ClassVocabularyTests(unittest.TestCase):
         return repo
 
     def _ledger(self, repo: Path, *rows: str) -> None:
-        (repo / "docs").mkdir(exist_ok=True)
-        (repo / "docs" / "review-rounds.tsv").write_text("\n".join(rows) + "\n", encoding="utf-8")
+        write_records(repo, list(rows))
 
     def _row(
         self, unit: str, round_number: int, raised: str = "-", repeated: str = "-", day: str = "2026-10-20"
@@ -3134,14 +3261,18 @@ class ClassVocabularyTests(unittest.TestCase):
         repo = self._repo()
         self._ledger(repo, self._row("unit-a", 1, "gamma"))
 
-        self.assertEqual([(1, "unit-a", 1, "classes raised", "gamma")], commit_hygiene.find_unknown_classes(repo))
+        self.assertEqual(
+            [("docs/units/unit-a/rounds.tsv", 1, "unit-a", 1, "classes raised", "gamma")],
+            commit_hygiene.find_unknown_classes(repo),
+        )
 
     def test_an_unknown_class_in_the_repeated_column_is_reported(self):
         repo = self._repo()
         self._ledger(repo, self._row("unit-a", 1, "alpha", "gamma"))
 
         self.assertEqual(
-            [(1, "unit-a", 1, "classes that repeated", "gamma")], commit_hygiene.find_unknown_classes(repo)
+            [("docs/units/unit-a/rounds.tsv", 1, "unit-a", 1, "classes that repeated", "gamma")],
+            commit_hygiene.find_unknown_classes(repo),
         )
 
     def test_canonical_classes_and_an_empty_round_pass(self):
@@ -3169,10 +3300,10 @@ class ClassVocabularyTests(unittest.TestCase):
 
         self.assertEqual(
             [
-                (1, "unit-a", 1, "classes raised", "delta"),
-                (3, "unit-a", 2, "classes raised", "gamma"),
-                (4, "unit-a", 3, "classes raised", "gamma"),
-                (5, "unit-b", 1, "classes raised", "gamma"),
+                ("docs/units/unit-a/rounds.tsv", 1, "unit-a", 1, "classes raised", "delta"),
+                ("docs/units/unit-a/rounds.tsv", 2, "unit-a", 2, "classes raised", "gamma"),
+                ("docs/units/unit-a/rounds.tsv", 3, "unit-a", 3, "classes raised", "gamma"),
+                ("docs/units/unit-b/rounds.tsv", 1, "unit-b", 1, "classes raised", "gamma"),
             ],
             commit_hygiene.find_unknown_classes(repo),
         )
@@ -3268,12 +3399,12 @@ class ClassVocabularyTests(unittest.TestCase):
         self.assertIsNone(reason)
         self.assertIn("contradiction", classes)
 
-    def test_a_missing_ledger_fails_rather_than_reading_as_empty(self):
+    def test_a_missing_records_directory_fails_rather_than_reading_as_empty(self):
         repo = self._repo()
 
         with self.assertRaises(commit_hygiene.CheckFailure) as caught:
             commit_hygiene.find_unknown_classes(repo)
-        self.assertIn("ledger is missing", str(caught.exception))
+        self.assertIn("records are missing", str(caught.exception))
 
     def test_a_missing_definition_fails(self):
         repo = self._repo()

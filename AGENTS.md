@@ -283,13 +283,13 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   band, or formula); a scope the owning definition states via its class names; a standard or rule set whose rules are
   never enumerated at a referencing site (including the change's own planning artifacts); a field set one artifact owns
   (a report's per-item format — the shared report contract's per-item budget (`docs/contracts/shared-report.md`)); or a
-  record another artifact owns (a review round's state is `docs/review-rounds.tsv`'s, not a task's): state it once there
-  and repeat it identically (referencing it by name where the site can), since a restated copy re-anchors on its own (a
-  README copy made the matching band a tenth of the _measured_ rate where the requirement and code use the _recorded_
-  one) and the sweep has no canonical wording to sweep to. An enumeration repeated at many sites cannot be proven
-  complete by any grep, read, or sweep — the restatement is the drift surface — so a loop that keeps finding another
-  site of one set (`incomplete-enumeration` round after round) single-sources it rather than sweeping, deriving the
-  sites from the owner's own scope (its bearers crossed with its item classes); a field-list grep is a lead, never a
+  record another artifact owns (a review round's state is `docs/units/<unit>/rounds.tsv`'s, not a task's): state it once
+  there and repeat it identically (referencing it by name where the site can), since a restated copy re-anchors on its
+  own (a README copy made the matching band a tenth of the _measured_ rate where the requirement and code use the
+  _recorded_ one) and the sweep has no canonical wording to sweep to. An enumeration repeated at many sites cannot be
+  proven complete by any grep, read, or sweep — the restatement is the drift surface — so a loop that keeps finding
+  another site of one set (`incomplete-enumeration` round after round) single-sources it rather than sweeping, deriving
+  the sites from the owner's own scope (its bearers crossed with its item classes); a field-list grep is a lead, never a
   completeness gate. The boundary deciding whether a site states an item or points at it is the
   imperative-versus-procedure split: an imperative a reader must act on before the step that would touch it — a warning,
   a safety condition, a lifecycle requirement, a confirmation — is stated at every site where that step appears, so N
@@ -310,16 +310,18 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
 - **Establish the unit's workspace before its first write.** Record it as
   `Workspace: unit=<unit>; path=<absolute-path>; branch=<branch>; writer=<ses_…>` — the writing session's own
   identifier, never a description of it and never the reviewer's identifier the ledger records. The record is evidence
-  of the assignment, not its source, and every unit has exactly one, at `docs/units/<unit>/unit.md`, whichever kind of
-  unit it is (ADR-0029): it also carries the unit's state and its `Resume checkpoint`. A change's `tasks.md` holds its
-  plan and references that record; it carries no copy of the record's fields. The commit guard reads a machine-readable
-  sibling of that record: the claim at `git rev-parse --git-path axon-showcase-change`, one line holding the change name
-  or `none` for a unit with no change dir. It may be omitted when the branch's name is a change name — a live
-  `openspec/changes/<name>/` directory or an archived `openspec/changes/archive/<date>-<name>/` one — and every other
-  branch records it before its first commit, which is how a **continued** unit (an `opencode/…` branch or a head pushed
-  from elsewhere) is assigned. The standard `check` verifies every unit record, every live change's reference to it, and
-  every archive in scope, so a missing or wrong one fails the pull request rather than only being noticed at a resume.
-  captured: bump-kps-chart-2026-10-25 captured: reject-a-foreign-change-dir-at-commit
+  of the assignment, not its source, and every live unit has exactly one record, at `docs/units/<unit>/unit.md`,
+  whichever kind of unit it is (ADR-0029): it also carries the unit's state and its `Resume checkpoint`. A directory
+  holding only a `rounds.tsv` review-round record is not a unit record, so a directory the retired ledger alone knew is
+  not judged as a unit. A change's `tasks.md` holds its plan and references that record; it carries no copy of the
+  record's fields. The commit guard reads a machine-readable sibling of that record: the claim at
+  `git rev-parse --git-path axon-showcase-change`, one line holding the change name or `none` for a unit with no change
+  dir. It may be omitted when the branch's name is a change name — a live `openspec/changes/<name>/` directory or an
+  archived `openspec/changes/archive/<date>-<name>/` one — and every other branch records it before its first commit,
+  which is how a **continued** unit (an `opencode/…` branch or a head pushed from elsewhere) is assigned. The standard
+  `check` verifies every unit record, every live change's reference to it, and every archive in scope, so a missing or
+  wrong one fails the pull request rather than only being noticed at a resume. captured: bump-kps-chart-2026-10-25
+  captured: reject-a-foreign-change-dir-at-commit
 - The primary checkout carries the sequential unit. A **new** unit that finds the primary assigned to another unit — or
   whose ownership it cannot establish — works in a sibling worktree, `../axon-showcase-<unit>`, created and prepared by
   `./scripts/new-worktree.sh <unit>` (the wrapper resolves the primary from its own repository, never from the caller's
@@ -1270,8 +1272,8 @@ Key modules (libraries, not services):
     before its next sibling, so no blank line is required _after_ an enum's constant, an annotation type's declaration,
     or an annotation type's member, while the gap before one is still checked. captured: enforce-member-separation
   - The 120-character wrapping convention still applies manually to content the formatter does not touch (YAML; the
-    repo's Python scripts (`scripts/*.py`), which Spotless does not own; the `docs/review-rounds.tsv` record rows, one
-    line by contract and therefore unwrappable; Javadoc and JSDoc prose, which the formatters do not reflow —
+    repo's Python scripts (`scripts/*.py`), which Spotless does not own; the `docs/units/<unit>/rounds.tsv` record rows,
+    one line by contract and therefore unwrappable; Javadoc and JSDoc prose, which the formatters do not reflow —
     a >120-character comment line passes the formatter gate and only the manual check catches it); markdown is formatted
     by the root Spotless `markdown` format (Prettier, `printWidth: 120` with `proseWrap: "always"` — a preference, not a
     hard limit: backtick-dense lines can still exceed 120, the accepted trade-off of automating markdown wrapping). A
@@ -2604,10 +2606,10 @@ changing an image or buildpack pin.
   corpus count in a durable artifact (a subagent definition, `AGENTS.md`, the README, a command file, a main spec): it
   drifts on every archive, exactly the drift the `specs-auditor` exists to catch, so describe the shape instead of
   freezing a tally. A process count — elapsed time, effort — is not durable either, since no reader can verify it from
-  the repository, so describe it qualitatively; review rounds are the exception, cited from `docs/review-rounds.tsv`
-  (aggregated by `scripts/review-rounds.py`) rather than from a session-only number. A _machine-measured_ figure is a
-  different class, evidenced by its CI run log, so an order-of-magnitude build cost is not a process count and need not
-  be made qualitative.
+  the repository, so describe it qualitatively; review rounds are the exception, cited from
+  `docs/units/<unit>/rounds.tsv` (aggregated by `scripts/review-rounds.py`) rather than from a session-only number. A
+  _machine-measured_ figure is a different class, evidenced by its CI run log, so an order-of-magnitude build cost is
+  not a process count and need not be made qualitative.
 
   evidence: documentation-and-durable-claims
 

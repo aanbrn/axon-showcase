@@ -1968,8 +1968,8 @@ is recorded on the change's review task.
   explainable and reproducible rather than an unaided judgment, and the agent's decision is at or above that floor and
   records the signals it relied on
 - **AND** a diff whose changed-path set is non-empty and holds only Markdown record artifacts under
-  `docs/process-defects/`, `docs/retrospectives/`, or `docs/load-tests/`, or the ledger path the invocation reads, SHALL
-  NOT have its floor raised by the repeated-class signal alone when its derivation succeeded
+  `docs/retrospectives/` or `docs/load-tests/`, only a unit's `docs/units/<unit>/process-defects.md`, or the ledger path
+  the invocation reads, SHALL NOT have its floor raised by the repeated-class signal alone when its derivation succeeded
 - **AND** the classification SHALL be conservative: another file type or location keeps normal routing, and a rename is
   judged by both its source and its destination
 - **AND** the suppressed signal SHALL be reported wherever the exemption applies, and a mandatory signal, a failed
@@ -2482,7 +2482,7 @@ before recording.
 
 - **WHEN** a unit's session observes a process defect — a rule it missed, an action that failed, wasted work, a misread
   artifact
-- **THEN** it appends a record to `docs/process-defects/<unit>.md` when it observes it, before the context is lost
+- **THEN** it appends a record to `docs/units/<unit>/process-defects.md` when it observes it, before the context is lost
 - **AND** the record is self-contained for a reader outside that session: it carries the provenance, the expected action
   and the observed deviation, the evidence, the observed consequence and the recovery made, and the boundary of the
   author's knowledge, whose field set `AGENTS.md`'s recording workflow owns and states once

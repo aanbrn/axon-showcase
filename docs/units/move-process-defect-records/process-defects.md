@@ -99,3 +99,20 @@
   holds the gate's stage list beside the plan.
 - **Knowledge boundary** — observed: the gates' passes over the deficient plans. Not checked: whether a check over a
   plan's stage list is feasible without pinning wording, which this unit's own tasks do not attempt.
+
+### move-process-defect-records#7 — the pull request was merged before its archive commit
+
+- **Recorded** — 2026-11-03, the agent (session `ses_e5fa0fb2dffe0pwcgRMG3WCl2N`).
+- **Stage** — ship and merge.
+- **Expected** — the archive — the change directory moved, the main spec synced, and the unit record set to `closed` —
+  is an additional commit in the same pull request, after the `build` check is green and before the merge.
+- **Observed** — PR #834 was merged with its implementation commit alone. The live change directory
+  `openspec/changes/move-process-defect-records/` remained on `main` and the unit record read `State: active`. The
+  archive was then applied on a follow-up branch and pull request.
+- **Evidence** — after the merge, `test -d openspec/changes/move-process-defect-records` succeeded and
+  `rg '^State:' docs/units/move-process-defect-records/unit.md` printed `active`; the follow-up branch
+  `archive-move-process-defect-records` carries `openspec archive`'s move and the `closed` state.
+- **Consequence** — `main` carried a completed change read as in flight until the follow-up merged. Nothing else was
+  affected; the implementation commit is unchanged.
+- **Knowledge boundary** — observed: the post-merge state and the repair. Not checked: whether the merge sequence (a
+  watch and a merge in one command) omitted the archive step by construction or by my ordering.

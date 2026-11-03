@@ -36,12 +36,12 @@ unstaged or untracked. The hook SHALL name each offending path and the reason an
 parsing SHALL be quote-safe: every path it reads from git SHALL be the real path rather than git's C-quoted rendering,
 so a path containing non-ASCII bytes is inspected exactly like any other and no check is silently skipped for it.
 
-It SHALL also refuse a staged review-round ledger (`docs/review-rounds.tsv`) whose duplicate or non-contiguous rows the
-ledger's own verification reports. It SHALL refuse a staged ledger whose session-continuity check reports a
-contradiction. It SHALL refuse a staged ledger diff that removes a data row unless that `(unit, round)` remains in the
-staged ledger, and a staged ledger whose file is deleted or renamed away has no row remaining. It SHALL judge the
-ledger's staged content, not the working tree's copy. It SHALL report a staged ledger row whose round column cannot be
-parsed as a named failure rather than raising.
+It SHALL also refuse a staged unit round record (`docs/units/<unit>/rounds.tsv`) whose duplicate or non-contiguous rows
+the record's own verification reports. It SHALL refuse staged records whose session-continuity check reports a
+contradiction. It SHALL refuse a staged record's diff that removes a data row unless that `(unit, round)` remains in the
+staged records, and a record deleted or renamed away has no row remaining. It SHALL judge the staged content, not the
+working tree's copy. It SHALL report a staged row whose round column cannot be parsed as a named failure rather than
+raising.
 
 It SHALL also refuse a staged change directory under `openspec/changes/archive/**` whose `tasks.md` carries an unticked
 task, naming the file and the task line: the archive commit carries the file, and `openspec archive --yes` reports an
@@ -232,45 +232,44 @@ staged deletion of the file as a missing ideas file.
 
 #### Scenario: A duplicated ledger row refuses the commit
 
-- **WHEN** `docs/review-rounds.tsv` is staged and two of its rows share a unit and round
+- **WHEN** a unit's `rounds.tsv` is staged and two of its rows share a unit and round
 - **THEN** the guard refuses the commit and names the unit, the round and both rows
 
 #### Scenario: A ledger gap refuses the commit
 
-- **WHEN** `docs/review-rounds.tsv` is staged and a unit's rows are not contiguous from 1
+- **WHEN** a unit's `rounds.tsv` is staged and its rows are not contiguous from 1
 - **THEN** the guard refuses the commit and names the unit and the missing round
 
 #### Scenario: A ledger row contradicting the session's continuity refuses the commit
 
-- **WHEN** `docs/review-rounds.tsv` is staged and a row's session transition contradicts the continuity rule
+- **WHEN** a unit's `rounds.tsv` is staged and a row's session transition contradicts the continuity rule
 - **THEN** the guard refuses the commit and names the row
 
 #### Scenario: A removed ledger row refuses the commit
 
-- **WHEN** `docs/review-rounds.tsv` is staged and its diff removes a data row whose unit and round are absent from the
-  staged ledger, or the staged ledger is deleted or renamed away
+- **WHEN** a unit's `rounds.tsv` is staged and its diff removes a data row whose unit and round are absent from the
+  staged records, or the record is deleted or renamed away
 - **THEN** the guard refuses the commit and names the removal
 
 #### Scenario: A duplicated row's repair proceeds
 
-- **WHEN** `docs/review-rounds.tsv` is staged and its diff removes a row whose unit and round remain in the staged
-  ledger
+- **WHEN** a unit's `rounds.tsv` is staged and its diff removes a row whose unit and round remain in the staged records
 - **THEN** the guard does not report the removal, so a duplicated row can be repaired
 
 #### Scenario: An unparseable ledger row refuses the commit by name
 
-- **WHEN** `docs/review-rounds.tsv` is staged and a row's round column cannot be parsed
+- **WHEN** a unit's `rounds.tsv` is staged and a row's round column cannot be parsed
 - **THEN** the guard refuses the commit and names the file and the failure, rather than raising
 
 #### Scenario: A clean ledger append proceeds
 
-- **WHEN** `docs/review-rounds.tsv` is staged with an appended row that passes the checks
-- **THEN** the guard reports no ledger failure
+- **WHEN** a unit's `rounds.tsv` is staged with an appended row that passes the checks
+- **THEN** the guard reports no round-record failure
 
 #### Scenario: A commit that does not stage the ledger runs no ledger check
 
-- **WHEN** `docs/review-rounds.tsv` is not in the staged set, whatever its working-tree content
-- **THEN** the guard reports no ledger failure
+- **WHEN** no `docs/units/<unit>/rounds.tsv` is in the staged set, whatever its working-tree content
+- **THEN** the guard reports no round-record failure
 
 #### Scenario: A staged archived tasks file with an unticked task refuses the commit
 
@@ -585,16 +584,18 @@ like every other text file, and `text=auto` leaves a detected binary unnormalize
 
 ### Requirement: Review-round ledger rows are unique
 
-The build SHALL verify that the review-round ledger (`docs/review-rounds.tsv`) carries **at most one row per unit and
+The build SHALL verify that the unit round records (`docs/units/<unit>/rounds.tsv`) carry **at most one row per unit and
 round**, failing when the same `(unit, round)` pair appears twice, so a duplicated row cannot double-count a round in
-the retrospective figures aggregated from it. The same verification SHALL also fail when a unit's rounds are not
-contiguous from `1` to its highest round, and — when the caller names a round whose report has just arrived
+the retrospective figures aggregated from it. A record filed under a unit's directory SHALL carry only that unit's rows:
+a row whose unit column names another unit SHALL fail the verification, so a misfiled record fails rather than passing
+uniqueness and contiguity on its own rows. The same verification SHALL also fail when a unit's rounds are not contiguous
+from `1` to its highest round, and — when the caller names a round whose report has just arrived
 (`--expect <unit>:<round>`, repeatable) — when that row is absent, so a deferred append is caught in the same turn
 rather than by the next reviewer; a gap whose record is unrecoverable SHALL be acknowledged by a comment line in the
-ledger naming the unit and the round, and only an acknowledged gap SHALL pass. An expectation the mode cannot parse, an
-expectation given without the mode, and a ledger row whose round column is not a number SHALL each fail rather than
-skip. The verification SHALL be a `commit-hygiene.py` mode run by a `check` task, reading the tracked ledger rather than
-the staged set.
+unit's record naming the unit and the round, and only an acknowledged gap SHALL pass. An expectation the mode cannot
+parse, an expectation given without the mode, and a record row whose round column is not a number SHALL each fail rather
+than skip. The verification SHALL be a `commit-hygiene.py` mode run by a `check` task, reading the tracked records
+rather than the staged set.
 
 That input clause scopes the build's verification.
 
@@ -607,7 +608,7 @@ a unit's history, where a round in flight is unclean by design.
 
 #### Scenario: A duplicated round row fails the check
 
-- **WHEN** `check` runs and the ledger carries two rows with the same unit and round
+- **WHEN** `check` runs and the records carry two rows with the same unit and round
 - **THEN** the check fails, naming the unit, the round, and both line numbers
 
 #### Scenario: One row per round passes
@@ -623,12 +624,12 @@ a unit's history, where a round in flight is unclean by design.
 
 #### Scenario: The round whose report arrived is not recorded
 
-- **WHEN** the caller runs the verification expecting `<unit>:3` and the ledger records that unit only through round `2`
+- **WHEN** the caller runs the verification expecting `<unit>:3` and the records hold that unit only through round `2`
 - **THEN** the check fails, naming the unit and the expected round, even though its recorded rounds are contiguous
 
 #### Scenario: An acknowledged gap passes
 
-- **WHEN** a gap's record is unrecoverable and the ledger carries an acknowledgement comment naming the unit and the
+- **WHEN** a gap's record is unrecoverable and the records carry an acknowledgement comment naming the unit and the
   round
 - **THEN** the check passes, and a gap without such an acknowledgement still fails
 
@@ -640,7 +641,7 @@ a unit's history, where a round in flight is unclean by design.
 
 #### Scenario: A non-numeric round fails rather than being skipped
 
-- **WHEN** a ledger row's round column is present but not a number
+- **WHEN** a record row's round column is present but not a number
 - **THEN** the check fails, naming the unit and the value, rather than ignoring the row
 
 #### Scenario: A misfiled deep pass is acknowledged without a data row
@@ -663,7 +664,7 @@ a unit's history, where a round in flight is unclean by design.
 
 #### Scenario: A named unit with no rows fails rather than passing vacuously
 
-- **WHEN** the caller names a unit the ledger does not record
+- **WHEN** the caller names a unit the records do not include
 - **THEN** the verification fails, naming the unit, rather than passing because no row contradicts it
 
 #### Scenario: An unreadable classes field fails rather than reading as clean
@@ -673,16 +674,23 @@ a unit's history, where a round in flight is unclean by design.
 
 #### Scenario: A unit the caller does not name is not evaluated
 
-- **WHEN** the ledger holds units whose highest round carries a finding class and the caller names none of them
-- **THEN** the verification passes, so `check` stays green on the ledger's history
+- **WHEN** the records hold units whose highest round carries a finding class and the caller names none of them
+- **THEN** the verification passes, so `check` stays green on the records' history
+
+#### Scenario: A row filed under another unit's directory fails the check
+
+- **WHEN** a unit's `rounds.tsv` carries a row whose unit column names a different unit
+- **THEN** the check fails, naming the file, the row, and both unit names
 
 ### Requirement: Review-round rows record the reviewer session's continuity
 
-The build SHALL verify that the review-round ledger records, for every row below the boundary its own contract marks,
-the reviewer session the round ran in — its identifier, its transition, and, for a replacement, a reason the review
-loop's recovery cases allow or `caller-restarted` for a restart already performed without an evidenced recovery case (a
-violation record, not a recovery case) — and that no row above it carries a field count other than the ledger's
-pre-fields width. The verification SHALL be a `commit-hygiene.py` mode run by a `check` task over the tracked ledger.
+The build SHALL verify that a unit's round record (`docs/units/<unit>/rounds.tsv`) records, for every row below the
+boundary the record format marks, the reviewer session the round ran in — its identifier, its transition, and, for a
+replacement, a reason the review loop's recovery cases allow or `caller-restarted` for a restart already performed
+without an evidenced recovery case (a violation record, not a recovery case) — and that no row above it carries a field
+count other than the format's pre-fields width. A record carrying no boundary comment SHALL be read as having all its
+rows on the side its own rows show, so the comment SHALL be required only where a record holds rows on both sides. The
+verification SHALL be a `commit-hygiene.py` mode run by a `check` task over the tracked records.
 
 #### Scenario: The standard check verifies reviewer-session continuity
 
@@ -733,7 +741,7 @@ pre-fields width. The verification SHALL be a `commit-hygiene.py` mode run by a 
 
 #### Scenario: A row whose field count is not the ledger's width fails the check
 
-- **WHEN** a row below the ledger's boundary comment carries more or fewer fields than the contract declares
+- **WHEN** a row below the record's boundary comment carries more or fewer fields than the contract declares
 - **THEN** the continuity verification fails, naming the row and its field count
 
 #### Scenario: A transition outside the three fails the check
@@ -743,7 +751,7 @@ pre-fields width. The verification SHALL be a `commit-hygiene.py` mode run by a 
 
 #### Scenario: A row with no session identifier fails the check
 
-- **WHEN** a row below the ledger's boundary comment carries no session identifier
+- **WHEN** a row below the record's boundary comment carries no session identifier
 - **THEN** the continuity verification fails, naming the row
 
 #### Scenario: A first row that is not a creation fails the check
@@ -753,19 +761,24 @@ pre-fields width. The verification SHALL be a `commit-hygiene.py` mode run by a 
 
 #### Scenario: A row above the boundary whose field count is not the pre-fields width fails the check
 
-- **WHEN** a row above the ledger's boundary comment carries a field count other than the one the ledger's rows carried
-  before the session fields existed
+- **WHEN** a unit's record carries a row above its boundary comment with a field count other than the one the rows
+  carried before the session fields existed
 - **THEN** the continuity verification fails, stating that the boundary was moved past the row
 
 #### Scenario: Rows above the boundary are exempt
 
-- **WHEN** the ledger carries rows above its boundary comment, which predate the session fields
+- **WHEN** a unit's record carries rows above its boundary comment, which predate the session fields
 - **THEN** the continuity verification does not require the session fields on those rows
 
 #### Scenario: A missing boundary comment fails the check
 
-- **WHEN** the ledger carries no boundary comment marking the first row to carry the session fields
+- **WHEN** a unit's record holds rows on both sides of the session-fields boundary and carries no boundary comment
 - **THEN** the continuity verification fails, stating that the boundary is absent
+
+#### Scenario: A record whose rows all lie on one side carries no marker
+
+- **WHEN** a unit's record's rows all predate the session fields, or all carry them
+- **THEN** the continuity verification requires no boundary comment and judges every row on that one side
 
 #### Scenario: Distinct units may start with distinct sessions
 
@@ -1032,8 +1045,8 @@ to the test class whose source names the mode and its checker function's call fo
 
 ### Requirement: Review-round classes come from the reviewer's canonical list
 
-The build SHALL verify that every finding class recorded in the review-round ledger (`docs/review-rounds.tsv`) — in the
-classes-raised and the classes-that-repeated column of a row dated after the canonical boundary — is a class the
+The build SHALL verify that every finding class recorded in the unit round records (`docs/units/<unit>/rounds.tsv`) — in
+the classes-raised and the classes-that-repeated column of a row dated after the canonical boundary — is a class the
 reviewer's canonical list names, so a class the list does not carry fails the build rather than splitting the
 aggregation the retrospective reads. The canonical list's owner SHALL be `.opencode/agent/review-quick.md`, and the
 boundary's owner SHALL be `scripts/review-rounds.py`, which records the last day whose rows may carry a pre-canonical
@@ -1043,8 +1056,8 @@ with the labels it was recorded with.
 A label whose round's report was never reconstructed SHALL be exempt only when a comment line of the form
 `# --- Acknowledged class: <unit> round <N> <label> - <reason>` names that row and that label, so an exemption covers
 one label on one row rather than a unit or a label generally. The comment SHALL be accepted as the record of that fact:
-the verification SHALL NOT attempt to re-derive it, as the ledger's acknowledged-gap form does not. A verification that
-cannot read the ledger, the boundary, or the canonical list SHALL fail, naming the unreadable source, rather than
+the verification SHALL NOT attempt to re-derive it, as the records' acknowledged-gap form does not. A verification that
+cannot read the records, the boundary, or the canonical list SHALL fail, naming the unreadable source, rather than
 passing.
 
 #### Scenario: The standard check verifies the recorded classes
@@ -1093,8 +1106,8 @@ passing.
 
 #### Scenario: An unreadable source fails rather than passing
 
-- **WHEN** the ledger, the boundary's owner, or the canonical list cannot be read; the list's extraction finds no class,
-  more than one list, or a token that is not a class; or the boundary declares no date, or a value that is not a
+- **WHEN** the records, the boundary's owner, or the canonical list cannot be read; the list's extraction finds no
+  class, more than one list, or a token that is not a class; or the boundary declares no date, or a value that is not a
   written-out calendar date
 - **THEN** the verification fails, naming the unreadable or ambiguous source, rather than reporting every row clean
 
@@ -1284,3 +1297,47 @@ The `writer` SHALL be shape-checked: a reviewer's identifier has the same form.
 - **WHEN** a staged record's `path` is other than the worktree's top level, or its `branch` is other than the branch
   being committed
 - **THEN** the pre-commit guard refuses the commit, naming the recorded and the actual value
+
+### Requirement: The review-round record format is stated once
+
+Each unit's review-round record SHALL be the file `docs/units/<unit>/rounds.tsv`, holding that unit's data rows in the
+order they were recorded, as tab-separated fields: the date (`YYYY-MM-DD`); the unit, which SHALL name the directory the
+record is filed under; the round, continuous per unit across its proposal and implementation reviews; the classes
+raised, comma-separated or `-`; the classes that repeated a prior round, comma-separated or `-`; the compliance-miss
+count; the reviewer's session identifier; the session transition (`created`, `continued`, or `replaced`); and a
+replacement's reason (`expired`, `definition-changed`, `stopped-responding`, or `caller-restarted`; `-` otherwise).
+
+The boundary between the rows that predate the session fields and those that carry them SHALL be marked by a comment
+line naming it. A record SHALL carry that marker only where it holds rows on both sides, and a record without one SHALL
+be read as having all its rows on the side its own rows show. A row carrying the pre-fields width SHALL be historical
+only when it is dated on or before the last day the fields were absent (2026-10-18); a later row lacks the fields and
+SHALL fail, so the exemption cannot be claimed by writing the old width today.
+
+A gap whose report was never reconstructed SHALL be acknowledged by a comment line of the form
+`# --- Acknowledged gap: <unit> round <N> - <reason>`, and a class recorded before the canonical list landed, whose
+round's report was never reconstructed, by `# --- Acknowledged class: <unit> round <N> <label> - <reason>`, which covers
+that label on that row only.
+
+This requirement SHALL own the record format, so the `review-ledger` binding's owner cell SHALL name it rather than the
+retired header, and no per-unit file SHALL carry a normative header of its own.
+
+#### Scenario: A record's fields parse in the stated order
+
+- **WHEN** a unit's `rounds.tsv` carries a data row of the nine fields
+- **THEN** the record's readers parse the date, unit, round, classes raised, classes repeated, compliance misses,
+  session identifier, transition, and replacement reason from it
+
+#### Scenario: A record's unit column names its directory
+
+- **WHEN** a record is filed at `docs/units/<unit>/rounds.tsv`
+- **THEN** every row's unit column names that same `<unit>`
+
+#### Scenario: A record holding rows on both sides carries the marker
+
+- **WHEN** a record holds rows that predate the session fields beside rows that carry them
+- **THEN** the record carries the boundary comment at the position dividing them
+
+#### Scenario: A six-field row dated after the fields fails
+
+- **WHEN** a record row dated after 2026-10-18 carries the pre-fields width
+- **THEN** the continuity verification fails, naming the row, its date, and the fields it lacks

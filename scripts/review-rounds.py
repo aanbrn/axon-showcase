@@ -1,4 +1,4 @@
-"""Print the retrospective digest's review-rounds block from `docs/review-rounds.tsv`.
+"""Print the retrospective digest's review-rounds block from the per-unit records (`docs/units/*/rounds.tsv`).
 
 The digest states a retrospective window's review rounds for the `experience-analyzer` subagent: the round count and the
 compliance-miss count both as the `since`-inclusive filter yields them and for the window proper (the rows dated after
@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from review_vocabulary import REVIEW_QUICK_DEFINITION, canonical_classes
 
-RECORD_DEFAULT = "docs/review-rounds.tsv"
+RECORD_DEFAULT = "docs/units"
 
 # The last day whose rows may carry a pre-canonical label: the canonical class list landed with #577, merged 2026-10-15.
 PRE_CANONICAL_THROUGH = "2026-10-15"
@@ -104,12 +104,18 @@ DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 
 
 def read_rows(path: Path) -> List[List[str]]:
-    """The ledger's data rows as tab-separated field lists, comment and blank lines dropped."""
+    """The records' data rows as tab-separated field lists, comment and blank lines dropped.
+
+    `path` is the directory holding the per-unit records, read in unit order so a unit's rows keep their recorded order;
+    a single file is still read when one is named.
+    """
+    files = sorted(path.glob("*/rounds.tsv")) if path.is_dir() else [path]
     rows: List[List[str]] = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if not line.strip() or line.startswith("#"):
-            continue
-        rows.append(line.split("\t"))
+    for record in files:
+        for line in record.read_text(encoding="utf-8").splitlines():
+            if not line.strip() or line.startswith("#"):
+                continue
+            rows.append(line.split("\t"))
     return rows
 
 
@@ -242,11 +248,11 @@ def main(argv: Sequence[str] = ()) -> int:
     parser.add_argument(
         "--record",
         default=RECORD_DEFAULT,
-        help="the review-round ledger (default: {0})".format(RECORD_DEFAULT),
+        help="the directory holding the per-unit review-round records (default: {0})".format(RECORD_DEFAULT),
     )
     args = parser.parse_args(argv)
     path = Path(args.record)
-    if not path.is_file():
+    if not path.is_file() and not path.is_dir():
         print(heading(args.record))
         print("  (none on disk)")
         return 0

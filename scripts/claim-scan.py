@@ -33,6 +33,8 @@ Claim = Tuple[str, int, str, str]
 HUNK_HEADER = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@")
 NEW_FILE = re.compile(r"^\+\+\+ b/(.+)$")
 CODE_SPAN = re.compile(r"`([^`]*)`")
+# A unit's review-round record is tab-separated data, not prose: its date, round, and count columns are not claims.
+DATA_RECORD = re.compile(r"^docs/units/[^/]+/rounds\.tsv$")
 
 PATH_EXTENSION = re.compile(
     r"\.(md|kts|py|sh|ya?ml|json|toml|xml|txt|java|kt|ts|tsx|js|jsx|properties|conf|gradle)$",
@@ -86,7 +88,8 @@ def find_claims(diff_text: str, known: Sequence[str] = ()) -> List[Claim]:
     """The claim candidates in a unified diff's added lines, with their new-side line numbers.
 
     ``known`` adds paths the authored set creates outside the diff (its untracked files), so a candidate naming one is
-    dropped exactly as a candidate naming a modified path is.
+    dropped exactly as a candidate naming a modified path is. A review-round record is data rather than prose, so its
+    columns are never candidates.
     """
     modified = _modified_paths(diff_text) + list(known)
     claims: List[Claim] = []
@@ -100,6 +103,8 @@ def find_claims(diff_text: str, known: Sequence[str] = ()) -> List[Claim]:
         if raw.startswith("@@"):
             match = HUNK_HEADER.match(raw)
             new_line = int(match.group(1)) if match else 0
+            continue
+        if path and DATA_RECORD.match(path):
             continue
         if raw.startswith("+"):
             if path:
@@ -148,7 +153,11 @@ def _git(repo: Path, *args: str) -> str:
 def scan(repo: Path, base: str) -> List[Claim]:
     """The candidates in the diff against ``base`` plus the untracked, non-ignored files."""
     diff_text = _git(repo, "diff", "--no-color", base, "--")
-    untracked = _git(repo, "ls-files", "--others", "--exclude-standard").splitlines()
+    untracked = [
+        path
+        for path in _git(repo, "ls-files", "--others", "--exclude-standard").splitlines()
+        if not DATA_RECORD.match(path)
+    ]
     known = _modified_paths(diff_text) + untracked
     claims = find_claims(diff_text, untracked)
     for path in untracked:

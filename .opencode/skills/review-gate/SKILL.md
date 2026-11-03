@@ -14,8 +14,9 @@ the authorization stops in `AGENTS.md` govern, and the owner's approval is the p
 
 Source: `AGENTS.md` "Workflow: The review gate".
 
-Read `docs/contracts/process-bindings.md` before using the review ledger it declares, and read the ledger's own header
-before relying on its record format.
+Read `docs/contracts/process-bindings.md` before using the review ledger it declares, and read the record format's owner
+— the `showcase/quality/commit-hygiene` requirement "The review-round record format is stated once" — before relying on
+its format.
 
 **Trigger** — you have finished a change's proposal (planning artifacts) or its implementation, or any non-OpenSpec unit
 (a docs refresh, a standalone fix, a dependency bump), and you are about to commit, push, open a PR, archive, or merge.

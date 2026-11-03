@@ -159,6 +159,15 @@ class RecordOnlyTests(unittest.TestCase):
         self.assertTrue(review_routing.record_only(["ledgers/rounds.tsv"], "ledgers/rounds.tsv"))
         self.assertFalse(review_routing.record_only(["ledgers/rounds.tsv"], LEDGER))
 
+    def test_a_unit_round_record_is_record_only(self):
+        self.assertTrue(review_routing.record_only(["docs/units/u/rounds.tsv"], LEDGER))
+
+    def test_a_unit_record_beside_its_rounds_keeps_normal_routing(self):
+        self.assertFalse(review_routing.record_only(["docs/units/u/rounds.tsv", "docs/units/u/unit.md"], LEDGER))
+
+    def test_a_nested_round_record_keeps_normal_routing(self):
+        self.assertFalse(review_routing.record_only(["docs/units/u/sub/rounds.tsv"], LEDGER))
+
 
 class ChangedPathTests(unittest.TestCase):
     """The changed-path parser over `git diff --name-status -z` records, independent of any repository."""
@@ -300,11 +309,11 @@ class CliTests(unittest.TestCase):
         self.addCleanup(directory.cleanup)
         repo = Path(directory.name)
         (repo / "README.md").write_text("base\n", encoding="utf-8")
-        ledger = repo / "docs" / "review-rounds.tsv"
-        ledger.parent.mkdir(parents=True)
-        ledger.write_text(
-            "# header\n" + "".join("\t".join(row) + "\n" for row in ledger_rows), encoding="utf-8"
-        )
+        for row in ledger_rows:
+            record = repo / "docs" / "units" / row[1] / "rounds.tsv"
+            record.parent.mkdir(parents=True, exist_ok=True)
+            with record.open("a", encoding="utf-8") as handle:
+                handle.write("\t".join(row) + "\n")
         if change:
             (repo / "openspec" / "changes" / change / "specs" / "cap").mkdir(parents=True)
             if delta is not None:
@@ -312,7 +321,10 @@ class CliTests(unittest.TestCase):
                     delta, encoding="utf-8"
                 )
         self.git(repo, "init", "-q")
-        self.git(repo, "add", "README.md", "docs/review-rounds.tsv")
+        staged = ["README.md"]
+        if (repo / "docs" / "units").is_dir():
+            staged.append("docs/units")
+        self.git(repo, "add", *staged)
         for path in ("openspec",):
             if (repo / path).exists():
                 self.git(repo, "add", path)
@@ -411,34 +423,20 @@ class CliTests(unittest.TestCase):
         self.assertIn("[record-only]", out)
 
     def test_a_dot_prefixed_ledger_is_recognised(self):
-        repo = self.scratch([])
-        ledger = repo / "docs" / "review-rounds.tsv"
-        ledger.write_text(
-            ledger.read_text(encoding="utf-8")
-            + "".join("\t".join(row) + "\n" for row in self.repeated("u")),
-            encoding="utf-8",
-        )
+        repo = self.scratch(self.repeated("u"))
         self.record(repo, "docs/process-defects/a.md")
 
-        status, out = self.run_tool(repo, "--unit", "u", "--ledger", "./docs/review-rounds.tsv")
+        status, out = self.run_tool(repo, "--unit", "u", "--ledger", "./docs/units")
 
         self.assertEqual(status, 0)
         self.assertIn("ROUTING: NOT_NEEDED", out)
         self.assertIn("[record-only]", out)
 
     def test_an_absolute_ledger_is_recognised(self):
-        repo = self.scratch([])
-        ledger = repo / "docs" / "review-rounds.tsv"
-        ledger.write_text(
-            ledger.read_text(encoding="utf-8")
-            + "".join("\t".join(row) + "\n" for row in self.repeated("u")),
-            encoding="utf-8",
-        )
+        repo = self.scratch(self.repeated("u"))
         self.record(repo, "docs/process-defects/a.md")
 
-        status, out = self.run_tool(
-            repo, "--unit", "u", "--ledger", str(repo / "docs" / "review-rounds.tsv")
-        )
+        status, out = self.run_tool(repo, "--unit", "u", "--ledger", str(repo / "docs" / "units"))
 
         self.assertEqual(status, 0)
         self.assertIn("ROUTING: NOT_NEEDED", out)

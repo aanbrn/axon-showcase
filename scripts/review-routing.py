@@ -33,12 +33,14 @@ REQUIRED = "REQUIRED"
 RECOMMENDED = "RECOMMENDED"
 NOT_NEEDED = "NOT_NEEDED"
 
-LEDGER_DEFAULT = "docs/review-rounds.tsv"
+LEDGER_DEFAULT = "docs/units"
 # The record-artifact class the routing floor exempts: the Markdown records the repository keeps for its own process,
 # and the ledger the invocation reads. The classification lives here alone, so the tool, its controls and the spec
 # cannot drift apart.
 RECORD_DIRS = ("docs/process-defects/", "docs/retrospectives/", "docs/load-tests/")
 RECORD_SUFFIX = ".md"
+# The basename of one unit's review-round record under the ledger directory.
+ROUND_RECORD_NAME = "rounds.tsv"
 CHANGE_ROOT = "openspec/changes"
 
 # The signal classes, derived from the repository's own structure (its modules, its service domain packages, and its
@@ -96,13 +98,21 @@ def block_signals(kinds: Sequence[BlockKind]) -> List[Signal]:
     return [("requirement-block-" + kind.lower(), source) for kind, source in kinds]
 
 
-def ledger_rows(text: str) -> List[List[str]]:
-    """The ledger's data rows, validated as they are read.
+def ledger_rows(path: Path) -> List[List[str]]:
+    """The records' data rows, validated as they are read.
 
-    A malformed row is a failed derivation wherever it appears, including beside a mandatory signal, so the validation
-    runs during gathering rather than only where the signal is derived.
+    `path` is the directory holding the per-unit records, read in unit order; a single file is still read when one is
+    named. A malformed row is a failed derivation wherever it appears, including beside a mandatory signal, so the
+    validation runs during gathering rather than only where the signal is derived.
     """
-    rows = [line.split("\t") for line in text.splitlines() if line.strip() and not line.startswith("#")]
+    files = sorted(path.glob("*/" + ROUND_RECORD_NAME)) if path.is_dir() else [path]
+    rows: List[List[str]] = []
+    for record in files:
+        rows.extend(
+            line.split("\t")
+            for line in record.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.startswith("#")
+        )
     for row in rows:
         if len(row) < 5:
             raise ValueError("malformed ledger row: {0}".format("\t".join(row)))
@@ -139,9 +149,17 @@ def ledger_identity(repo: Path, ledger: str) -> str:
 
 
 def is_record_path(path: str, ledger: str) -> bool:
-    """Whether one changed path belongs to the record-artifact class: a Markdown record, or the ledger read here."""
+    """Whether one changed path belongs to the record-artifact class.
+
+    That class is a Markdown record, or a unit's round record directly under the directory the ledger names.
+    """
     if path == ledger:
         return True
+    base = ledger.rstrip("/")
+    if path.startswith(base + "/"):
+        parts = path[len(base) + 1 :].split("/")
+        if len(parts) == 2 and parts[1] == ROUND_RECORD_NAME:
+            return True
     return path.startswith(RECORD_DIRS) and path.endswith(RECORD_SUFFIX)
 
 
@@ -259,10 +277,10 @@ def gather(repo: Path, base: str, change: Optional[str], ledger: str) -> Tuple[
                 (kind, str(spec.relative_to(repo))) for kind in sorted(set(BLOCK_KIND.findall(text)))
             )
     ledger_path = repo / ledger
-    if not ledger_path.is_file():
+    if not ledger_path.is_dir() and not ledger_path.is_file():
         raise ValueError("no such ledger: {0}".format(ledger))
     try:
-        rows = ledger_rows(ledger_path.read_text(encoding="utf-8"))
+        rows = ledger_rows(ledger_path)
     except (OSError, UnicodeDecodeError):
         raise ValueError("cannot read the ledger: {0}".format(ledger))
     return paths, files, kinds, rows
@@ -288,7 +306,7 @@ def main(argv: Sequence[str] = ()) -> int:
     parser.add_argument(
         "--ledger",
         default=LEDGER_DEFAULT,
-        help="the review-round ledger (default: {0})".format(LEDGER_DEFAULT),
+        help="the directory holding the per-unit review-round records (default: {0})".format(LEDGER_DEFAULT),
     )
     args = parser.parse_args(argv)
     try:

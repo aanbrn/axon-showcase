@@ -125,6 +125,26 @@ class FindClaimsTests(unittest.TestCase):
 
         self.assertEqual([], claim_scan.find_claims(diff, ["scripts/new-tool.py"]))
 
+    def test_a_review_round_record_is_not_scanned_while_its_sibling_record_is(self):
+        diff = (
+            "diff --git a/docs/units/u/rounds.tsv b/docs/units/u/rounds.tsv\n"
+            "--- a/docs/units/u/rounds.tsv\n"
+            "+++ b/docs/units/u/rounds.tsv\n"
+            "@@ -1,1 +1,2 @@\n"
+            " 2026-11-03\tu\t1\t-\t-\t0\n"
+            "+2026-11-03\tu\t2\tonly 12 files\t-\t0\n"
+            "diff --git a/docs/units/u/unit.md b/docs/units/u/unit.md\n"
+            "--- a/docs/units/u/unit.md\n"
+            "+++ b/docs/units/u/unit.md\n"
+            "@@ -1,1 +1,1 @@\n"
+            "+only the changed files\n"
+        )
+
+        claims = claim_scan.find_claims(diff)
+
+        self.assertNotIn("docs/units/u/rounds.tsv", {path for path, _, _, _ in claims})
+        self.assertIn(("docs/units/u/unit.md", 1, "absolute", "only"), claims)
+
 
 class ScanTests(unittest.TestCase):
     def test_scan_reads_the_diff_and_the_untracked_files(self):
@@ -139,6 +159,21 @@ class ScanTests(unittest.TestCase):
 
         self.assertIn(("tracked.md", 2, "absolute", "only"), claims)
         self.assertIn(("untracked.md", 1, "cross-ref", "#606"), claims)
+
+    def test_scan_skips_an_untracked_review_round_record(self):
+        repo = make_repo(self)
+        (repo / "tracked.md").write_text("context\n", encoding="utf-8")
+        subprocess.run(("git", "add", "tracked.md"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-qm", "one"), cwd=repo, check=True)
+        record = repo / "docs" / "units" / "u" / "rounds.tsv"
+        record.parent.mkdir(parents=True)
+        record.write_text("2026-11-03\tu\t1\tonly 12 files\t-\t0\n", encoding="utf-8")
+        (repo / "docs" / "units" / "u" / "unit.md").write_text("fixed by #606\n", encoding="utf-8")
+
+        claims = claim_scan.scan(repo, "HEAD")
+
+        self.assertNotIn("docs/units/u/rounds.tsv", {path for path, _, _, _ in claims})
+        self.assertIn(("docs/units/u/unit.md", 1, "cross-ref", "#606"), claims)
 
 
 class FileScanTests(unittest.TestCase):

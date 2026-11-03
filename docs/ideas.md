@@ -25,6 +25,26 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
+## 2026-11-03
+
+- Keep a unit's review hand-off in `docs/units/<unit>/` — parked; no change yet. A hand-off — one quick-review round's
+  findings — can be kept in the change directory (`review-handover.md`), as one archived change does, and leaves with
+  the archive. The unit directory is its natural per-unit home if a hand-off should outlive the change, but the
+  checkpoint already preserves the finding instances the next round needs, so this waits for a use the checkpoint cannot
+  serve. Surfaced while splitting the review ledger.
+- Persist each review round's finding instances — parked; no change yet. The per-round `file:line` instances live only
+  in the reviewer's report and the pause checkpoint; `docs/units/<unit>/rounds.tsv` records classes and counts, not
+  instances. Persisting them beside the round would let a later audit read what a round found, but it is a new store
+  with its own retention and size, not a move of an existing file. It needs a concrete consumer before it is designed.
+  Surfaced while splitting the review ledger.
+- Move the process-defect records into `docs/units/<unit>/` — parked; no change yet. `docs/process-defects/<unit>.md` is
+  already per-unit, so the move buys physical locality with `unit.md` at the cost of one file per unit — some named with
+  a date inside the unit's name rather than as a suffix — and retargeting every live namer of the directory:
+  `AGENTS.md`, the `agent-skills` spec, the bindings whose role value it is, `experience-analysis.sh` and its test,
+  `review-routing.py` and its test, `README.md`, ADR-0028, the pull-request template, and `openspec/config.yaml`. It
+  reopens on a confirmed retrieval problem — a record that cannot be found from its unit — or the owner's explicit
+  decision that one physical dossier is itself the required outcome. Surfaced while splitting the review ledger.
+
 ## 2026-11-01
 
 - Gate a `Decision` line's link with a check — parked; no change yet. The generalization workflow requires `proposed`
@@ -131,7 +151,7 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
 - Correct `pause-resume-unit`'s `Stage` field so it stops inviting the ledger's state — parked; no change yet. The field
   says "Where the unit is: the proposal, a review round, the implementation, …", so a writer naturally renders the
   review stage as a narrative — how many rounds, whether the loop is clean — which is exactly the copy `AGENTS.md`'s
-  single-sourcing invariant forbids (a review round's state is `docs/review-rounds.tsv`'s). Three drifts in one
+  single-sourcing invariant forbids (a review round's state is `docs/units/<unit>/rounds.tsv`'s). Three drifts in one
   checkpoint (`add-sync-branch-command`'s) came from that pressure, each fixed by pointing at the ledger. The correction
   belongs in the skill's field set and a decision point (state only what the artifact owns; point at the ledger), not in
   `AGENTS.md`, whose invariant already states the obligation. A definition edit of that skill owes its own change.
@@ -171,16 +191,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   report English, so the direction stays compliance rather than another wording expansion; whether the hand-off itself
   was English, and whether asking for a non-English report needs its own clause, remain part of this entry's
   investigation.
-
-## 2026-11-03
-
-- Move the review-round ledger into the units' directories — parked; no change yet. `docs/review-rounds.tsv` is one
-  append-only file for every unit, and `docs/units/<unit>/` now exists as each unit's own home (ADR-0029). A per-unit
-  ledger would put a unit's rounds beside its record and avoid a shared append across parallel worktrees, but the move
-  is a wide one: its readers are `commit-hygiene`'s four checks, `review-rounds.py`, `review-routing.py`, the review
-  gate, and the bindings, and the file's contract carries exception lines and format boundaries. A full split must keep
-  every row and its order within the unit, the acknowledgements, and the aggregate and routing results, with the global
-  file retired rather than kept beside the new ones. Surfaced while designing the unit record.
 
 ## 2026-10-26
 
@@ -401,8 +411,8 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   - **Revisit when:** a concrete instance supplies the link `lesson-capture.md` requires — the requirement's root-cause
     clause (the instruction), the draft's decision to state a cause the counts cannot support (the wrong decision), and
     the action the proposed wording would change, stating a hypothesis with what would settle it (the different action)
-    — with that instance named in `docs/review-rounds.tsv`'s rows for the unit or in the pull-request checklist line
-    carrying its process-defect record (internal trigger, at that coordinate) **and** the 2026-10-23 pause lifted
+    — with that instance named in `docs/units/<unit>/rounds.tsv`'s rows for the unit or in the pull-request checklist
+    line carrying its process-defect record (internal trigger, at that coordinate) **and** the 2026-10-23 pause lifted
     (external coordinate: the P1 acceptance in `docs/retrospectives/2026-10-23.md`).
 
 ## 2026-10-22
@@ -434,10 +444,10 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
     both" before the manual pass — and `check-review-round-contiguity`'s design records that a wrapper buys ordering
     only within its own route and cannot prevent the Task-tool path.
   - **Revisit when:** either internal trigger is recorded:
-    - `docs/review-rounds.tsv` carries an `Acknowledged gap` for a report received after `check-review-round-contiguity`
-      landed, whose reason names where that unit recorded the recovery attempt — its `tasks.md`, or its pull-request
-      checklist when it has no change dir — and that record states the row fields that could not be recovered and the
-      report or hand-over sources it checked.
+    - `docs/units/<unit>/rounds.tsv` carries an `Acknowledged gap` for a report received after
+      `check-review-round-contiguity` landed, whose reason names where that unit recorded the recovery attempt — its
+      `tasks.md`, or its pull-request checklist when it has no change dir — and that record states the row fields that
+      could not be recovered and the report or hand-over sources it checked.
     - The owner explicitly requires technical prevention of the Task-tool bypass, recorded in a unit's `tasks.md` or
       pull-request checklist.
 

@@ -11,19 +11,19 @@ analysis.
 
 ## The roles
 
-| Canonical name              | This repository's value                                                                                                                                           | Referenced owner                                                                                     |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| review-ledger               | `docs/review-rounds.tsv`                                                                                                                                          | the ledger's header (the record format)                                                              |
-| lifecycle                   | `AGENTS.md`, the "Workflow: Change lifecycle" heading                                                                                                             | the lifecycle rules in that section                                                                  |
-| review-gate                 | `AGENTS.md`, the "Workflow: The review gate" heading                                                                                                              | the approval stop and the gate entry point; the procedure is `.opencode/skills/review-gate/SKILL.md` |
-| workspace-record            | `docs/units/<unit>/unit.md`, and the change's `tasks.md` reference to it                                                                                          | the workspace rule (`AGENTS.md`, "Workflow: Change lifecycle")                                       |
-| change-artifacts            | `openspec/changes/<change>/`                                                                                                                                      | the OpenSpec change directory and its schema                                                         |
-| process-defect-records      | `docs/process-defects/<unit>.md`                                                                                                                                  | the record's field set (`AGENTS.md`, "Workflow: Record process defects")                             |
-| generalization-dispositions | `AGENTS.md`, the "Where the repository already records a recurrence decides its disposition" bullet in "Workflow: Generalize process defects" → "Decision points" | the recurrence dispositions                                                                          |
-| extraction-procedure        | `AGENTS.md`, the "Workflow: Extract an `AGENTS.md` section" heading                                                                                               | the extraction procedure                                                                             |
-| branch-refresh              | `AGENTS.md`, the "Refreshing a branch" bullet under "Workflow: Change lifecycle" → "Failure handling"                                                             | the branch-refresh rule                                                                              |
-| spec-delta                  | `AGENTS.md`, the "Workflow: Author a spec delta and archive" heading                                                                                              | the spec-delta-and-archive workflow                                                                  |
-| prior-findings              | the prior review round's report, preserved in the `Resume checkpoint`'s "Findings no record holds" field or the review hand-over                                  | the review-gate handover rule                                                                        |
+| Canonical name              | This repository's value                                                                                                                                           | Referenced owner                                                                                       |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| review-ledger               | `docs/units/<unit>/rounds.tsv`                                                                                                                                    | the record format (`showcase/quality/commit-hygiene`, "The review-round record format is stated once") |
+| lifecycle                   | `AGENTS.md`, the "Workflow: Change lifecycle" heading                                                                                                             | the lifecycle rules in that section                                                                    |
+| review-gate                 | `AGENTS.md`, the "Workflow: The review gate" heading                                                                                                              | the approval stop and the gate entry point; the procedure is `.opencode/skills/review-gate/SKILL.md`   |
+| workspace-record            | `docs/units/<unit>/unit.md`, and the change's `tasks.md` reference to it                                                                                          | the workspace rule (`AGENTS.md`, "Workflow: Change lifecycle")                                         |
+| change-artifacts            | `openspec/changes/<change>/`                                                                                                                                      | the OpenSpec change directory and its schema                                                           |
+| process-defect-records      | `docs/process-defects/<unit>.md`                                                                                                                                  | the record's field set (`AGENTS.md`, "Workflow: Record process defects")                               |
+| generalization-dispositions | `AGENTS.md`, the "Where the repository already records a recurrence decides its disposition" bullet in "Workflow: Generalize process defects" → "Decision points" | the recurrence dispositions                                                                            |
+| extraction-procedure        | `AGENTS.md`, the "Workflow: Extract an `AGENTS.md` section" heading                                                                                               | the extraction procedure                                                                               |
+| branch-refresh              | `AGENTS.md`, the "Refreshing a branch" bullet under "Workflow: Change lifecycle" → "Failure handling"                                                             | the branch-refresh rule                                                                                |
+| spec-delta                  | `AGENTS.md`, the "Workflow: Author a spec delta and archive" heading                                                                                              | the spec-delta-and-archive workflow                                                                    |
+| prior-findings              | the prior review round's report, preserved in the `Resume checkpoint`'s "Findings no record holds" field or the review hand-over                                  | the review-gate handover rule                                                                          |
 
 ## The consumer trace
 
@@ -59,10 +59,11 @@ The non-adopters, by class:
 - the target's own governance and its spec corpus — `AGENTS.md` and `openspec/specs/` state the values rather than
   consuming them;
 - this declaration itself, whose role table carries the values;
-- the tooling that embeds a value — `scripts/commit-hygiene.py` embeds the ledger's path in its checks,
-  `scripts/review-rounds.py` defaults to it and accepts `--record`, `scripts/experience-analysis.sh` embeds the records
-  directory in its git log filters, and the build declares the scripts as inputs. A target that moves the ledger or the
-  records directory edits the tooling, so those values are the tooling's rather than a role;
+- the tooling that embeds a value — `scripts/commit-hygiene.py` embeds the round-record directory in its checks,
+  `scripts/review-rounds.py` and `scripts/review-routing.py` default to it and accept `--record` and `--ledger`,
+  `scripts/experience-analysis.sh` embeds the process-defect records directory in its git log filters, and the build
+  declares the scripts as inputs. A target that moves the ledger or the records directory edits the tooling, so those
+  values are the tooling's rather than a role;
 - the dated and normative records that quote the values as they were when the record was written —
   `docs/process-defects/`, `docs/decisions/`, `docs/retrospectives/`, `docs/audits/`, `docs/adr/`, and `docs/ideas.md`;
 - a change's own artifacts, while that change is working on the declaration or an adopting component;

@@ -604,7 +604,7 @@ tasks.register<Exec>("testReviewRounds") {
     inputs.file("scripts/test-review-rounds.py")
     inputs.file("scripts/review_vocabulary.py")
     inputs.file(".opencode/agent/review-quick.md")
-    inputs.file("docs/review-rounds.tsv")
+    inputs.dir("docs/units")
     // The test re-derives the declared mapping from the change that recorded it, so that file is an input too.
     inputs.file(
         "openspec/changes/archive/2026-10-15-give-the-review-a-canonical-class-list/design.md",
@@ -695,18 +695,18 @@ tasks.register<Exec>("verifyUniqueChangeNames") {
 
 tasks.register<Exec>("verifyUniqueReviewRounds") {
     group = "verification"
-    description = "Verifies the review-round ledger carries one row per unit and round, contiguous from 1"
+    description = "Verifies each unit's review-round record carries one row per round, contiguous from 1"
     inputs.file("scripts/commit-hygiene.py")
-    inputs.file("docs/review-rounds.tsv")
+    inputs.dir("docs/units")
     outputs.upToDateWhen { false }
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--unique-rounds")
 }
 
 tasks.register<Exec>("verifyReviewSessionContinuity") {
     group = "verification"
-    description = "Verifies the review-round ledger records each round's reviewer session and its transition"
+    description = "Verifies each record's reviewer-session fields record its rounds' session and transition"
     inputs.file("scripts/commit-hygiene.py")
-    inputs.file("docs/review-rounds.tsv")
+    inputs.dir("docs/units")
     outputs.upToDateWhen { false }
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--session-continuity")
 }
@@ -767,13 +767,13 @@ tasks.register<Exec>("verifyWorkspaceRecords") {
 
 tasks.register<Exec>("verifyReviewClassVocabulary") {
     group = "verification"
-    description = "Verifies the review-round ledger's classes against the reviewer's canonical list"
+    description = "Verifies the review-round records' classes against the reviewer's canonical list"
     // The checker reads the canonical list from the definition and the boundary from the digest script, so both are
     // inputs: a warm build must re-run when either owner changes.
     inputs.file("scripts/commit-hygiene.py")
     inputs.file("scripts/review_vocabulary.py")
     inputs.file("scripts/review-rounds.py")
-    inputs.file("docs/review-rounds.tsv")
+    inputs.dir("docs/units")
     inputs.file(".opencode/agent/review-quick.md")
     outputs.upToDateWhen { false }
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--class-vocabulary")

@@ -1946,6 +1946,11 @@ def row(
     )
 
 
+def dated_row(day: str, unit: str, round_number: int, session: str, transition: str, reason: str = "-") -> str:
+    """One nine-field round row on the given day, for a check whose boundary is a date."""
+    return "\t".join([day, unit, str(round_number), "-", "-", "0", session, transition, reason])
+
+
 class SessionContinuityTests(unittest.TestCase):
     def violations(self, lines: list[str]) -> list[str]:
         return commit_hygiene.find_session_continuity_violations(ledger_repo(self, lines))
@@ -3222,6 +3227,83 @@ class LedgerGuardTests(unittest.TestCase):
         self.assertGreaterEqual(code, 1)
         self.assertIn("A review-round row is removed", stderr)
 
+    def _write_record(self, repo: Path, unit: str, body: str) -> None:
+        path = repo / "docs" / "units" / unit / "rounds.tsv"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(body, encoding="utf-8")
+
+    def test_a_staged_post_boundary_round_without_instances_is_refused(self):
+        repo = make_repo(self)
+        self._commit(repo, [dated_row("2026-11-05", "unit-a", 1, "ses_a", CREATED)])
+        self._write_record(
+            repo,
+            "unit-a",
+            dated_row("2026-11-05", "unit-a", 1, "ses_a", CREATED)
+            + "\n"
+            + dated_row("2026-11-05", "unit-a", 2, "ses_a", CONTINUED)
+            + "\n",
+        )
+        subprocess.run(("git", "add", "-A", "docs/units"), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("findings/round-2.md", stderr)
+
+    def test_a_staged_instances_deletion_is_refused(self):
+        repo = make_repo(self)
+        self._write_record(repo, "unit-a", dated_row("2026-11-05", "unit-a", 1, "ses_a", CREATED) + "\n")
+        findings = repo / "docs" / "units" / "unit-a" / "findings"
+        findings.mkdir(parents=True)
+        (findings / "round-1.md").write_text("- none\n", encoding="utf-8")
+        subprocess.run(("git", "add", "-A", "docs/units"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-qm", "records"), cwd=repo, check=True)
+        subprocess.run(("git", "rm", "-q", "docs/units/unit-a/findings/round-1.md"), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("findings/round-1.md", stderr)
+
+    def test_a_committed_instances_file_is_seen_when_a_later_round_is_staged(self):
+        repo = make_repo(self)
+        self._write_record(repo, "unit-a", dated_row("2026-11-05", "unit-a", 1, "ses_a", CREATED) + "\n")
+        findings = repo / "docs" / "units" / "unit-a" / "findings"
+        findings.mkdir(parents=True)
+        (findings / "round-1.md").write_text("- none\n", encoding="utf-8")
+        subprocess.run(("git", "add", "-A", "docs/units"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-qm", "records"), cwd=repo, check=True)
+        self._write_record(
+            repo,
+            "unit-a",
+            dated_row("2026-11-05", "unit-a", 1, "ses_a", CREATED)
+            + "\n"
+            + dated_row("2026-11-05", "unit-a", 2, "ses_a", CONTINUED)
+            + "\n",
+        )
+        (findings / "round-2.md").write_text("- none\n", encoding="utf-8")
+        subprocess.run(("git", "add", "-A", "docs/units"), cwd=repo, check=True)
+        # Round 1's committed copy stays valid in the index while the working tree's copy is not; a guard reading the
+        # tree would fail here, and one reading the index passes.
+        (findings / "round-1.md").write_text("not an entry\n", encoding="utf-8")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(0, code, stderr)
+
+    def test_a_staged_unreadable_instances_file_is_refused_by_name(self):
+        repo = make_repo(self)
+        self._write_record(repo, "unit-a", dated_row("2026-11-05", "unit-a", 1, "ses_a", CREATED) + "\n")
+        findings = repo / "docs" / "units" / "unit-a" / "findings"
+        findings.mkdir(parents=True)
+        (findings / "round-1.md").write_bytes(b"\xff\xfe bad \xff")
+        subprocess.run(("git", "add", "-A", "docs/units"), cwd=repo, check=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertGreaterEqual(code, 1)
+        self.assertIn("cannot read the index copy", stderr)
+
 # The mode-to-test mapping the coverage requirement names: each mode the checker exposes, the test class that covers it,
 # and the checker function that class names. The mapping is asserted complete against the checker's own mode list, and
 # each entry against the named class's own source, as text — the mode's flag, and the function's call form (its name
@@ -3787,6 +3869,7 @@ MODE_TEST_COVERAGE = {
     "--ideas-sections": ("IdeaSectionTests", "find_empty_idea_sections"),
     "--class-vocabulary": ("ClassVocabularyTests", "find_unknown_classes"),
     "--workspace-records": ("WorkspaceRecordTests", "check_workspace_records"),
+    "--finding-instances": ("FindingInstancesTests", "check_finding_instances"),
 }
 
 
@@ -4170,6 +4253,133 @@ class StagedIdeaSectionTests(unittest.TestCase):
 
         self.assertEqual(1, code)
         self.assertIn("The ideas file is missing: docs/ideas.md", stderr)
+
+
+class FindingInstancesTests(unittest.TestCase):
+    def _repo(self, day="2026-11-05", classes="wording", instances=None, rounds=None, unit="unit-a"):
+        repo = make_repo(self)
+        directory = repo / "docs" / "units" / unit
+        directory.mkdir(parents=True)
+        body = rounds if rounds is not None else "{0}\t{1}\t1\t{2}\t-\t0\n".format(day, unit, classes)
+        (directory / "rounds.tsv").write_text(body, encoding="utf-8")
+        if instances is not None:
+            findings = directory / "findings"
+            findings.mkdir(parents=True, exist_ok=True)
+            (findings / "round-1.md").write_text(instances, encoding="utf-8")
+        return repo
+
+    def _problems(self, repo):
+        return commit_hygiene.find_instance_violations(
+            commit_hygiene.round_records(repo), commit_hygiene.tree_instances(repo)
+        )
+
+    def test_a_post_boundary_round_without_instances_fails(self):
+        problems = self._problems(self._repo())
+
+        self.assertEqual(1, len(problems))
+        self.assertIn("round 1", problems[0])
+        self.assertIn("findings/round-1.md", problems[0])
+
+    def test_a_pre_boundary_round_is_exempt(self):
+        self.assertEqual([], self._problems(self._repo(day="2026-11-03")))
+
+    def test_two_entries_are_read_as_two(self):
+        instances = (
+            "- [wording] docs/a.md:3 — a claim\n"
+            "- [coherence] docs/b.md:9 — another claim that the formatter reflows onto a\n"
+            "  continuation line\n"
+        )
+
+        entries, unparseable, _ = commit_hygiene.parse_instances(instances)
+
+        self.assertEqual(2, len(entries))
+        self.assertEqual([], unparseable)
+        self.assertEqual(
+            [], self._problems(self._repo(classes="wording,coherence", instances=instances))
+        )
+
+    def test_a_clean_round_stating_none_passes(self):
+        self.assertEqual([], self._problems(self._repo(classes="-", instances="- none\n")))
+
+    def test_a_wrapped_entry_parses(self):
+        instances = (
+            "- [wording] docs/a.md:3 — a claim long enough that the formatter reflows it\n"
+            "  onto a continuation line\n"
+        )
+
+        self.assertEqual([], self._problems(self._repo(instances=instances)))
+
+    def test_an_empty_file_for_a_clean_round_fails(self):
+        problems = self._problems(self._repo(classes="-", instances=""))
+
+        self.assertEqual(1, len(problems))
+        self.assertIn("no entry and no", problems[0])
+
+    def test_a_file_stating_none_beside_an_entry_fails(self):
+        problems = self._problems(self._repo(instances="- none\n- [wording] docs/a.md:3 — a claim\n"))
+
+        self.assertEqual(1, len(problems))
+        self.assertIn("beside", problems[0])
+
+    def test_a_matching_instance_passes(self):
+        self.assertEqual(
+            [],
+            self._problems(self._repo(instances="- [wording] docs/a.md:3 — only the changed files\n")),
+        )
+
+    def test_a_class_disagreement_fails(self):
+        problems = self._problems(self._repo(instances="- none\n"))
+
+        self.assertEqual(1, len(problems))
+        self.assertIn("names classes none", problems[0])
+
+    def test_an_orphan_file_fails(self):
+        repo = self._repo(instances="- [wording] docs/a.md:3 — only the changed files\n")
+        findings = repo / "docs" / "units" / "unit-a" / "findings"
+        (findings / "round-2.md").write_text("- none\n", encoding="utf-8")
+
+        problems = self._problems(repo)
+
+        self.assertEqual(1, len(problems))
+        self.assertIn("round 2", problems[0])
+
+    def test_an_entry_outside_the_shape_fails(self):
+        problems = self._problems(self._repo(instances="just some prose\n"))
+
+        self.assertEqual(1, len(problems))
+        self.assertIn("outside the instance shape", problems[0])
+
+    def test_an_entry_missing_its_claim_fails(self):
+        problems = self._problems(self._repo(instances="- [wording] docs/a.md:3\n"))
+
+        self.assertEqual(1, len(problems))
+        self.assertIn("outside the instance shape", problems[0])
+
+    def test_an_entry_missing_its_class_fails(self):
+        problems = self._problems(self._repo(instances="- docs/a.md:3 — only the changed files\n"))
+
+        self.assertEqual(1, len(problems))
+        self.assertIn("outside the instance shape", problems[0])
+
+    def test_an_entry_missing_its_location_fails(self):
+        problems = self._problems(self._repo(instances="- [wording] — only the changed files\n"))
+
+        self.assertEqual(1, len(problems))
+        self.assertIn("outside the instance shape", problems[0])
+
+    def test_an_unreadable_file_fails(self):
+        repo = self._repo(instances="- none\n")
+        (repo / "docs" / "units" / "unit-a" / "findings" / "round-1.md").write_bytes(b"\xff\xfe bad \xff")
+
+        self.assertEqual(1, commit_hygiene.check_finding_instances(repo))
+
+    def test_the_mode_is_reachable_through_main(self):
+        repo = self._repo()
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(commit_hygiene.main(["--finding-instances", "--repo", str(repo)]), 1)
+        self.assertIn("finding instances", stderr.getvalue())
 
 
 if __name__ == "__main__":

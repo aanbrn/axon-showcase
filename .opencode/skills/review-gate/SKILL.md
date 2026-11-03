@@ -127,6 +127,11 @@ its format.
    - Append each round's row with the session fields the review ledger declares — the identifier, the transition, and a
      replacement's reason — supplying the identifier the invocation returned, never an invented one; an omission fails
      `verifyReviewSessionContinuity`. captured: track-review-session-continuity
+   - **Write the round's finding instances beside its row**, at `docs/units/<unit>/findings/round-<N>.md`: one entry per
+     finding, `- [<class>] <location> — <claim>`, in the reviewer's order, or `- none` when the round raised none.
+     - The entries' classes must equal the row's `classes raised` field, since `verifyFindingInstances` fails a
+       disagreement.
+     - Point the hand-over and the checkpoint's prior-findings note at that file.
    - **IF a round's report has arrived, THEN immediately run both ledger checks — whether or not its row was appended,
      since a check keyed on the append cannot see an append that never happened:**
      `python3 scripts/commit-hygiene.py --unique-rounds --expect <unit>:<round>` and, as a separate invocation,
@@ -232,13 +237,14 @@ were compared. Staging is not committing: the approval stop is unchanged.
 **Decision points**
 
 - **Pass each prior finding's instance, not only its class:** IF you are re-running the review after a fix THEN pass
-  each prior finding's **instance** (`file:line` and the claim) from the prior round's report, so the subagent can
-  report an unfixed prior instance, or a new instance of a class a prior round already raised, rather than classifying
-  each round in isolation. The instances live only in that report, not the class-only record line, so a loop whose
-  **caller** is about to lose its context — a new session — writes them to a handover before it is lost and resumes by
-  running the round, the handover written from the artifact (each `file:line` and its text), never from what the edit
-  was meant to do: its claims are the successor's premise, and one that does not reproduce costs the round it was meant
-  to save. captured: record-agents-md-authoring-standard
+  each prior finding's **instance** (`file:line` and the claim) from `prior-findings` — the round's instances file,
+  which is what the reviewer's report is written into — so the subagent can report an unfixed prior instance, or a new
+  instance of a class a prior round already raised, rather than classifying each round in isolation. The instances are
+  written to `docs/units/<unit>/findings/round-<N>.md` when each report arrives and the class-only record line carries
+  none, so a loop whose **caller** is about to lose its context reads them from the store rather than from the lost
+  session, resuming on what it holds (each `file:line` and its text), never on what the edit was meant to do: its claims
+  are the successor's premise, and one that does not reproduce costs the round it was meant to save. A round that
+  predates the store is the one case that still reads the handover. captured: record-agents-md-authoring-standard
 - **Continue the reviewer's session** — the quick loop's preflight is what makes that happen, and each round must not
   lean on the reviewer's memory in place of the hand-off, which is the caller's record. The caller's own re-check of the
   handover is a recorded deviation, not a passed round (a resumed round found defects the handover's self-review had

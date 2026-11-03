@@ -779,6 +779,15 @@ tasks.register<Exec>("verifyReviewClassVocabulary") {
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--class-vocabulary")
 }
 
+tasks.register<Exec>("verifyFindingInstances") {
+    group = "verification"
+    description = "Verifies each round recorded after the boundary has its finding instances"
+    inputs.file("scripts/commit-hygiene.py")
+    inputs.dir("docs/units")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--finding-instances")
+}
+
 tasks.register<VerifyTableRowsTask>("verifyTableRows") {
     group = "verification"
     description = "Verifies every markdown table's rows carry its delimiter row's column count"
@@ -868,6 +877,7 @@ tasks.named("check") {
     dependsOn("verifyIdeasSections")
     dependsOn("verifyWorkspaceRecords")
     dependsOn("verifyReviewClassVocabulary")
+    dependsOn("verifyFindingInstances")
     dependsOn("verifyTableRows")
     // The chart's packaging path (its repository setup, dependency fetch, and strict lints), so a chart that cannot
     // bundle its declared dependency fails the pull request rather than only the nightly deployment smoke's install.

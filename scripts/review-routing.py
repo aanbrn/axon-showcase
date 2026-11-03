@@ -37,8 +37,10 @@ LEDGER_DEFAULT = "docs/units"
 # The record-artifact class the routing floor exempts: the Markdown records the repository keeps for its own process,
 # and the ledger the invocation reads. The classification lives here alone, so the tool, its controls and the spec
 # cannot drift apart.
-RECORD_DIRS = ("docs/process-defects/", "docs/retrospectives/", "docs/load-tests/")
+RECORD_DIRS = ("docs/retrospectives/", "docs/load-tests/")
 RECORD_SUFFIX = ".md"
+# A unit's defect record lives under its own directory, named for the artifact rather than the unit.
+UNIT_DEFECT_RECORD = "process-defects.md"
 # The basename of one unit's review-round record under the ledger directory.
 ROUND_RECORD_NAME = "rounds.tsv"
 CHANGE_ROOT = "openspec/changes"
@@ -160,6 +162,8 @@ def is_record_path(path: str, ledger: str) -> bool:
         parts = path[len(base) + 1 :].split("/")
         if len(parts) == 2 and parts[1] == ROUND_RECORD_NAME:
             return True
+    if re.fullmatch(r"docs/units/[^/]+/" + re.escape(UNIT_DEFECT_RECORD), path):
+        return True
     return path.startswith(RECORD_DIRS) and path.endswith(RECORD_SUFFIX)
 
 

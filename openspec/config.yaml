@@ -110,9 +110,9 @@ rules:
       passes on a known-good one — a gate whose logic lives in a rules object carries the case in that object's
       `*RulesTests`, an inline gate in its consuming module — instead of a task asserting the control was run, plus a
       task to read the output of any scratch command used as evidence
-    - Include the unit's process-defect record as a task in every change — write `docs/process-defects/<unit>.md` as
-      defects are observed, or state that none was observed — so a unit that skipped the record reads as a missing box
-      rather than a run that found nothing
+    - Include the unit's process-defect record as a task in every change — write
+      `docs/units/<unit>/process-defects.md` as defects are observed, or state that none was observed — so a unit
+      that skipped the record reads as a missing box rather than a run that found nothing
     - Carry the deep-review routing decision as a task in every change — derive the floor with
       `scripts/review-routing.py`, decide at or above it, and record the outcome and the signals it relied on on the
       change's review task — so a missing or failed decision reads as a missing box rather than a silent skip

@@ -26,9 +26,10 @@ not cover a seventh role joining, which is why the replacement is recorded here 
 
 The declaration gains one role, and the rest of ADR-0026 stands.
 
-- **`process-defect-records`** — the unit's defect record, valued at `docs/process-defects/<unit>.md`, owned by the
-  record's field set (`AGENTS.md`, "Workflow: Record process defects"). A component that resolves the location still
-  needs the record's shape, so the field set is the referenced owner rather than a second declaration.
+- **`process-defect-records`** — the unit's defect record, valued at `docs/process-defects/<unit>.md` (now
+  `docs/units/<unit>/process-defects.md`, see the location amendment below), owned by the record's field set
+  (`AGENTS.md`, "Workflow: Record process defects"). A component that resolves the location still needs the record's
+  shape, so the field set is the referenced owner rather than a second declaration.
 - **Locating, not creating.** A target without such records treats that as a missing contract; the role never instructs
   a component to create the directory. That is the pilot's distinction between locating an existing contract and
   inventing an absent one.
@@ -80,3 +81,12 @@ The role list grows by two, and this amendment records it without reopening the 
   `/apply-audit-reductions`, which routes an extraction through it.
 
 Both satisfy ADR-0026's role-not-string rule, and the declaration's table, not this decision, owns how many roles exist.
+
+## Amendment — 2026-11-03 (the record's location)
+
+The Decision's role bullet names a location that has changed, and this amendment records it without reopening the
+Decision.
+
+- The `process-defect-records` value is now `docs/units/<unit>/process-defects.md`, so a unit's defect history sits in
+  the same dossier as its `unit.md`, `rounds.tsv`, `findings/`, and `review-handover.md`. The role, its referenced owner
+  (the record's field set), and the locating-not-creating rule are unchanged; only the value the bullet states moves.

@@ -461,12 +461,12 @@ whether it consumed included usage or additional credits. See
   `review-thorough` pass — required, recommended for an explicit resolution, or not needed — and a manual
   `/review-thorough` run is always available.
 - **Recording, then generalizing**: every unit records the process defects it observes in
-  `docs/process-defects/<unit>.md` as it works, and `/flag-process-defect` adds one you report only after the agent
-  verifies the episode, rather than taking the report on trust; `/generalize-process-defects` later turns those records
-  into rules — gotchas and conventions for `AGENTS.md` or the owning subject pack, each merged into an existing bullet
-  or reported as uncovered, the rules the work obsoletes reported as retirement candidates, and a lesson whose cause is
-  an authoring mechanism routed to that mechanism rather than to the guidance file — so the file shrinks as well as
-  grows, and a mistake is recorded where it can be prevented instead of only where it is read.
+  `docs/units/<unit>/process-defects.md` as it works, and `/flag-process-defect` adds one you report only after the
+  agent verifies the episode, rather than taking the report on trust; `/generalize-process-defects` later turns those
+  records into rules — gotchas and conventions for `AGENTS.md` or the owning subject pack, each merged into an existing
+  bullet or reported as uncovered, the rules the work obsoletes reported as retirement candidates, and a lesson whose
+  cause is an authoring mechanism routed to that mechanism rather than to the guidance file — so the file shrinks as
+  well as grows, and a mistake is recorded where it can be prevented instead of only where it is read.
 - **Retrospectives**: `/retrospective` gathers the last week of PRs and the git log, plus the archived changes, the
   accumulated gotchas, and the process-defect records the window touched, and produces a sprint retrospective that
   root-causes each significant failure to the stage that could have caught it, evaluates the previous window's
@@ -525,14 +525,14 @@ The process is designed to **learn from itself** — and that is the mechanic, n
 - **`AGENTS.md` is the agent's persistent memory.** It is loaded as instructions at the start of every session, so a
   lesson written there does not merely document the past — it changes how the agent behaves on the next change.
 - **Every unit records the process defects it observes.** The unit writes them down — a rule it missed, an action that
-  failed — to `docs/process-defects/<unit>.md` as it works, so nothing an implementation taught is lost to a session and
-  your review never waits on the analysis. The improvement those records lead to is a unit of its own, which you run
-  when they are due: it turns the records that hold up into rules the agent reads on the next change, and a record that
-  adds nothing ends as an explicit `no-change`. A defect a merge alone reveals is appended to the merged unit's record,
-  so it reaches that pass too. A defect you notice but the unit missed reaches that pass through `/flag-process-defect`,
-  which records it only after the agent verifies that episode — comparing what the rule required against what happened,
-  bounded to that episode — and reports a proven outcome: confirmed, refuted by the available evidence, or not
-  establishable from it.
+  failed — to `docs/units/<unit>/process-defects.md` as it works, so nothing an implementation taught is lost to a
+  session and your review never waits on the analysis. The improvement those records lead to is a unit of its own, which
+  you run when they are due: it turns the records that hold up into rules the agent reads on the next change, and a
+  record that adds nothing ends as an explicit `no-change`. A defect a merge alone reveals is appended to the merged
+  unit's record, so it reaches that pass too. A defect you notice but the unit missed reaches that pass through
+  `/flag-process-defect`, which records it only after the agent verifies that episode — comparing what the rule required
+  against what happened, bounded to that episode — and reports a proven outcome: confirmed, refuted by the available
+  evidence, or not establishable from it.
 - **Mistakes compound into rules.** The repo's strictest conventions were captured this way — archive a change in the
   same PR, interrogate the premise before moving existing configuration, never `reset --hard` a branch carrying
   uncommitted work — rules that exist because a real run got them wrong once and now steer every future run.

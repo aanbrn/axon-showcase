@@ -27,7 +27,8 @@ work=$(mktemp -d "${TMPDIR:-/tmp}/experience-analysis-test.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 fixture="$work/repo"
 stub_bin="$work/bin"
-mkdir -p "$fixture/docs/process-defects" "$fixture/docs/retrospectives" \
+mkdir -p "$fixture/docs/process-defects" "$fixture/docs/retrospectives" "$fixture/docs/units/after-move" \
+    "$fixture/docs/units/dup" \
     "$fixture/openspec/changes/archive" "$stub_bin"
 
 # The stubbed gh answers with an empty PR list. It emulates the two filter shapes the digest uses over that list —
@@ -90,6 +91,9 @@ commit 2026-10-25 "update the older record inside the window"
 
 record "docs/process-defects/after.md" "### after#1 — First incident
 ### after#2 — Second incident"
+record "docs/units/after-move/process-defects.md" "### moved#1 — A record at its unit directory"
+record "docs/units/dup/process-defects.md" "### dup#1 — One unit, met at both locations"
+record "docs/process-defects/dup.md" "### dup#1 — One unit, met at both locations"
 record "docs/process-defects/no-heading.md" "A record whose prose carries no incident heading."
 record "docs/process-defects/with space-ü.md" "### spaced#1 — A path with a space and a non-ASCII character"
 printf '%s\n' "- **Disposition** — applied." >>"docs/process-defects/older-updated.md"
@@ -113,8 +117,12 @@ absent() {
 }
 
 contains "indexed at ${indexed_rev}"
-contains "6 record file(s), 5 incident heading(s)"
+contains "8 record file(s), 7 incident heading(s)"
 contains "docs/process-defects/older-updated.md (1 incident heading(s))"
+contains "docs/units/after-move/process-defects.md (1 incident heading(s))"
+contains "docs/units/dup/process-defects.md (1 incident heading(s))"
+dup_lines=$(printf '%s\n' "$out" | grep -cF -- "docs/units/dup/process-defects.md (1 incident heading(s))" || true)
+[ "$dup_lines" -eq 1 ] || fail "one unit met at both locations is listed ${dup_lines} times, expected once"
 older_line="docs/process-defects/older-updated.md (1 incident heading(s))"
 older_lines=$(printf '%s\n' "$out" | grep -cF -- "${older_line}" || true)
 [ "$older_lines" -eq 1 ] || fail "a record two window commits touched is listed ${older_lines} times, expected once"
@@ -137,6 +145,6 @@ fi
 out=$(PATH="$stub_bin:$PATH" bash "$digest" 2026-11-01) \
     || fail "the digest exited non-zero on an empty window"
 contains "0 record file(s), 0 incident heading(s)"
-contains "(none selected: no docs/process-defects/ record changed since 2026-11-01)"
+contains "(none selected: no process-defect record changed since 2026-11-01)"
 
 echo "OK: the process-defect index selects, counts, and states its boundary and empty cases"

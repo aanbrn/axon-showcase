@@ -326,7 +326,7 @@ class MarkerFileScopeTests(unittest.TestCase):
 
 
 class MisplacedMarkerTests(unittest.TestCase):
-    """The --markers verification: a marker sits inside a rule block, not on a plain bullet."""
+    """The --markers verification: a marker sits inside a rule block where it ends the block, not on a plain bullet."""
 
     def test_a_marker_on_a_bold_lead_bullet_passes(self):
         text = "- **Rule.** Some text. captured: some-change\n"
@@ -361,8 +361,37 @@ class MisplacedMarkerTests(unittest.TestCase):
 
         self.assertEqual([], commit_hygiene.find_misplaced_markers(text))
 
-    def test_a_merged_into_bullet_with_a_mid_item_marker_passes(self):
+    def test_a_merged_into_bullet_with_a_mid_item_marker_fails(self):
         text = "- **Rule.** First. captured: change-a\n  Later text appended. captured: change-b\n"
+
+        offenders = commit_hygiene.find_misplaced_markers(text)
+
+        self.assertEqual([1], [number for number, _ in offenders])
+
+    def test_a_marker_followed_by_rule_text_in_the_same_paragraph_fails(self):
+        text = "**Rule.** First. captured: change-a More rule text follows.\n"
+
+        offenders = commit_hygiene.find_misplaced_markers(text)
+
+        self.assertEqual([1], [number for number, _ in offenders])
+
+    def test_a_mid_item_marker_with_its_chain_at_the_block_end_passes(self):
+        text = "- **Rule.** First. Later text appended. captured: change-a captured: change-b\n"
+
+        self.assertEqual([], commit_hygiene.find_misplaced_markers(text))
+
+    def test_a_citation_after_a_name_passes(self):
+        text = "- **Rule.** Some text. captured: change-a (#501)\n"
+
+        self.assertEqual([], commit_hygiene.find_misplaced_markers(text))
+
+    def test_an_evidence_tag_line_after_the_chain_passes(self):
+        text = "- **Rule.** Some text. captured: change-a\n  evidence: git-and-repository-workflow\n"
+
+        self.assertEqual([], commit_hygiene.find_misplaced_markers(text))
+
+    def test_a_marker_inside_a_fenced_block_is_ignored(self):
+        text = "- **Rule.** Some text.\n\n```\nexample. captured: some-change then example prose\n```\n"
 
         self.assertEqual([], commit_hygiene.find_misplaced_markers(text))
 
@@ -441,6 +470,20 @@ class StagedMarkerTests(unittest.TestCase):
     def test_staged_mode_reports_a_marker_on_a_plain_bullet(self):
         repo = make_repo(self)
         (repo / "AGENTS.md").write_text("- Plain. captured: some-change\n", encoding="utf-8")
+        subprocess.run(("git", "add", "AGENTS.md"), cwd=repo, check=True)
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.check_staged(repo, ["true"])
+
+        self.assertEqual(1, code)
+        self.assertIn("AGENTS.md:1", stderr.getvalue())
+
+    def test_staged_mode_reports_a_marker_followed_by_rule_text(self):
+        repo = make_repo(self)
+        (repo / "AGENTS.md").write_text(
+            "- **Rule.** Some text. captured: some-change More rule text follows.\n", encoding="utf-8"
+        )
         subprocess.run(("git", "add", "AGENTS.md"), cwd=repo, check=True)
 
         stderr = io.StringIO()

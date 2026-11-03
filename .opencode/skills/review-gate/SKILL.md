@@ -31,20 +31,20 @@ before relying on its record format.
    halves (a title **or** a body format, over the corpora the claim names) — rather than qualifying the exception or
    letting one part's command stand for the whole, since the quantifier asserts the attribute of each (a count of prior
    changes reproduces as different totals by criterion, so state the instances or the criterion, never the bare number);
-   captured: extract-load-test-commands; single-source a claim, a rule set, or a record stated in more than one artifact
-   (the rule is `AGENTS.md`'s, under "Invariants"); derive every mechanism or task-check claim from the tool or the
-   graph, deleting a term or mechanism name whose grep finds no referent in the repository (a coinage lifted from an
-   external prompt; a design carried three, each stripped by a review round); and, for a change whose facts are its own
-   measurement, computation, or process record, derive each figure from the mechanism that produces it — the window or
-   instant it spans and the aggregation it applies, or for a record figure the command that emits it (a review round's
-   row from its report's record line, the generalization unit's net delta from `git diff --numstat AGENTS.md` after
-   `spotlessApply`, per-hunk `git diff -U0` counts when other edits share the file) — re-deriving it after that
-   mechanism's last edit, since a figure measured before the final tuning, or written from what the edits were meant to
-   add, is the claim the next round reports unreproducible (`verify-unique-review-rounds` recorded a row clean before
-   its round reported and stated a net `AGENTS.md` delta of `+2` where the diff measured `+5`; the
-   measurement-attribution gotcha carries the series rule). captured: seed-claims-from-the-diff captured:
-   record-agents-md-authoring-standard captured: sharpen-experience-analysis captured: sharpen-review-quick captured:
-   standardize-pr-conventions captured: fix-advisor-worktree-read
+   single-source a claim, a rule set, or a record stated in more than one artifact (the rule is `AGENTS.md`'s, under
+   "Invariants"); derive every mechanism or task-check claim from the tool or the graph, deleting a term or mechanism
+   name whose grep finds no referent in the repository (a coinage lifted from an external prompt; a design carried
+   three, each stripped by a review round); and, for a change whose facts are its own measurement, computation, or
+   process record, derive each figure from the mechanism that produces it — the window or instant it spans and the
+   aggregation it applies, or for a record figure the command that emits it (a review round's row from its report's
+   record line, the generalization unit's net delta from `git diff --numstat AGENTS.md` after `spotlessApply`, per-hunk
+   `git diff -U0` counts when other edits share the file) — re-deriving it after that mechanism's last edit, since a
+   figure measured before the final tuning, or written from what the edits were meant to add, is the claim the next
+   round reports unreproducible (`verify-unique-review-rounds` recorded a row clean before its round reported and stated
+   a net `AGENTS.md` delta of `+2` where the diff measured `+5`; the measurement-attribution gotcha carries the series
+   rule). captured: seed-claims-from-the-diff captured: record-agents-md-authoring-standard captured:
+   sharpen-experience-analysis captured: sharpen-review-quick captured: standardize-pr-conventions captured:
+   fix-advisor-worktree-read captured: extract-load-test-commands
 2. Record the pass. Every unit carries it as a task — a task in a change's `tasks.md`, or a line in the pull-request
    checklist for a unit with no change dir — so a missing box is a skip, not a pass that found nothing. Its output is
    the change's **claims table** — each fact the change states about its evidence (the prior artifacts it rests on) with
@@ -69,19 +69,19 @@ before relying on its record format.
    every merge — the unit's own included, which changes what a corpus-wide grep returns there — so a ref-keyed row stops
    reproducing while still reading as anchored. Use `git show <sha>:<path>` for the change's own artifact and for any
    command it embeds (a script that opens the working-tree file reports the implemented result), and `git grep … <sha>`
-   for a historical claim over a corpus ("no document mentioned it before this change"). captured:
-   document-java-version-selector A site named for a later sweep is quoted by its text or token, never by a line number
-   — a concurrent merge moves it, so the anchor is stale as committed (`AGENTS.md:NNNN` anchors were two lines out
-   here). A task's `**Done**` note or a claims-table entry that must report a figure or a status states a relative
-   result — the difference between two runs, which the corpus's growth leaves fixed — the command's outcome, a
-   text-quoted site, or the record's own mechanism, never an absolute count its own writes move (its appended ledger
-   rows, the candidates its own artifact adds to the scan) and never a status its own remaining steps move (a review
-   round named "the final clean one"), and state the verification as of its own step and the resulting state separately,
-   since a later step can destroy what it recorded. Re-derive the table after the unit's last append to its own record,
-   which adds one. captured: widen-architecture-auditor-to-stale-ideas captured: normalize-the-review-round-digest
-   captured: capture-authoring-system-gaps captured: sharpen-architecture-audit captured: extract-ci-narrative captured:
-   convert-remaining-gotchas-rules captured: add-technical-advisor captured: projector-operability captured:
-   stage-new-files-before-manual-review
+   for a historical claim over a corpus ("no document mentioned it before this change"). A site named for a later sweep
+   is quoted by its text or token, never by a line number — a concurrent merge moves it, so the anchor is stale as
+   committed (`AGENTS.md:NNNN` anchors were two lines out here). A task's `**Done**` note or a claims-table entry that
+   must report a figure or a status states a relative result — the difference between two runs, which the corpus's
+   growth leaves fixed — the command's outcome, a text-quoted site, or the record's own mechanism, never an absolute
+   count its own writes move (its appended ledger rows, the candidates its own artifact adds to the scan) and never a
+   status its own remaining steps move (a review round named "the final clean one"), and state the verification as of
+   its own step and the resulting state separately, since a later step can destroy what it recorded. Re-derive the table
+   after the unit's last append to its own record, which adds one. captured: widen-architecture-auditor-to-stale-ideas
+   captured: normalize-the-review-round-digest captured: capture-authoring-system-gaps captured:
+   sharpen-architecture-audit captured: extract-ci-narrative captured: convert-remaining-gotchas-rules captured:
+   add-technical-advisor captured: projector-operability captured: stage-new-files-before-manual-review captured:
+   document-java-version-selector
 
    - **IF a row is an explicit literal-only assertion, THEN it can be executed with
      `scripts/claim-scan.py --verify <table>`** — the mode is opt-in; the default scan executes nothing, and `check`

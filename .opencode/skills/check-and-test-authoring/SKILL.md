@@ -225,13 +225,14 @@ nothing.
   assertion saw nothing wrong. Run the subject and require every declared item in its output, and drive the entry point
   the gate runs (`main([...])`) asserting its exit status and message, since a fixture on an internal helper leaves the
   entry point's error handling untested — a malformed `--expect` raised an unhandled `ValueError` traceback while the
-  fixture asserted the helper raised. captured: check-review-round-contiguity Keep a host-dependent exit code out of the
-  assertion (capture with `set +e`, assert the output only), since a gate that depends on it fails PRs for causes they
-  cannot remediate. captured: declare-probes-with-shape-and-behavioural-checks Require the whole of what it emits, not
-  only the part a change targets: a consumer that classifies its input has states beyond row-present/row-absent, so a
-  filter's removal test stays green while it reclassifies its neighbours — the first `DependencyUpdateRules` clause
-  emptied `dependencyUpdates`' up-to-date section of all 83 catalog-owned entries, since the plugin reads a coordinate
-  whose every candidate is rejected as unresolved. captured: align-dependency-report-version-authority
+  fixture asserted the helper raised. Keep a host-dependent exit code out of the assertion (capture with `set +e`,
+  assert the output only), since a gate that depends on it fails PRs for causes they cannot remediate. Require the whole
+  of what it emits, not only the part a change targets: a consumer that classifies its input has states beyond
+  row-present/row-absent, so a filter's removal test stays green while it reclassifies its neighbours — the first
+  `DependencyUpdateRules` clause emptied `dependencyUpdates`' up-to-date section of all 83 catalog-owned entries, since
+  the plugin reads a coordinate whose every candidate is rejected as unresolved. captured:
+  align-dependency-report-version-authority captured: check-review-round-contiguity captured:
+  declare-probes-with-shape-and-behavioural-checks
 
 ## A conservative check owes the false negatives it accepts
 

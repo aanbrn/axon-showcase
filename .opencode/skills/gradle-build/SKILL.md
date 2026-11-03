@@ -135,15 +135,14 @@ coordinates keep the leading-integer major comparison.
   tree the task scans is a declared task input (`@InputFiles`) resolved in the action, never a hoisted path list, since
   a warm cache replays the configuration-time list and a file added after the store goes unscanned, and replays
   configuration rather than running it, so a warning a plugin emits while configuring is absent from a reused run — a
-  warm run's silence is not the plugin's fix (the deprecation bullet below owns the probe). captured:
-  bump-dependencies-2026-11-01 It needed gradle-helm-plugin **3.2.0** or newer (its tasks captured a `Task`/`Project`
-  through 3.1.2 — build-extensions-oss/gradle-helm-plugin#140, closed), that hoist at each task action that had it (the
-  workflow-lint, dependency-security, frontend npm, load-tests, and compose tasks — whose `onlyIf` also read
-  `gradle.startParameter` and a `rootProject.extra` handshake, now `composeScheduleState`), and
-  `notCompatibleWithConfigurationCache` on `:load-tests:gatlingRecorder`, whose third-party task type holds a
-  `Configuration`/`SourceSet` no hoist can fix (the plugin repository disables issues and discussions, so an upstream
-  fix must arrive as a PR). Sweep such a change by **executing** every task a workflow invokes, not by realizing the
-  graph: `./gradlew tasks --all`'s set never runs a task action, so a task no `check` graph requests —
+  warm run's silence is not the plugin's fix (the deprecation bullet below owns the probe). It needed gradle-helm-plugin
+  **3.2.0** or newer (its tasks captured a `Task`/`Project` through 3.1.2 — build-extensions-oss/gradle-helm-plugin#140,
+  closed), that hoist at each task action that had it (the workflow-lint, dependency-security, frontend npm, load-tests,
+  and compose tasks — whose `onlyIf` also read `gradle.startParameter` and a `rootProject.extra` handshake, now
+  `composeScheduleState`), and `notCompatibleWithConfigurationCache` on `:load-tests:gatlingRecorder`, whose third-party
+  task type holds a `Configuration`/`SourceSet` no hoist can fix (the plugin repository disables issues and discussions,
+  so an upstream fix must arrive as a PR). Sweep such a change by **executing** every task a workflow invokes, not by
+  realizing the graph: `./gradlew tasks --all`'s set never runs a task action, so a task no `check` graph requests —
   `upstreamReferences`, invoked only by its own workflow — escapes every sweep the build itself can run, and its store
   defect surfaces only in CI, on a schedule, where no gate sees it (#581 missed it for a week). Run each such task with
   the cache enabled and require a stored entry, then a reused one. A plugin task type is one failure shape (it cannot
@@ -153,7 +152,7 @@ coordinates keep the leading-integer major comparison.
   gate with `setOnlyIf { true }`, since a bare `onlyIf { true }` only appends a spec that is ANDed with the plugin's and
   leaves it in force (the helm plugin's chart-dependency skip is the worked case — see the `deployment-operations`
   pack's Chart validation). captured: fix-upstream-references-config-cache captured:
-  add-a-markdown-table-integrity-check
+  add-a-markdown-table-integrity-check captured: bump-dependencies-2026-11-01
 
 - **IF a Gradle run under `--warning-mode all` emits a gradle-helm-plugin deprecation or a `Configuration.visible`
   warning, THEN treat it as upstream and leave it: there is no repo-side fix.** gradle-helm-plugin 3.3.0 still calls the
@@ -234,13 +233,13 @@ coordinates keep the leading-integer major comparison.
   declaration silently restores the tree it removed, and a suite that already depends on the module exporting the
   dependency has no second declaration to maintain (a `componentTest` edge re-declared `libs.spring.data.opensearch`
   without the `opensearch-rest-high-level-client` exclusion `project(":showcase-projection-model")`'s `api` edge
-  applies, putting a vulnerable server tree back on the test classpath; deleting the duplicate cleared it). captured:
-  address-scan-findings-2026-10-25 A suite can be referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g.
+  applies, putting a vulnerable server tree back on the test classpath; deleting the duplicate cleared it). A suite can
+  be referenced in `shouldRunAfter(...)` only when bound as a `val` (e.g.
   `val integrationTest = suites.register<JvmTestSuite>("integrationTest")`). Source sets are siblings — `src/test/java`
   cannot see a type declared in `src/gatling/java`, while both see `main` — so a pure-logic type a unit test and a
   custom source set both need belongs in the module's `main` source set. Verify a suite's classpath by compiling its
   source set, which surfaces a missing dependency directly. captured: check-load-test-drift captured:
-  fix-mapstruct-suite-warning
+  fix-mapstruct-suite-warning captured: address-scan-findings-2026-10-25
 
 - **A dependency a module does not use can still be load-bearing — narrowing a `project(...)` dependency can break a
   downstream `compileJava`, and removing a starter drops the modules it transitively provided.** Before removing or

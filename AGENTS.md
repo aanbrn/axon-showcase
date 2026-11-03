@@ -566,11 +566,12 @@ the owner's decision, and no queue or drain guarantee exists.
   thing to record, which is what makes the loop systematic instead of memory-dependent.
 - **Each proposed rule carries its origin in a `captured: <unit>` marker** naming the record's unit, so a rule's
   provenance is readable without git and survives a reflow: grep the `captured:` token, which no reflow splits even when
-  the name wraps. Place the marker at the end of the rule it records; a pre-commit guard enforces that part in
-  `AGENTS.md` and in the project-authored agent and skill definitions (`.opencode/agent/*.md`,
-  `.opencode/skills/*/SKILL.md`) — a marker lies inside a rule block, never on a plain bullet. On a rule the analysis
-  merged into rather than authored, the end-of-rule marker records only the latest contribution, not the rule's total
-  origin — the pre-existing text stays recoverable from `git blame` / `git log -S`.
+  the name wraps. Place the marker at the end of the rule it records; for `AGENTS.md` and the project-authored agent and
+  skill definitions (`.opencode/agent/*.md`, `.opencode/skills/*/SKILL.md`) a pre-commit guard checks the narrower
+  mechanical half — that the marker ends the bullet or paragraph it sits in, and that it lies inside a rule block rather
+  than on a plain bullet. On a rule the analysis merged into rather than authored, the end-of-rule marker records only
+  the latest contribution, not the rule's total origin — the pre-existing text stays recoverable from `git blame` /
+  `git log -S`.
 - **AGENTS.md's growth is bounded, but the bound is a discipline rather than a hard cap:** the analysis should leave the
   file no larger than it was (the rule and its rationale are in the `agent-skills` spec), and the applying agent records
   the applied net delta on the unit's change record. The cheapest way to keep it flat: when a bullet's rationale is
@@ -679,12 +680,12 @@ requirement names is recorded on the unit's change record, and the unit has been
   capability whose spec does not exist yet and is otherwise ignored. IF the change alters a capability's scope (e.g.
   adding `zstd-jni` to the constrained transitives in `showcase/quality/dependency-security`) THEN record an explicit
   task (as `address-new-snyk-findings` did in task 3.2) and apply the Purpose edit in the archive commit — whether a
-  refresh is owed is the "not the trigger" bullet's determination. captured: sharpen-architecture-audit
-  `openspec validate` still passes because the Purpose is not validated against the change. A standalone Purpose refresh
-  is a legitimate `skip_specs` change of its own — not only a fold-in to the next change that touches the capability —
-  and its implementation commit then carries **no** spec edit by design, the only real change being the archive
-  commit's: **state the deferral in the report**, since the diff reads as empty of the change's substance (the owner
-  asked "why do I see no touched files except ideas.md?").
+  refresh is owed is the "not the trigger" bullet's determination. `openspec validate` still passes because the Purpose
+  is not validated against the change. A standalone Purpose refresh is a legitimate `skip_specs` change of its own — not
+  only a fold-in to the next change that touches the capability — and its implementation commit then carries **no** spec
+  edit by design, the only real change being the archive commit's: **state the deferral in the report**, since the diff
+  reads as empty of the change's substance (the owner asked "why do I see no touched files except ideas.md?"). captured:
+  sharpen-architecture-audit
 - **A capability owning a delta is not the trigger for a Purpose refresh** — read the Purpose and refresh it only where
   the change falsifies its own text, a **widening** of a class the Purpose names counting as falsifying it even where
   only the class's granularity is refined. Requirements moving _out_ of a capability can leave its Purpose untouched
@@ -981,17 +982,17 @@ archive commit — only a workflow not yet on the default branch must land on `m
 archive commit's own edit of the archived `tasks.md`, or in a commit before the archive. The change dir's `tasks.md` is
 committed before the verification runs, so the tick is a second edit. `openspec archive --yes` continues past an
 incomplete task with a warning line rather than failing, so that line is the only signal the tick is missing. Or park
-the follow-up in `docs/ideas.md` and name it in the change's report. captured: bump-snyk-cli-2026-09-29 captured:
-fix-upstream-references-config-cache (#634) A workflow whose run is the only verification must also leave the evidence a
-failure needs: it deletes its own environment — the deployment smoke's throwaway cluster goes even when a step fails —
-so a failed run must print the deployed signal (the pods with their restart counts, the recent events, each pod's log
-tail, and the previous log for a restarted container) in a step that runs before teardown, or the failure names no
-cause. Scope that evidence to every namespace a load-bearing component occupies, not just the application's: the smoke's
-load travels through the `ingress-nginx` controller, so a diagnostics step reading only `axon-showcase` leaves the hop
-that carries it unexamined — the step prints the `ingress-nginx` pods, events, and controller logs alongside the
-application's. A component that changes namespace takes the failure diagnostics with it. captured:
-route-the-smoke-through-the-ingress captured: fix-the-deployment-smoke-503s captured: notify-owner-from-the-audit-report
-(#327) captured: expose-grafana-by-hostname
+the follow-up in `docs/ideas.md` and name it in the change's report. A workflow whose run is the only verification must
+also leave the evidence a failure needs: it deletes its own environment — the deployment smoke's throwaway cluster goes
+even when a step fails — so a failed run must print the deployed signal (the pods with their restart counts, the recent
+events, each pod's log tail, and the previous log for a restarted container) in a step that runs before teardown, or the
+failure names no cause. Scope that evidence to every namespace a load-bearing component occupies, not just the
+application's: the smoke's load travels through the `ingress-nginx` controller, so a diagnostics step reading only
+`axon-showcase` leaves the hop that carries it unexamined — the step prints the `ingress-nginx` pods, events, and
+controller logs alongside the application's. A component that changes namespace takes the failure diagnostics with it.
+captured: route-the-smoke-through-the-ingress captured: fix-the-deployment-smoke-503s captured:
+notify-owner-from-the-audit-report (#327) captured: expose-grafana-by-hostname captured: bump-snyk-cli-2026-09-29
+captured: fix-upstream-references-config-cache (#634)
 
 `.github/dependabot.yml` keeps the GitHub Actions versions current (weekly `github-actions` updates), so a major bump
 that targets a newer Node runtime surfaces as a reviewable PR instead of a silent CI deprecation warning. **The owner
@@ -1071,16 +1072,16 @@ Key modules (libraries, not services):
   that cannot state _why_ the decision was made should ask the project owner before recording the rationale as
   unrecorded — the repository's silence is not evidence the rationale does not exist, and a missing _why_ is a question
   for the human, not a permanent gap to write down (ADR-0009 declared its no-Axon-Server rationale "not recorded
-  anywhere in the repository" until asking the owner recovered it: avoiding Axon Server's commercial licensing).
-  captured: apply-2026-09-28-audit-docs-findings captured: remove-unrecorded-redgate-repository A deferral's
-  `Revisit when:` gate names each clause's artifact at that artifact's **current** coordinate and labels its type
-  (external coordinate vs internal trigger); states the qualifier that narrows the condition in the gate's own line (a
-  _maintained_ release, not any); and a compound gate states its clauses' relation — a conjunction, met only when every
-  clause is, or a disjunction, any one of which reopens the decision — so a check reads that relation literally and
-  names the clauses still open. A check reads the gate literally: a renamed coordinate (`axon-bom` →
+  anywhere in the repository" until asking the owner recovered it: avoiding Axon Server's commercial licensing). A
+  deferral's `Revisit when:` gate names each clause's artifact at that artifact's **current** coordinate and labels its
+  type (external coordinate vs internal trigger); states the qualifier that narrows the condition in the gate's own line
+  (a _maintained_ release, not any); and a compound gate states its clauses' relation — a conjunction, met only when
+  every clause is, or a disjunction, any one of which reopens the decision — so a check reads that relation literally
+  and names the clauses still open. A check reads the gate literally: a renamed coordinate (`axon-bom` →
   `axon-framework-bom`) resolves to a frozen artifact that never fires, and an implicit qualifier reads as met by a
   release the owner's intent excludes. captured: correct-adr-0011-axon5-gate captured: correct-adr-0017-spring-grpc-gate
-  captured: probe-write-exclusivity
+  captured: probe-write-exclusivity captured: apply-2026-09-28-audit-docs-findings captured:
+  remove-unrecorded-redgate-repository
 - **Docs refresh on change**: on every change, verify whether `AGENTS.md`, `README.md`, and `docs/adr/` need to be
   refreshed to reflect the new state (commands, config, conventions, gotchas) — including an ADR whose Consequences name
   a follow-on this change lands, or whose Decision it alters (ADR-0006 called scheduled Snyk monitoring a follow-on
@@ -1276,23 +1277,22 @@ Key modules (libraries, not services):
     file the markdown format does not converge on is **skipped with a zero exit**
     (`Skipping '<path>' because it does not converge`), so a green `spotlessCheck` is not evidence for that file — treat
     a skip as a failure for it, not a pass (reported upstream as `diffplug/spotless#3143`; retires when a skip fails the
-    check — the alignment removes this repository's known trigger for such a skip, but the gap remains upstream).
-    captured: make-the-p99-verdict-confirm-first The markdown scope is `docs/`, `AGENTS.md`, `README.md`,
-    `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`, the `.github/` markdown, and the project-authored
-    `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files and the vendored skill trees are excluded, while
-    the project-authored `opsx-tool-update.md` stays in scope despite the shared prefix — and `.opencode/opencode.json`
-    has its own `json` format. A target's generated-file exclusions must track what the generator writes —
-    `/opsx-tool-update` checks the list when the generated inventory changes, since a newly generated `opsx-*` command
-    would otherwise be reformatted by `spotlessApply` and then overwritten by the next `openspec update`. Verify with a
-    character count (`perl -CSD -lne 'print if length > 120'`), not `awk 'length > 120'` — `awk` counts bytes and
-    false-flags a ≤120-character line containing non-ASCII (the `→` arrow tripped this three times); the `-l` chomps the
-    trailing newline `-ne` would otherwise count, so an exactly-120-character line is not false-flagged. Verify a
-    verification command on a boundary case before recording it — the first recipe omitted `-l` and false-flagged every
-    exactly-120-character line. Apply it over the change's whole changed set, derived with
-    `git status --porcelain --untracked-files=all` — `git diff --name-only` omits the untracked change dir the workflow
-    leaves in place, so the change's own planning artifacts go unchecked — not only the files a finding named: a
-    per-file scope leaves the rest unverified and the review re-finds them. captured: add-web-ui-rum-observability
-    Formatters cannot reflow string literals (e.g. an error message in Kotlin/Gradle), so wrap an over-long string with
+    check — the alignment removes this repository's known trigger for such a skip, but the gap remains upstream). The
+    markdown scope is `docs/`, `AGENTS.md`, `README.md`, `openspec/specs/`, active `openspec/changes/*/`, `SECURITY.md`,
+    the `.github/` markdown, and the project-authored `.opencode/` markdown — the generated `opsx-*`/`openspec-*` files
+    and the vendored skill trees are excluded, while the project-authored `opsx-tool-update.md` stays in scope despite
+    the shared prefix — and `.opencode/opencode.json` has its own `json` format. A target's generated-file exclusions
+    must track what the generator writes — `/opsx-tool-update` checks the list when the generated inventory changes,
+    since a newly generated `opsx-*` command would otherwise be reformatted by `spotlessApply` and then overwritten by
+    the next `openspec update`. Verify with a character count (`perl -CSD -lne 'print if length > 120'`), not
+    `awk 'length > 120'` — `awk` counts bytes and false-flags a ≤120-character line containing non-ASCII (the `→` arrow
+    tripped this three times); the `-l` chomps the trailing newline `-ne` would otherwise count, so an
+    exactly-120-character line is not false-flagged. Verify a verification command on a boundary case before recording
+    it — the first recipe omitted `-l` and false-flagged every exactly-120-character line. Apply it over the change's
+    whole changed set, derived with `git status --porcelain --untracked-files=all` — `git diff --name-only` omits the
+    untracked change dir the workflow leaves in place, so the change's own planning artifacts go unchecked — not only
+    the files a finding named: a per-file scope leaves the rest unverified and the review re-finds them. Formatters
+    cannot reflow string literals (e.g. an error message in Kotlin/Gradle), so wrap an over-long string with
     concatenation (`"part1 " + "part2"`) — the formatter preserves it. Write markdown as natural prose and let
     `spotlessApply` (Prettier) wrap it — do not hand-wrap lines at 120; the formatter owns the wrapping and reflows on
     every run. A bare `$` in prose (outside inline code) is parsed as inline math and blocks that reflow — the paragraph
@@ -1308,7 +1308,8 @@ Key modules (libraries, not services):
     Fenced blocks are a different story — Prettier applies embedded formatting inside a fence whose info string names a
     language it supports (`json`, `yaml`, `markdown`), so that content is gated, while an unsupported one (`bash`,
     `java`, `mermaid`) is not. captured: fix-gateway-cors-allowed-headers (#359) captured:
-    optimize-agents-auditor-for-instruction-budget
+    optimize-agents-auditor-for-instruction-budget captured: make-the-p99-verdict-confirm-first captured:
+    add-web-ui-rum-observability
   - For assertion lambdas inside `argumentSet(...)` parameterized sources, prefer a block lambda body (`(x) -> { ... }`)
     so the formatter indents the statements normally instead of deep-aligning one long expression. The resulting
     "Statement lambda can be replaced with expression lambda" inspection is suppressed with
@@ -1623,10 +1624,10 @@ Key modules (libraries, not services):
   can carry it silently, even while the unit edits this file for its `overrides` block — so diff the pin against `HEAD`
   before staging, and when the working tree carries the pin rewrite, resolve it before the next quick-review invocation
   rather than leaving it undecided, reading it as the startup install rather than a deliberate dependency change (report
-  PR #543 carried `1.18.34`→`1.19.0`). captured: capture-cloud-plugin-pin-bump (#545) captured:
-  exempt-merge-commits-from-assignment captured: clarify-generalization-parked-match The plugin's exact pins keep `toml`
-  (through `effect`) and `zod` below their patched releases, which the `overrides` forces; `docs/ideas.md` carries their
-  re-check. captured: override-opencode-plugin-transitives
+  PR #543 carried `1.18.34`→`1.19.0`). The plugin's exact pins keep `toml` (through `effect`) and `zod` below their
+  patched releases, which the `overrides` forces; `docs/ideas.md` carries their re-check. captured:
+  override-opencode-plugin-transitives captured: capture-cloud-plugin-pin-bump (#545) captured:
+  exempt-merge-commits-from-assignment captured: clarify-generalization-parked-match
 
 - **`.opencode/.gitignore` keeps only `node_modules` and the lockfiles out of the repo.**
 
@@ -1989,32 +1990,31 @@ task or report, or concluding the cause of a Gradle failure.
   directory — and treat a different error as its own signal. The binary is part of that context: a control that installs
   one major and then invokes it by a bare command name runs whatever the host has instead — the host's V2 `opencode`
   accepts the V2-only key the V1 probe rejects (exit 0), so the control would prove the opposite — so run the installed
-  binary by absolute path, isolate its `HOME` so it does not read the host's global config, and assert its version.
-  captured: probe-opencode-config-read-path captured: fix-tmpdir-plugin-types (#299) The context is temporal as well as
-  spatial: a plugin hook or a config read runs at process init, so a standalone execution proves what the artifact emits
-  but never that its inputs exist by then. The now-retired `.opencode/plugin/grant-cli-config-dirs.ts` grant was proved
-  with a `bun` run (every grant emitted), yet in the cloud run the agent installed `openspec` mid-run, after init, so
-  the resolved-path grant could not exist and the run hung — the config wildcard that replaced it removes the init-time
-  dependency. Exercise the artifact at the lifecycle point it runs in (check the workflow's step order against the
-  artifact's run point), not only its own invocation. The context is also the retained state: clearing a module's
-  `build/` is not the clean-checkout condition, because a tool's own cache and the project's `.gradle/` survive it —
-  `rm -rf helm/chart/build` alone still let the chart-dependency task run, and only clearing the plugin's cache under
-  `.gradle/` reproduced the skip CI saw — so clear the caches outside `build/` before concluding a failure does not
-  reproduce. The context is also the input's own content: a probe against a stand-in evidences the stand-in, so state
-  the fixture's measured size beside the claim and defer the untested remainder to a task. **A probe's sandbox is state
-  too: give each fixture a fresh clone, and in the sandbox's own configuration and trial-agent definition deny only the
-  mutating `git worktree` subcommands (at least `add`, `remove`, `move` and `prune`, each with its `-C` form), disable
-  the worktree-creation and session-move tools in the agent's `tools` map, then assert nothing escaped.** A run given a
-  clone can create a worktree or a session on a real path, and a clone reused across fixtures carries the earlier one's
-  edits; a bare `git worktree` pattern also matches the read-only `list` a compound setup command carries (observed on
-  OpenCode v2.2.5, whose per-node matching the permission bullet below states; every compound form was not tested). A
-  permission rule confines neither of those two tools — the `tools` map is what removes them, as it did for
-  session-move, and the worktree-creation entry is the analogous, untested one — while removing a worktree stays
-  permission-controlled by the `edit` action, deliberately, since deleting a worktree is not an escape vector; then
-  check before and after the run that no worktree exists and the sandbox has no remote. captured:
-  separate-agents-md-core-and-subject-packs captured: fix-chart-dependency-fetch captured:
-  grant-openspec-global-access-in-cloud (#325) captured: load-stage-workflow-instructions-on-demand captured:
-  probe-pause-resume-reuse
+  binary by absolute path, isolate its `HOME` so it does not read the host's global config, and assert its version. The
+  context is temporal as well as spatial: a plugin hook or a config read runs at process init, so a standalone execution
+  proves what the artifact emits but never that its inputs exist by then. The now-retired
+  `.opencode/plugin/grant-cli-config-dirs.ts` grant was proved with a `bun` run (every grant emitted), yet in the cloud
+  run the agent installed `openspec` mid-run, after init, so the resolved-path grant could not exist and the run hung —
+  the config wildcard that replaced it removes the init-time dependency. Exercise the artifact at the lifecycle point it
+  runs in (check the workflow's step order against the artifact's run point), not only its own invocation. The context
+  is also the retained state: clearing a module's `build/` is not the clean-checkout condition, because a tool's own
+  cache and the project's `.gradle/` survive it — `rm -rf helm/chart/build` alone still let the chart-dependency task
+  run, and only clearing the plugin's cache under `.gradle/` reproduced the skip CI saw — so clear the caches outside
+  `build/` before concluding a failure does not reproduce. The context is also the input's own content: a probe against
+  a stand-in evidences the stand-in, so state the fixture's measured size beside the claim and defer the untested
+  remainder to a task. **A probe's sandbox is state too: give each fixture a fresh clone, and in the sandbox's own
+  configuration and trial-agent definition deny only the mutating `git worktree` subcommands (at least `add`, `remove`,
+  `move` and `prune`, each with its `-C` form), disable the worktree-creation and session-move tools in the agent's
+  `tools` map, then assert nothing escaped.** A run given a clone can create a worktree or a session on a real path, and
+  a clone reused across fixtures carries the earlier one's edits; a bare `git worktree` pattern also matches the
+  read-only `list` a compound setup command carries (observed on OpenCode v2.2.5, whose per-node matching the permission
+  bullet below states; every compound form was not tested). A permission rule confines neither of those two tools — the
+  `tools` map is what removes them, as it did for session-move, and the worktree-creation entry is the analogous,
+  untested one — while removing a worktree stays permission-controlled by the `edit` action, deliberately, since
+  deleting a worktree is not an escape vector; then check before and after the run that no worktree exists and the
+  sandbox has no remote. captured: separate-agents-md-core-and-subject-packs captured: fix-chart-dependency-fetch
+  captured: grant-openspec-global-access-in-cloud (#325) captured: load-stage-workflow-instructions-on-demand captured:
+  probe-pause-resume-reuse captured: probe-opencode-config-read-path captured: fix-tmpdir-plugin-types (#299)
 
 ### Writing checks and tests that can actually fail
 
@@ -2127,14 +2127,14 @@ changing an image or buildpack pin.
   the whole report file or CI run log, and take the flagged set from the tool's own findings list, not a `head`/`tail`
   slice, a `grep` filter, or a derived/narrative section of the output. A filtered read of the 2026-09-24 Snyk run's
   `--log-failed` output showed only four of the seven Jackson advisories, so the change was scoped Jackson 2-only and
-  would have left the three Jackson 3 ones (fix `3.2.3`) unaddressed; the full log named both lines. captured:
+  would have left the three Jackson 3 ones (fix `3.2.3`) unaddressed; the full log named both lines. Confirm the file is
+  the run's output: a build directory persists a tool's previous report, and `dependencyUpdates` writes per-project
+  `partials/*.json` as each resolves and `report.txt` afterwards, so a run that did not regenerate leaves a stale
+  aggregate — reading a stale `report.txt` twice made `align-dependency-report-version-authority` abandon a working
+  change on the false conclusion that the plugin's rule could not reach the row. Cite the run-scoped output, or confirm
+  the summary is newer than the run. captured: align-dependency-report-version-authority captured:
   test-build-logic-rules-and-unify-version-comparison (#306) captured: bump-jackson-boms-for-snyk-findings captured:
-  derive-retrospective-facts Confirm the file is the run's output: a build directory persists a tool's previous report,
-  and `dependencyUpdates` writes per-project `partials/*.json` as each resolves and `report.txt` afterwards, so a run
-  that did not regenerate leaves a stale aggregate — reading a stale `report.txt` twice made
-  `align-dependency-report-version-authority` abandon a working change on the false conclusion that the plugin's rule
-  could not reach the row. Cite the run-scoped output, or confirm the summary is newer than the run. captured:
-  align-dependency-report-version-authority
+  derive-retrospective-facts
 
   A slice of a list of _objects_ selects a subject, not only a shorter list: `head -1` on a `docker images` list picked
   another tag's stale build, whose `io.buildpacks.build.metadata` label named procfile `5.15.2` where the tag the run
@@ -2189,25 +2189,26 @@ changing an image or buildpack pin.
   by hand — a pattern is asserted to match exactly once (a renamed input fails the task rather than reading as current),
   while `buildLogicUpdates` asserts the same set-equality against `build-logic`'s own script (specified in
   `showcase/quality/dependency-management`) — since extending a list by hand one pin at a time is how the OpenSpec pin,
-  then the `pack` CLI, was each missed in turn while the check did not exist. captured: cover-the-included-builds-pins A
-  tool pinned in more than one workflow file takes one check entry per file: a check reads exactly one `workflowFile`,
-  which must also be registered in `pinFiles`, and a file no entry names has its pin silently unchecked (the smoke's
-  `pack` pin sat unlisted until it gained its own `pack-cli (deployment-smoke.yml)` entry) — name each entry per file
-  (`pack-cli (e2e.yml)`, `pack-cli (release.yml)`, `pack-cli (deployment-smoke.yml)`), since the report names the check,
-  not its file. captured: publish-images-to-ghcr The `/opsx-tool-update` command regenerates the instruction files after
-  a release but does not detect one. (`java-version: '21'` and the opencode workflow's `model` input are deliberate
-  pins, not tooling currency — the model pin has its own multi-file bump sweep, see the OpenCode model-pin gotcha.) A
-  Snyk or pack bump cannot be verified locally: `workflowLint` (actionlint) proves only that the YAML lints, not that
-  the version tag is installable — the credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`)
-  is the first real execution. `workflowLint` also cannot see inside a quoted `gh api --jq` program — actionlint parses
-  the YAML and the shell, not the jq — so a malformed copied filter passes `check` and fails only on the scheduled run;
-  verify a new or edited update workflow by diffing it against the sibling it copies (a `tooling-updates.yml` jq filter
-  was missing a closing parenthesis, caught by that diff and by nothing in `check`). The same skew bites a guard keyed
-  off a tool's output: it must be verified against the version CI pins, not only the locally-installed one, since the
-  pinned CLI is what the gate actually runs and the output text it matches on may differ there. The same caution applies
-  to a proposed _fix_ attributed to a dependency bump: verify it exists in a released version, not only on the project's
-  default branch — a bump claimed to make a failure skip cleanly held on `actions/cache`'s `main` but in no release
-  (latest `v6.1.0`). captured: unify-tooling-currency-checks (#304)
+  then the `pack` CLI, was each missed in turn while the check did not exist. A tool pinned in more than one workflow
+  file takes one check entry per file: a check reads exactly one `workflowFile`, which must also be registered in
+  `pinFiles`, and a file no entry names has its pin silently unchecked (the smoke's `pack` pin sat unlisted until it
+  gained its own `pack-cli (deployment-smoke.yml)` entry) — name each entry per file (`pack-cli (e2e.yml)`,
+  `pack-cli (release.yml)`, `pack-cli (deployment-smoke.yml)`), since the report names the check, not its file. The
+  `/opsx-tool-update` command regenerates the instruction files after a release but does not detect one.
+  (`java-version: '21'` and the opencode workflow's `model` input are deliberate pins, not tooling currency — the model
+  pin has its own multi-file bump sweep, see the OpenCode model-pin gotcha.) A Snyk or pack bump cannot be verified
+  locally: `workflowLint` (actionlint) proves only that the YAML lints, not that the version tag is installable — the
+  credentialed weekly run (or a local `dependencySecurityCheck` with `SNYK_TOKEN`) is the first real execution.
+  `workflowLint` also cannot see inside a quoted `gh api --jq` program — actionlint parses the YAML and the shell, not
+  the jq — so a malformed copied filter passes `check` and fails only on the scheduled run; verify a new or edited
+  update workflow by diffing it against the sibling it copies (a `tooling-updates.yml` jq filter was missing a closing
+  parenthesis, caught by that diff and by nothing in `check`). The same skew bites a guard keyed off a tool's output: it
+  must be verified against the version CI pins, not only the locally-installed one, since the pinned CLI is what the
+  gate actually runs and the output text it matches on may differ there. The same caution applies to a proposed _fix_
+  attributed to a dependency bump: verify it exists in a released version, not only on the project's default branch — a
+  bump claimed to make a failure skip cleanly held on `actions/cache`'s `main` but in no release (latest `v6.1.0`).
+  captured: unify-tooling-currency-checks (#304) captured: cover-the-included-builds-pins captured:
+  publish-images-to-ghcr
 
 ### Formatting & IDE integration
 

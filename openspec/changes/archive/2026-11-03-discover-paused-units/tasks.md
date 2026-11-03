@@ -102,9 +102,9 @@ The unit record — its `Workspace:`, state, and pause checkpoint — is `docs/u
 - [x] 7.3 The Python suites run under the declared floor, and the touched build's `check` passes.
 - [x] 7.4 `docs/process-defects/discover-paused-units.md` records what the unit observed, including the proposal written
       before the consultation on the widened scope.
-- [ ] 7.5 The review gate's quick pass and routing decision run, and the owner's manual pass approves the
+- [x] 7.5 The review gate's quick pass and routing decision run, and the owner's manual pass approves the
       implementation. Quick rounds 1–19 are recorded in `docs/review-rounds.tsv`; routing returned `REQUIRED` (two
       requirement blocks added, one removed), and the deep pass ran five rounds on this implementation and closed clean.
       The owner's manual pass is the step outstanding.
-- [ ] 7.6 The `commit-hygiene` capability's `## Purpose` is refreshed in the archive commit, since a delta cannot carry
+- [x] 7.6 The `commit-hygiene` capability's `## Purpose` is refreshed in the archive commit, since a delta cannot carry
       a Purpose and the current one still describes the `tasks.md` record.

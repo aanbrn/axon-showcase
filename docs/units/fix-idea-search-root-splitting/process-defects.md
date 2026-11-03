@@ -41,5 +41,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Knowledge boundary** — observed this sequence. Did not check whether any other verification in the same batch read
   the mutated tree; the suite run after the mutation failed as the control intended.
 
-- **Decision** — proposed: applied as `check-and-test-authoring`'s restore-from-snapshot bullet, which verifies the
-  restored content against the pre-mutation snapshot instead of a token grep.
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as `check-and-test-authoring`'s
+  restore-from-snapshot bullet, which verifies the restored content against the pre-mutation snapshot instead of a token
+  grep.

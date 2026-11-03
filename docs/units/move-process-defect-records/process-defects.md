@@ -54,8 +54,8 @@
 - **Knowledge boundary** — observed: the ordering in this session's three units and the reviewer's finding. Not checked:
   whether units before this session did the same, whose records do not state a stage for their first round.
 
-- **Decision** — proposed: applied as the `rules.tasks` gate-stage item; the `agent-skills` requirement already owns the
-  stage list.
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as the `rules.tasks` gate-stage
+  item; the `agent-skills` requirement already owns the stage list.
 
 ### move-process-defect-records#4 — the plan's review-gate item was copied from the previous plan, not derived from the gate
 
@@ -78,8 +78,8 @@
 - **Knowledge boundary** — observed: the four plans and the corpus count. Not checked: which earlier plan first
   collapsed the item, and whether units outside this session inherit the same shape.
 
-- **Decision** — proposed: applied as the `rules.tasks` gate-stage item; the recurring-unit floor rule already required
-  reconciling the copied plan with what the rules mandate now.
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as the `rules.tasks` gate-stage
+  item; the recurring-unit floor rule already required reconciling the copied plan with what the rules mandate now.
 
 ### move-process-defect-records#5 — one gate item carried five independently actionable steps
 
@@ -96,8 +96,8 @@
 - **Knowledge boundary** — observed: the item text in the four plans. Not checked: whether other aggregate items in
   those plans hide further omissions.
 
-- **Decision** — proposed: applied as the `rules.tasks` gate-stage item; the writing standard already required one
-  actionable statement per item.
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as the `rules.tasks` gate-stage
+  item; the writing standard already required one actionable statement per item.
 
 ### move-process-defect-records#6 — no gate reads whether a plan carries the gate's stages
 
@@ -115,8 +115,8 @@
 - **Knowledge boundary** — observed: the gates' passes over the deficient plans. Not checked: whether a check over a
   plan's stage list is feasible without pinning wording, which this unit's own tasks do not attempt.
 
-- **Decision** — proposed: applied as the `rules.tasks` gate-stage item, an authoring-system correction; no check over a
-  plan's stage list is proposed, its feasibility unchecked.
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as the `rules.tasks` gate-stage
+  item, an authoring-system correction; no check over a plan's stage list is proposed, its feasibility unchecked.
 
 ### move-process-defect-records#7 — the pull request was merged before its archive commit
 

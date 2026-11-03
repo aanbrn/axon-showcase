@@ -56,8 +56,9 @@
 - **Knowledge boundary** — observed: that no proposal-stage invocation preceded the implementation, and the late round's
   findings. Not checked: whether the same findings would have arrived at the proposal stage.
 
-- **Decision** — proposed: applied as the `openspec/config.yaml` `rules.tasks` item that carries each review-gate stage
-  as its own task, so a skipped proposal round reads as a missing box.
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as the `openspec/config.yaml`
+  `rules.tasks` item that carries each review-gate stage as its own task, so a skipped proposal round reads as a missing
+  box.
 
 ### keep-review-handoff-per-unit#4 — three rounds were recorded after their invocation instead of before it
 

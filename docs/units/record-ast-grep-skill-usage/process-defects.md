@@ -20,8 +20,8 @@
   earlier exploratory queries in this unit carry the same parse defect: the remaining figures came from SQL aggregates
   rather than from split text, and the chat-reported figures are not repository artifacts.
 
-- **Decision** — proposed: applied as the machine-readable-output clause that replaces the git-only remedy in the
-  parsed-output rule (`-z` for git paths, `-json` for `sqlite3` rows).
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/836 — applied as the machine-readable-output
+  clause that replaces the git-only remedy in the parsed-output rule (`-z` for git paths, `-json` for `sqlite3` rows).
 
 ### record-ast-grep-skill-usage#2 — Verification lines quoted values later steps changed
 

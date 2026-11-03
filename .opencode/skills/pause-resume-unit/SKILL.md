@@ -46,17 +46,17 @@ pause, and it blocks the automatic choice until the unit mints its record.
 
 **The field set**
 
-| Field                       | What it states                                                                                                                                                   |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Time and revision           | When the pause was recorded, and the revision observed (`git rev-parse HEAD`)                                                                                    |
-| Workspace                   | A pointer to the record's `Workspace:` line — never a copy of its writer                                                                                         |
-| Stage                       | Where the unit is: the proposal, a review round, the implementation, the record, the generalization, the manual pass, or shipping                                |
-| Next step                   | One step, specific enough that a session can start it without re-deriving the plan                                                                               |
-| Change set                  | What `git status` showed — the staged, unstaged, and untracked sets, with nothing cleaned up                                                                     |
-| Blockers and open decisions | What is stuck, and what was decided locally without reaching the artifacts                                                                                       |
-| Pending decision            | What the unit waits for the owner to decide, if anything                                                                                                         |
-| Findings no record holds    | The prior review round's finding instances (`file:line` and its claim), which live only in that report; the review gate's handover rule owns why they are needed |
-| Operations in flight        | Each operation still running or stopped unseen, with its identifier, where its result would land, and that its outcome is unknown                                |
+| Field                       | What it states                                                                                                                                                                                                                                                               |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Time and revision           | When the pause was recorded, and the revision observed (`git rev-parse HEAD`)                                                                                                                                                                                                |
+| Workspace                   | A pointer to the record's `Workspace:` line — never a copy of its writer                                                                                                                                                                                                     |
+| Stage                       | Where the unit is: the proposal, a review round, the implementation, the record, the generalization, the manual pass, or shipping                                                                                                                                            |
+| Next step                   | One step, specific enough that a session can start it without re-deriving the plan                                                                                                                                                                                           |
+| Change set                  | What `git status` showed — the staged, unstaged, and untracked sets, with nothing cleaned up                                                                                                                                                                                 |
+| Blockers and open decisions | What is stuck, and what was decided locally without reaching the artifacts                                                                                                                                                                                                   |
+| Pending decision            | What the unit waits for the owner to decide, if anything                                                                                                                                                                                                                     |
+| Findings no record holds    | The prior review round's finding instances (`file:line` and its claim), at `docs/units/<unit>/findings/round-<N>.md`; a round predating that store is read from the checkpoint or the hand-over, and a unit holding neither is unrecovered context rather than a clean round |
+| Operations in flight        | Each operation still running or stopped unseen, with its identifier, where its result would land, and that its outcome is unknown                                                                                                                                            |
 
 **Decision points**
 

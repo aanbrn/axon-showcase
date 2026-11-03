@@ -3,24 +3,25 @@
 ## Purpose
 
 Defines the mechanical guards over the commit/artifact hygiene the standard quality gates cannot see — a local
-pre-commit hook that inspects the staged set and validates a staged review-round ledger's duplicate and contiguity
-checks, its reviewer-session continuity, and the preservation of every recorded `(unit, round)` row — build checks that
-verify `captured:` marker placement, that the tracked set excludes ignored files, that no tracked file carries a merge
-conflict marker, that tracked scripts carry the executable bit, that no tracked file exceeds the configured size limit,
-that recognized tables in formatter-owned Markdown have consistent cell counts, that every dated ideas section carries
-an entry, that no two workflow cron schedules collide, that no two archived changes carry the same name apart from one
-recorded historical pair, that every unit records its workspace at `docs/units/<unit>/unit.md` and every live change's
-`tasks.md` references that record with each archive judged by its inline record or its reference according to its date,
-that the review-round ledger carries at most one row per unit and round, that each unit's rounds are contiguous from `1`
-apart from an explicitly acknowledged gap, that a round the caller names with `--expect` is recorded, that every class a
-row recorded after the canonical boundary carries is one the reviewer's definition names apart from an acknowledged
-label, and that each round's reviewer session and its continuity are recorded — and, asserted at the review gate's
-manual-pass boundary rather than by a build check, that a unit the caller names with `--expect-clean` closes on a round
-carrying no finding class, since a round in flight is unclean by design, and that the unit's own tree is ready for the
-owner's pass: no unstaged new file, no stale indexed copy, and a base its `HEAD` contains, failing as not established
-when a read it needs fails rather than reporting the tree clean — and a committed `.gitattributes` that normalizes line
-endings (enforced by git, not the build) — so slips that were caught only by a human or a review pass are blocked by
-construction.
+pre-commit hook that inspects the staged set and validates staged review-round records' duplicate and contiguity checks,
+its reviewer-session continuity, the preservation of every recorded `(unit, round)` row, and each recorded round's
+finding instances — build checks that verify `captured:` marker placement, that the tracked set excludes ignored files,
+that no tracked file carries a merge conflict marker, that tracked scripts carry the executable bit, that no tracked
+file exceeds the configured size limit, that recognized tables in formatter-owned Markdown have consistent cell counts,
+that every dated ideas section carries an entry, that no two workflow cron schedules collide, that no two archived
+changes carry the same name apart from one recorded historical pair, that every unit records its workspace at
+`docs/units/<unit>/unit.md` and every live change's `tasks.md` references that record with each archive judged by its
+inline record or its reference according to its date, that the review-round ledger carries at most one row per unit and
+round, that each unit's rounds are contiguous from `1` apart from an explicitly acknowledged gap, that a round the
+caller names with `--expect` is recorded, that every class a row recorded after the canonical boundary carries is one
+the reviewer's definition names apart from an acknowledged label, that each round's reviewer session and its continuity
+are recorded, that every round recorded after the findings store's boundary carries its instances file — and, asserted
+at the review gate's manual-pass boundary rather than by a build check, that a unit the caller names with
+`--expect-clean` closes on a round carrying no finding class, since a round in flight is unclean by design, and that the
+unit's own tree is ready for the owner's pass: no unstaged new file, no stale indexed copy, and a base its `HEAD`
+contains, failing as not established when a read it needs fails rather than reporting the tree clean — and a committed
+`.gitattributes` that normalizes line endings (enforced by git, not the build) — so slips that were caught only by a
+human or a review pass are blocked by construction.
 
 ## Requirements
 
@@ -1341,3 +1342,95 @@ retired header, and no per-unit file SHALL carry a normative header of its own.
 
 - **WHEN** a record row dated after 2026-10-18 carries the pre-fields width
 - **THEN** the continuity verification fails, naming the row, its date, and the fields it lacks
+
+### Requirement: Every review round recorded after the boundary keeps its finding instances
+
+Each unit's finding instances SHALL be stored at `docs/units/<unit>/findings/round-<N>.md`, one file per recorded round,
+and the build SHALL verify that every round recorded after the store's boundary has one. A file SHALL carry one entry
+per finding of that round — its class, its location (`file:line`), and its claim — or state that the round raised none,
+so a clean round is recorded as clean rather than left absent. An entry MAY be wrapped across source lines, because the
+file sits under `docs/` and the formatter reflows it; its fields SHALL be read from the joined text. A round dated on or
+before the boundary SHALL be exempt, because it was recorded before the store existed, and the exemption SHALL be stated
+as that date rather than inferred from a missing file.
+
+The verification SHALL be a `commit-hygiene.py` mode run by a `check` task over the tracked records, and it SHALL fail
+when a round has no instances file, when a file names a round its record does not carry, when an entry lacks one of its
+three fields, when the file states no entry and no `- none`, when it states `- none` beside entries, and when the
+classes the entries name differ from the round's `classes raised` field — so a file stating none beside a round that
+raised classes fails instead of misleading a reader. The pre-commit guard SHALL refuse a commit that changes either a
+record or its instances files and leaves an affected post-boundary round without its instances: it SHALL read the
+index's contents for the affected unit rather than the working tree's copy, so a file an earlier commit recorded is seen
+and a staged deletion is judged.
+
+#### Scenario: The standard check verifies the rounds' instances
+
+- **WHEN** the standard `check` task runs
+- **THEN** it includes the finding-instances verification
+
+#### Scenario: A post-boundary round without its instances fails
+
+- **WHEN** a record carries a round dated after the boundary and no `findings/round-<N>.md` exists for it
+- **THEN** the verification fails, naming the unit and the round
+
+#### Scenario: A clean round carries an explicit statement
+
+- **WHEN** a round raised no findings
+- **THEN** its instances file states that it raised none, and the verification passes for that round
+
+#### Scenario: A file for a round the record does not carry fails
+
+- **WHEN** `docs/units/<unit>/findings/round-<N>.md` exists and the unit's record carries no round `<N>`
+- **THEN** the verification fails, naming the file and the round
+
+#### Scenario: An entry missing one of its fields fails
+
+- **WHEN** an instance entry carries no class, no location, or no claim
+- **THEN** the verification fails, naming the file and the entry
+
+#### Scenario: A reflowed entry is read from its joined text
+
+- **WHEN** the formatter wraps an entry across source lines
+- **THEN** its class, location, and claim are read from the joined text, and the round passes as it would unwrapped
+
+#### Scenario: An empty instances file fails
+
+- **WHEN** a post-boundary round's instances file carries no entry and no `- none`
+- **THEN** the verification fails, naming the file, since a clean round must state that it raised none
+
+#### Scenario: A file stating none beside an entry fails
+
+- **WHEN** an instances file states `- none` and also carries an entry
+- **THEN** the verification fails, naming the file, since the two statements contradict each other
+
+#### Scenario: A round before the boundary is exempt
+
+- **WHEN** a round is dated on or before the store's boundary
+- **THEN** the verification requires no instances file for it, because it was recorded before the store existed
+
+#### Scenario: A file disagreeing with the record's classes fails
+
+- **WHEN** a round's `classes raised` field names one or more classes and its instances file states that the round
+  raised none, or names a different set of classes
+- **THEN** the verification fails, naming the file, the round, and both class sets
+
+#### Scenario: A staged instances deletion is refused
+
+- **WHEN** a commit stages the deletion of a post-boundary round's instances file and leaves the record unchanged
+- **THEN** the guard refuses the commit, naming the unit and the round
+
+#### Scenario: The guard refuses a staged round without its instances
+
+- **WHEN** a commit changes a record or its instances files and the index then holds a post-boundary round without its
+  instances file
+- **THEN** the guard refuses the commit, naming the unit and the round, whether the file was never staged or a staged
+  deletion removed it
+
+#### Scenario: The guard judges the staged copy
+
+- **WHEN** the staged instances file differs from the working tree's copy
+- **THEN** the guard judges the content the commit records
+
+#### Scenario: An unreadable instances file fails rather than passing
+
+- **WHEN** an instances file cannot be read, or its entries cannot be parsed
+- **THEN** the verification fails, naming the file, rather than reporting the round clean

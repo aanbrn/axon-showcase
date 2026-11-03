@@ -1018,6 +1018,48 @@ def check_staged(repo: Path, formatter: list[str]) -> int:
             effective.pop(unit, None)
         failures += check_ledger_preservation(repo, effective, before)
 
+    changed_units = set(record_paths) | removed_records
+    findings_status = git_output(
+        repo, "diff", "--cached", "--name-status", "-z", "--diff-filter=ACMRD", "--", UNIT_RECORD_DIR
+    )
+    findings_tokens = [token for token in findings_status.split("\0") if token]
+    position = 0
+    while position < len(findings_tokens):
+        code = findings_tokens[position]
+        source = findings_tokens[position + 1] if position + 1 < len(findings_tokens) else ""
+        position += 3 if code.startswith(("R", "C")) else 2
+        if re.fullmatch(
+            re.escape(UNIT_RECORD_DIR) + r"/([^/]+)/" + FINDING_INSTANCES_DIR + r"/round-\d+\.md", source
+        ):
+            changed_units.add(source.split("/")[2])
+    if changed_units:
+        index_records: dict[str, str] = {}
+        index_instances: dict[tuple[str, str], str] = {}
+        try:
+            for unit in sorted(changed_units):
+                record = record_label(unit)
+                if git_output(repo, "ls-files", "--cached", "--", record).strip():
+                    index_records[unit] = index_text(repo, record)
+                listing = git_output(
+                    repo,
+                    "ls-files",
+                    "-z",
+                    "--cached",
+                    "--",
+                    UNIT_RECORD_DIR + "/" + unit + "/" + FINDING_INSTANCES_DIR,
+                )
+                for path in listing.split("\0"):
+                    match = re.search(r"/round-(\d+)\.md$", path)
+                    if match:
+                        index_instances[(unit, match.group(1))] = index_text(repo, path)
+        except ValueError as failure:
+            failures += 1
+            print("Review-round finding instances cannot be checked: {0}".format(failure), file=sys.stderr)
+        else:
+            for problem in find_instance_violations(index_records, index_instances):
+                failures += 1
+                print("Review-round finding instances: {0}".format(problem), file=sys.stderr)
+
     failures += check_staged_idea_sections(repo, paths)
 
     failures += check_staged_workspace_records(repo, paths)
@@ -1704,6 +1746,169 @@ def check_session_continuity(repo: Path, records: Mapping[str, str] | None = Non
     return len(violations)
 
 
+# The per-round finding-instances store: one file per recorded round, beside the record.
+FINDING_INSTANCES_DIR = "findings"
+# The last day a round may lack instances, because it was recorded before the store existed.
+FINDING_INSTANCES_THROUGH = date(2026, 11, 3)
+# One instance: its class, its location, and its claim, the claim keeping any later separator verbatim.
+INSTANCE_LINE = re.compile(r"^- \[([a-z][a-z-]*)\] (\S+) — (.+)$")
+INSTANCE_NONE = "- none"
+
+
+def instance_path(unit: str, round_number: str) -> str:
+    """The repository path of one round's instances file."""
+    return UNIT_RECORD_DIR + "/" + unit + "/" + FINDING_INSTANCES_DIR + "/round-" + round_number + ".md"
+
+
+def parse_instances(text: str) -> tuple[list[tuple[str, str, str]], list[str], bool]:
+    """One instances file's entries, the lines outside the entry shape, and whether it states `- none`.
+
+    An entry may be wrapped across source lines — the file sits under `docs/`, which the formatter reflows — so a line
+    that does not open an entry continues the one above it, and the fields are read from the joined text.
+    """
+    entries: list[tuple[str, str, str]] = []
+    unparseable: list[str] = []
+    explicit_none = False
+    pending: str | None = None
+
+    def classify(value: str) -> None:
+        match = INSTANCE_LINE.match(value)
+        if match:
+            entries.append((match.group(1), match.group(2), match.group(3)))
+        else:
+            unparseable.append(value)
+
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped == INSTANCE_NONE:
+            if pending is not None:
+                classify(pending)
+                pending = None
+            explicit_none = True
+            continue
+        if stripped.startswith("- "):
+            if pending is not None:
+                classify(pending)
+            pending = stripped
+            continue
+        if pending is not None:
+            pending = pending + " " + stripped
+        else:
+            unparseable.append(stripped)
+    if pending is not None:
+        classify(pending)
+    return entries, unparseable, explicit_none
+
+
+def tree_instances(repo: Path) -> dict[tuple[str, str], str]:
+    """Every tracked round's instances file text, keyed by (unit, round)."""
+    root = repo / UNIT_RECORD_DIR
+    files: dict[tuple[str, str], str] = {}
+    if not root.is_dir():
+        return files
+    for path in sorted(root.glob("*/" + FINDING_INSTANCES_DIR + "/round-*.md")):
+        match = re.fullmatch(r"round-(\d+)\.md", path.name)
+        if not match:
+            continue
+        unit = path.parent.parent.name
+        try:
+            files[(unit, match.group(1))] = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            raise ValueError("cannot read the instances file: {0}".format(instance_path(unit, match.group(1))))
+    return files
+
+
+def find_instance_violations(
+    records: Mapping[str, str], instances: Mapping[tuple[str, str], str]
+) -> list[str]:
+    """Every finding-instances violation a record set and its instances carry."""
+    problems: list[str] = []
+    recorded_rounds: dict[str, set[str]] = {}
+    for unit, text in sorted(records.items()):
+        for line in text.splitlines():
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            fields = line.split("\t")
+            if len(fields) < 4 or not fields[2].isdigit():
+                continue
+            round_number = fields[2]
+            recorded_rounds.setdefault(unit, set()).add(round_number)
+            row_date = ledger_date(fields[0])
+            if row_date is None or row_date <= FINDING_INSTANCES_THROUGH:
+                continue
+            key = (unit, round_number)
+            if key not in instances:
+                problems.append(
+                    "{0}: round {1} dated {2} has no instances file ({3})".format(
+                        record_label(unit), round_number, fields[0], instance_path(unit, round_number)
+                    )
+                )
+                continue
+            entries, unparseable, explicit_none = parse_instances(instances[key])
+            if unparseable:
+                problems.append(
+                    "{0}: round {1} carries {2} line(s) outside the instance shape, first {3!r}".format(
+                        instance_path(unit, round_number), round_number, len(unparseable), unparseable[0]
+                    )
+                )
+                continue
+            if explicit_none and entries:
+                problems.append(
+                    "{0}: round {1} states `- none` beside {2} entry(ies)".format(
+                        instance_path(unit, round_number), round_number, len(entries)
+                    )
+                )
+                continue
+            if not entries and not explicit_none:
+                problems.append(
+                    "{0}: round {1} carries no entry and no `- none`, so a clean round is recorded by silence".format(
+                        instance_path(unit, round_number), round_number
+                    )
+                )
+                continue
+            recorded = {label.strip() for label in fields[3].split(",") if label.strip() and label.strip() != "-"}
+            found = {name for name, _, _ in entries}
+            if found != recorded:
+                problems.append(
+                    "{0}: round {1} names classes {2}, but its record carries {3}".format(
+                        instance_path(unit, round_number),
+                        round_number,
+                        ", ".join(sorted(found)) or "none",
+                        ", ".join(sorted(recorded)) or "none",
+                    )
+                )
+    for unit, round_number in sorted(instances):
+        if round_number not in recorded_rounds.get(unit, set()):
+            problems.append(
+                "{0} names round {1}, which {2} does not carry".format(
+                    instance_path(unit, round_number), round_number, record_label(unit)
+                )
+            )
+    return problems
+
+
+def index_text(repo: Path, path: str) -> str:
+    """The index's content of `path`, raised as a named failure when it is not readable text."""
+    try:
+        return git_output(repo, "show", ":" + path)
+    except UnicodeDecodeError:
+        raise ValueError("cannot read the index copy of {0}".format(path))
+
+
+def check_finding_instances(repo: Path) -> int:
+    """Name each finding-instances violation; return their count."""
+    try:
+        problems = find_instance_violations(round_records(repo), tree_instances(repo))
+    except ValueError as failure:
+        print("Review-round finding instances: {0}".format(failure), file=sys.stderr)
+        return 1
+    for problem in problems:
+        print("Review-round finding instances: {0}".format(problem), file=sys.stderr)
+    return len(problems)
+
+
 # The mode group's flags, declared beside their registration so the mode-combination control can derive its
 # forms from this list rather than repeating them.
 MODE_FLAGS = (
@@ -1722,6 +1927,7 @@ MODE_FLAGS = (
     "--ideas-sections",
     "--class-vocabulary",
     "--workspace-records",
+    "--finding-instances",
 )
 
 
@@ -2247,6 +2453,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="check each live change's tasks.md records its workspace, and each archive after the gate's date",
     )
+    mode.add_argument(
+        "--finding-instances",
+        action="store_true",
+        help="check each round recorded after the boundary has its finding instances",
+    )
     parser.add_argument(
         "--expect",
         action="append",
@@ -2317,6 +2528,8 @@ def dispatch(args: argparse.Namespace, repo: Path) -> int:
         return 1 if check_class_vocabulary(repo) else 0
     if args.workspace_records:
         return 1 if check_workspace_records(repo) else 0
+    if args.finding_instances:
+        return 1 if check_finding_instances(repo) else 0
     return 1 if check_staged(repo, args.formatter) else 0
 
 

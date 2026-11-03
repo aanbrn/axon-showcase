@@ -28,8 +28,8 @@ table and the ADR citation were missing contracts, not locations.
 
 The bindings are not interchangeable strings. The prior finding instances have no fixed filename: they come from the
 prior review round's report and survive context loss through the `Resume checkpoint`'s `Findings no record holds` field
-or the review hand-over. The `Workspace:` record is a declaration carrying the path, branch, and writer, not a
-replaceable label. A target's value is an owner as much as a location.
+or the review hand-over (now per unit and round, see Amendment — 2026-11-03). The `Workspace:` record is a declaration
+carrying the path, branch, and writer, not a replaceable label. A target's value is an owner as much as a location.
 
 The alternatives were: substitution tokens (`{{review_ledger}}`), which need a resolver the Markdown prose does not
 have; a universal naming convention, which makes a target adopt this repository's names instead of separating names from
@@ -90,11 +90,15 @@ One statement above is replaced, and this amendment records it without reopening
 
 ## Amendment — 2026-11-03
 
-One Context statement's location changed, and this amendment records it without reopening the Decision.
+Two Context statements are qualified, and this amendment records them without reopening the Decision.
 
 - The Context above names the review ledger as `docs/review-rounds.tsv`. The ledger is now the set of per-unit records
   at `docs/units/<unit>/rounds.tsv`, and the `review-ledger` binding's value names that set. The record format is owned
   by the `showcase/quality/commit-hygiene` requirement "The review-round record format is stated once", so the binding's
   owner cell names the requirement rather than a file header.
+- The Context says the prior finding instances "have no fixed filename" and survive context loss through the checkpoint
+  or the hand-over. They now have one per unit and round — `docs/units/<unit>/findings/round-<N>.md` — and the
+  `prior-findings` binding's value names that store, with the checkpoint or the hand-over as the fallback for a round
+  that predates it.
 - The Decision stands unchanged: the ledger's location is bound, not its format, and the role remains one of the
   declaration's roles.

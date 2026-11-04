@@ -127,3 +127,20 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Consequence** — the row is now two rows, each naming its own command, before the draft is published.
 - **Knowledge boundary** — observed the CI step and the probe's output. Did not check whether any other row pairs two
   claims under one command, beyond re-reading this table.
+
+### generalize-process-defects-2026-11-03#9 — The pull-request link sweep reached other units' records
+
+- **Recorded** — 2026-11-04, by the writing session of `record-link-sweep-overreach`, from this unit's shipping step.
+- **Stage** — ship (adding the pull request's link to this unit's `proposed` `Decision` lines).
+- **Expected** — a sweep that adds one link to the unit's own appended lines touches only those lines, and its count is
+  read before the commit.
+- **Observed** — the replacement matched `- **Decision** — proposed: applied as` across `docs/units/*/`, a form earlier
+  generalization units' records also use, so it wrote the link into 22 lines instead of 11 and edited nine records of
+  already-merged units.
+- **Evidence** — the sweep printed `lines linked: 22`; `git show --name-only` on the commit listed 16 record files where
+  7 were intended; after reverting the nine unrelated files the count read `11` and the commit's file list was those 7.
+- **Consequence** — one amended commit and a `--force-with-lease` push on this unit's own branch before the merge; the
+  merged tree carries the 11 intended links and the nine reverted records are unchanged. The record ships in a follow-up
+  docs unit, because this unit's files were already committed when the defect surfaced.
+- **Knowledge boundary** — observed the two counts, the commit's file list, and the merged state. Did not check whether
+  other units' `proposed` lines were meant to carry links and never received them.

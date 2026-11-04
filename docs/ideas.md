@@ -25,14 +25,6 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
-## 2026-11-04
-
-- Require the owner's approval of a unit's shape before its repository edits — parked; the owner will specify it. The
-  owner's correction to `generalize-process-defects-2026-11-03`'s disposition: in `discover-paused-units` and
-  `bound-self-learning-loop-consolidation` the skipped step was the owner's manual review, not an advisor consultation,
-  and the lifecycle as it stands writes the planning artifacts before that review. The rule's content is the owner's to
-  state; this entry records only that it is owed. Recorded by `make-advisor-consultation-owner-authorized`.
-
 ## 2026-11-01
 
 - Gate a `Decision` line's link with a check — parked; no change yet. The generalization workflow requires `proposed`

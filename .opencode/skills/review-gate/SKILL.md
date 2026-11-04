@@ -206,6 +206,11 @@ continuity is not proof that a fix is correct.
 
 ## 5. Manual review pass
 
+**§5 runs at each stage boundary**: the proposal's pass precedes any implementation edit, and the implementation's pass
+precedes delivery, while a unit takes the single pass that `AGENTS.md`'s review-gate invariant names only where the
+owner's authorization itself names each direct edit the unit may make. The preconditions below apply to the stage the
+pass closes.
+
 Only after the quick review reports no new observations, any required deep review has completed, the pre-write
 derivation pass and its claims table are recorded, the unit's highest recorded round carries no finding class (§2's
 `--expect-clean`), and — at the implementation stage — the unit's process-defect record exists and reflects what it

@@ -84,7 +84,9 @@ of the unit the episode belongs to.
   write, and treat an ownership you cannot establish as occupied.
 - WHEN the episode belongs to a unit with no live tree — merged, or archived — THEN the append is a documentation unit
   of its own: its own branch from a freshly fetched `origin/main`, unrelated dirty changes preserved, the work
-  uncommitted until the owner's approval, and no commit, push, pull request, archive, or merge without it.
+  uncommitted until the implementation's approval, and no commit, push, pull request, archive, or merge without it.
+- A unit it starts begins only on the owner's authorization, and its proposal passes the owner's manual review before
+  any implementation edit.
 - Never commit to `main`. Write only into the tree assigned to the episode's unit, or — when that unit has none — into
   the documentation unit's own tree carrying the append.
 - The lifecycle the bindings declare (`docs/contracts/process-bindings.md`) owns the branch, workspace, and approval

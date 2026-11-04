@@ -370,9 +370,10 @@ file and the parse error — because the chart emits each dashboard as an opaque
 the dashboard. The check SHALL parse every file before failing, so a second malformed file is not hidden by the first,
 and SHALL fail when the dashboards directory is absent or empty, so a renamed path cannot disable it silently. It SHALL
 also reject a dashboard whose panels cannot be provisioned faithfully — a panel id repeated at any depth, a top-level
-panel without a grid position, two top-level panels on overlapping grid positions, or a top-level panel target whose
-query expression is blank — naming the file and the offending panel, since such a dashboard provisions into panels that
-collide, overlap, or query nothing, and an empty panel reads as a quiet system.
+panel without a grid position, two top-level panels on overlapping grid positions, a top-level panel target whose query
+expression is blank, or a panel that declares a target and is not a row and carries no description — naming the file and
+the offending panel, since such a dashboard provisions into panels that collide, overlap, query nothing, or report a
+number a reader cannot interpret.
 
 #### Scenario: A malformed dashboard fails the build
 
@@ -406,10 +407,22 @@ collide, overlap, or query nothing, and an empty panel reads as a quiet system.
 - **WHEN** a top-level panel of a bundled dashboard declares a target whose query expression is blank
 - **THEN** the check fails naming the offending file and the panel
 
+#### Scenario: A panel that queries without a description fails the check
+
+- **WHEN** a panel of a bundled dashboard that is not a row declares at least one target and its `description` is
+  missing, blank, or not a string
+- **THEN** the check fails naming the offending file and the panel
+
+#### Scenario: A row that declares a target needs no description
+
+- **WHEN** a row panel of a bundled dashboard declares a target and no `description`
+- **THEN** the check passes for that panel, because a row renders no query
+
 #### Scenario: Valid dashboards pass the build
 
 - **WHEN** every bundled dashboard file is one valid JSON document, its panel ids are unique, its top-level panels carry
-  non-overlapping grid positions, and every target a top-level panel declares carries a query expression
+  non-overlapping grid positions, every target a top-level panel declares carries a query expression, and every panel
+  that is not a row and declares a target carries a description
 - **THEN** the check passes and the standard `check` task succeeds
 
 ### Requirement: The web UI's test coverage is gated by the build

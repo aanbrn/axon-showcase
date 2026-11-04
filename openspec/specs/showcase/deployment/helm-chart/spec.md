@@ -64,6 +64,13 @@ web-ui Deployment runs the static web-UI image on its container port (8080) and 
   browser calls; an empty value makes the container fail fast, so an install must set it), rendered to `config.js` at
   container start — the chart never bakes a per-environment base URL into the image
 
+#### Scenario: A Recreate strategy renders the field a Helm-owned upgrade needs
+
+- **WHEN** a service's `updateStrategy.type` is `Recreate`
+- **THEN** the Deployment renders `rollingUpdate: null` beside it, so a Helm-owned server-side apply removes the
+  previous release's `rollingUpdate` block instead of being rejected with `spec.strategy.rollingUpdate: Forbidden`; a
+  block owned by another manager is outside this remedy
+
 ### Requirement: Health and readiness probes
 
 Each service Deployment SHALL configure startup, liveness, and readiness probes on the management port against the

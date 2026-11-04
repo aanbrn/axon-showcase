@@ -308,10 +308,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   with `spec.strategy.rollingUpdate: Forbidden`, as the local baseline restore reproduced; deleting the Deployment first
   (Helm recreates it) or an explicit `--force` path belongs in ADR-0022's procedure.
 
-- Add a Grafana panel for the projector's operating state — parked; no change yet. `projector-operability` exposes
-  `showcaseProjector.state`, `.processing` and `.last.progress`; the dashboard's ingest-age panel is their natural home,
-  but the panel is its own change so the metric contract lands first.
-
 - Detect a stalled projector from consumer lag — parked; no change yet. `projector-operability`'s reported state
   distinguishes assignment from stream-restart waits, but an assigned receiver can remain `UP` while Kafka is
   unreachable or processing stalls, and an old progress timestamp alone cannot tell a stall from healthy idleness

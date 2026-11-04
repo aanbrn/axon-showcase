@@ -863,6 +863,298 @@
     {
       "datasource": {
         "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "The projector's reported state: it has reached partition assignment since startup or the last stream failure, not that the broker is reachable or that progress continues (ADR-0023). No data means the state series is absent, which is neither Stopped nor Running.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "Stopped"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 1,
+                  "text": "Running"
+                },
+                "2": {
+                  "color": "orange",
+                  "index": 2,
+                  "text": "Retrying"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "noValue": "No data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "gray",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              },
+              {
+                "color": "orange",
+                "value": 2
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 0,
+        "y": 104
+      },
+      "id": 84,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "showcaseProjector_state{application=\"$application\", service=\"axon-showcase-projection-service\"}",
+          "instant": true,
+          "legendFormat": "State",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Projector State",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 6,
+        "y": 104
+      },
+      "id": 85,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "showcaseProjector_processing{application=\"$application\", service=\"axon-showcase-projection-service\"}",
+          "legendFormat": "in flight",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "In-flight Batches",
+      "type": "timeseries",
+      "description": "Batches whose writes are in flight. A sustained nonzero count can occur during healthy continuous processing; this gauge alone does not establish stalled writes."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "s",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 104
+      },
+      "id": 86,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "time() - (showcaseProjector_last_progress_seconds{application=\"$application\", service=\"axon-showcase-projection-service\"} > 0)",
+          "legendFormat": "since last resolved batch (idle time included)",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Since Last Resolved Batch",
+      "type": "timeseries",
+      "description": "Seconds since the projector last resolved a batch, idle time included. A growing age alone cannot distinguish a stall from a healthy idle system (ADR-0023); it is not a stall verdict."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
         "uid": "prometheus"
       },
       "fieldConfig": {
@@ -3020,7 +3312,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 104
+        "y": 111
       },
       "id": 65,
       "options": {
@@ -3130,7 +3422,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 104
+        "y": 111
       },
       "id": 71,
       "options": {
@@ -3252,7 +3544,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 111
+        "y": 118
       },
       "id": 72,
       "options": {
@@ -3385,7 +3677,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 111
+        "y": 118
       },
       "id": 66,
       "options": {
@@ -3448,7 +3740,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 118
+        "y": 125
       },
       "id": 22,
       "panels": [],
@@ -3520,7 +3812,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 119
+        "y": 126
       },
       "id": 60,
       "options": {
@@ -3648,7 +3940,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 119
+        "y": 126
       },
       "id": 61,
       "options": {
@@ -3792,7 +4084,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 126
+        "y": 133
       },
       "id": 64,
       "options": {
@@ -3846,7 +4138,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 133
+        "y": 140
       },
       "id": 74,
       "panels": [],
@@ -3918,7 +4210,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 134
+        "y": 141
       },
       "id": 75,
       "options": {
@@ -4018,7 +4310,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 134
+        "y": 141
       },
       "id": 76,
       "options": {
@@ -4118,7 +4410,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 141
+        "y": 148
       },
       "id": 77,
       "options": {
@@ -4244,7 +4536,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 141
+        "y": 148
       },
       "id": 78,
       "options": {
@@ -4298,7 +4590,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 148
+        "y": 155
       },
       "id": 79,
       "panels": [],
@@ -4340,7 +4632,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 149
+        "y": 156
       },
       "id": 80,
       "options": {
@@ -4406,7 +4698,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 149
+        "y": 156
       },
       "id": 81,
       "options": {
@@ -4472,7 +4764,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 156
+        "y": 163
       },
       "id": 82,
       "options": {
@@ -4538,7 +4830,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 156
+        "y": 163
       },
       "id": 83,
       "options": {

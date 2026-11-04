@@ -137,5 +137,6 @@ The unit's record is `docs/units/add-projector-state-dashboard-panels/unit.md`.
 
 - [x] 6.7 `docs/units/add-projector-state-dashboard-panels/process-defects.md`: one record per defect observed while
       working, or the statement that none was. Verify: the file exists before 6.6 is requested. Verified: the file
-      exists with two records — a range edit that deleted a section heading, and a control's `git checkout --` that
-      discarded the uncommitted rules object.
+      exists with three records — a range edit that deleted a section heading, a control's `git checkout --` that
+      discarded the uncommitted rules object, and a credential-shaped curl command that the source-secret scan reported
+      on the pull request.

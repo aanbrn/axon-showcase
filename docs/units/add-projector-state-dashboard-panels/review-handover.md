@@ -243,3 +243,34 @@
   and Grafana returns 49 panels with the corrected descriptions.
 - **Known limitations** — Retrying and Stopped not induced live; the gate's rules are structural; the stat panel's
   rendered appearance is asserted through its provisioned object and the live data.
+
+## Round 16 — implementation screen, after the pull request's failed secret scan
+
+- **Unit, tree, branch, base** — unchanged; base `origin/main` `96edb035`; the implementation is committed (`55254c7c`)
+  and pushed to pull request #842.
+- **Packs** — `deployment-operations`, `gradle-build`, `jvm-testing`, plus `check-and-test-authoring`.
+- **Supplied artifacts** — the `build` check's source-secret step failed on the claims table's Grafana read-back
+  command, whose cell embedded an administrator credential inline (`leaks found: 1`; gitleaks' `curl-auth-user` on
+  `design.md:164`). The cell now passes the credential through the variable the block above it defines, a re-scan of the
+  whole tree reports no finding, and process-defect record `#3` records the episode without reproducing the shape that
+  triggered the rule.
+- **Prior findings with their instances** — rounds 1–15 in `findings/round-1.md` to `findings/round-15.md`; the deep
+  pass's two nitpicks on task 6.5; the advisor's one problem applied.
+- **Completed checks** — `gitleaks dir . --config gitleaks.toml` reports no finding; `spotlessApply` has run;
+  `openspec validate --strict` passes.
+- **Known limitations** — the secret-scan step runs only in CI, so this class is caught after a push rather than
+  locally.
+
+## Round 17 — implementation screen, after round 16's finding
+
+- **Unit, tree, branch, base** — unchanged; base `origin/main` `96edb035`; the implementation is committed (`55254c7c`)
+  and pushed to pull request #842; the staged work is the secret-scan fix.
+- **Packs** — `deployment-operations`, `gradle-build`, `jvm-testing`, plus `check-and-test-authoring`.
+- **Supplied artifacts** — round 16's finding fixed: record `#3`'s Knowledge boundary now names what is actually
+  unchecked (a credential shape the configured rule set does not match) instead of the tree-wide question its own
+  evidence answers.
+- **Prior findings with their instances** — rounds 1–16 in `findings/round-1.md` to `findings/round-16.md`.
+- **Completed checks** — `gitleaks dir . --config gitleaks.toml` reports no finding; `verifyDashboardJson`,
+  `openspec validate --strict` and `spotlessApply` pass.
+- **Known limitations** — the secret-scan step runs only in CI, so this class is caught after a push rather than
+  locally.

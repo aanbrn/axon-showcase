@@ -31,3 +31,20 @@
   its own copy before mutating; no other file was touched by the loop.
 - **Knowledge boundary** — observed: the checkout, the identical counts and the missing rules; not checked: whether a
   file outside `build-logic` lost an edit in the same loop.
+
+### add-projector-state-dashboard-panels#3 — A credential-shaped curl command in a planning artifact failed the CI secret scan
+
+- **Recorded** — 2026-11-04, by the main agent.
+- **Stage** — ship.
+- **Expected** — the change's verification commands, including the Grafana read-back, pass the `build` gate's
+  source-secret scan.
+- **Observed** — the claims table's command cell embedded an administrator credential inline in a curl invocation, and
+  gitleaks' `curl-auth-user` rule reported it, failing the `build` check on the pull request.
+- **Evidence** — the run's failed step printed `leaks found: 1`; a local
+  `gitleaks dir . --config gitleaks.toml --report-format json` named
+  `openspec/changes/add-projector-state-dashboard-panels/design.md:164` with rule `curl-auth-user`.
+- **Consequence** — one CI cycle and one edit; the cell now passes the credential through a shell variable that the
+  block above it fills from the cluster's secret, and a re-scan of the tree reports no finding.
+- **Knowledge boundary** — observed: the CI failure, the local reproduction, the rule id, and a whole-tree scan after
+  the fix that reports no finding; not checked: whether any artifact carries a credential shape the configured rule set
+  does not match.

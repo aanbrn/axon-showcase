@@ -543,6 +543,55 @@ tasks.register<Exec>("testOpenSpecDeltaGuard") {
     commandLine(pythonExecutable, "scripts/test-verify-openspec-delta-guard.py")
 }
 
+val chartStrategiesDir = layout.buildDirectory.dir("chart-strategies")
+val helmClientVersion =
+    the<org.gradle.api.artifacts.VersionCatalogsExtension>().named("libs").findVersion("helm").get().requiredVersion
+val collectedChartDir = "helm/chart/build/helm/charts/${rootProject.name}"
+
+listOf("Recreate", "RollingUpdate").forEach { strategy ->
+    tasks.register<Exec>("renderChartStrategies$strategy") {
+        group = "verification"
+        description = "Renders the chart with every service on the $strategy update strategy"
+        inputs.file("scripts/render-chart-strategies.py")
+        inputs.dir(collectedChartDir)
+        inputs.property("helmClientVersion", helmClientVersion)
+        outputs.dir(chartStrategiesDir.map { it.dir(strategy.lowercase()) })
+        commandLine(
+            pythonExecutable,
+            "scripts/render-chart-strategies.py",
+            collectedChartDir,
+            chartStrategiesDir.get().asFile.path,
+            strategy,
+            "--client-version",
+            helmClientVersion,
+        )
+        dependsOn(":helm:chart:fetchMainChartDependencies")
+    }
+}
+
+tasks.register<Exec>("testVerifyChartStrategies") {
+    group = "verification"
+    description = "Runs the chart strategy guard's tests"
+    inputs.file("scripts/verify-chart-strategies.py")
+    inputs.file("scripts/test-verify-chart-strategies.py")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/test-verify-chart-strategies.py")
+}
+
+tasks.register<Exec>("verifyChartStrategies") {
+    group = "verification"
+    description = "Verifies every service Deployment renders the update-strategy guard (and only there)"
+    inputs.dir(chartStrategiesDir.map { it.dir("recreate") })
+    inputs.dir(chartStrategiesDir.map { it.dir("rollingupdate") })
+    commandLine(
+        pythonExecutable,
+        "scripts/verify-chart-strategies.py",
+        chartStrategiesDir.get().dir("recreate").asFile.path,
+        chartStrategiesDir.get().dir("rollingupdate").asFile.path,
+    )
+    dependsOn("renderChartStrategiesRecreate", "renderChartStrategiesRollingUpdate")
+}
+
 tasks.register<Exec>("testClaimScan") {
     group = "verification"
     description = "Runs the claim scanner's tests"
@@ -865,6 +914,8 @@ tasks.named("check") {
     dependsOn("verifyCapturedMarkers")
     dependsOn("testCommitHygiene")
     dependsOn("testClaimScan")
+    dependsOn("testVerifyChartStrategies")
+    dependsOn("verifyChartStrategies")
     dependsOn("testOpenSpecDeltaGuard")
     dependsOn("testDoctorCharter")
     dependsOn("testEnsureIdeaSettings")

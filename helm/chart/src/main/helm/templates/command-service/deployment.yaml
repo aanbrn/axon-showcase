@@ -23,9 +23,7 @@ spec:
   replicas: {{ .Values.commandService.replicaCount }}
   {{- end }}
   revisionHistoryLimit: {{ .Values.commandService.revisionHistoryLimit }}
-  {{- if .Values.commandService.updateStrategy }}
-  strategy: {{- include "common.tplvalues.render" (dict "value" .Values.commandService.updateStrategy "context" $) | nindent 4 }}
-  {{- end }}
+  {{- include "axon-showcase.deploymentStrategy" (dict "value" .Values.commandService.updateStrategy "context" $) | nindent 2 }}
   selector:
     matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
       app.kubernetes.io/component: command-service

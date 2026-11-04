@@ -198,6 +198,14 @@ subchart, rendering two extra value sets:
 Value files live in `helm/chart/src/test/helm/` (`helm/chart/src/test/helm/helm-lint-full.yaml` enables all optional
 features, `helm/chart/src/test/helm/helm-lint-minimal.yaml` disables the default-on ones).
 
+The chart's update-strategy guard is verified on rendered output, not by lint: `verifyChartStrategies` (part of `check`)
+renders the collected chart twice through `scripts/render-chart-strategies.py` — every service on `Recreate`, then on
+`RollingUpdate` — and `scripts/verify-chart-strategies.py` asserts that each Deployment carries `rollingUpdate: null`
+beside a `Recreate` type and none beside `RollingUpdate`. The renderer prefers the Gradle Helm plugin's downloaded
+client at the catalog's Helm version (passed as `--client-version`), then `$HELM_EXECUTABLE`, then `helm` on `PATH`, so
+the check needs no host Helm and never silently renders with a different CLI than the one the catalog pins; the guard's
+rule lives once in the `axon-showcase.deploymentStrategy` helper.
+
 Custom values can be placed in `helm/values/<release-name>/values-<target>.yaml` — the plugin applies a release's file
 only to the target it names, so `values-local.yaml` is the local target's and `values-ci.yaml` the deployment smoke's. A
 target that installs the app release must set `webUi.apiBaseUrl` in its own file: the chart defaults it to empty and the

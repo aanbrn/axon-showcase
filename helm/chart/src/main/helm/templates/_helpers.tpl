@@ -1,4 +1,20 @@
 {{- /*
+Renders a service Deployment's update strategy, clearing the field a Recreate upgrade must remove.
+Expected dot: .value (the service's updateStrategy) and .context (root context used to render templated values).
+A server-side apply that only changes the type keeps the existing release's strategy.rollingUpdate, and the API
+rejects that pair; the null removes a Helm-owned field during the upgrade.
+*/ -}}
+{{- define "axon-showcase.deploymentStrategy" -}}
+{{- if .value }}
+strategy:
+  {{- include "common.tplvalues.render" (dict "value" .value "context" .context) | nindent 2 }}
+  {{- if eq .value.type "Recreate" }}
+  rollingUpdate: null
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{- /*
 Renders environment variables for a container from a map or slice of values.
 Expected dot: .envVars (map of name -> value or name -> { value, valueFrom, ... }) or slice of env entries,
 and .context (root context used to render templated values).

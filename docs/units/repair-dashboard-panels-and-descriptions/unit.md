@@ -3,9 +3,10 @@
 Workspace:
 `unit=repair-dashboard-panels-and-descriptions; path=/Users/afanasyev/Development/axon-showcase; branch=repair-dashboard-panels-and-descriptions; writer=ses_e5dece39fffeYkl8XkXm6Yg9Q3`
 
-State: active
+State: closed
 
-The unit's plan and tasks live in `openspec/changes/repair-dashboard-panels-and-descriptions/`.
+The unit's plan and tasks are archived in
+`openspec/changes/archive/2026-11-04-repair-dashboard-panels-and-descriptions/`.
 
 ## Resume checkpoint
 

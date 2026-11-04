@@ -206,6 +206,9 @@ client at the catalog's Helm version (passed as `--client-version`), then `$HELM
 the check needs no host Helm and never silently renders with a different CLI than the one the catalog pins; the guard's
 rule lives once in the `axon-showcase.deploymentStrategy` helper.
 
+The bundled dashboards are parsed by `verifyDashboardJson`, also part of `check`; the obligations it enforces, and their
+controls, are `showcase/quality/code-quality`'s "Bundled Grafana dashboard JSON is valid" requirement.
+
 Custom values can be placed in `helm/values/<release-name>/values-<target>.yaml` — the plugin applies a release's file
 only to the target it names, so `values-local.yaml` is the local target's and `values-ci.yaml` the deployment smoke's. A
 target that installs the app release must set `webUi.apiBaseUrl` in its own file: the chart defaults it to empty and the

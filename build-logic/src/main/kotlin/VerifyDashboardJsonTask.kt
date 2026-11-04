@@ -10,11 +10,13 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 /**
- * Parses the chart's bundled Grafana dashboard files and fails when one is not valid JSON, naming it.
+ * Parses the chart's bundled Grafana dashboard files and fails when one is not a dashboard this repository can ship,
+ * naming the file and what is wrong with it.
  *
  * The chart renders each dashboard into a ConfigMap as an opaque string, so `helm lint` and `helm template` never parse
- * it; this gate parses every file before failing, so a second malformed file is not hidden by the first. The rule set
- * is [DashboardJsonRules], which is pure and unit-tested; this task only adapts it to Gradle's inputs and outputs.
+ * it; this gate parses every file before failing, so a second defective file is not hidden by the first.
+ * [DashboardJsonRules] owns what a dashboard must satisfy and is pure and unit-tested; this task only adapts it to
+ * Gradle's inputs and outputs.
  */
 @CacheableTask
 abstract class VerifyDashboardJsonTask : DefaultTask() {

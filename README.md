@@ -1167,9 +1167,10 @@ and Tempo into the `monitoring` namespace alongside the application. The local d
   saga, deadlines, projection lag, cache hits, query performance); the web UI exports nginx `stub_status` via a sidecar
   and reports browser-side Core Web Vitals and JavaScript errors through the gateway, which exposes them as Prometheus
   metrics. ServiceMonitors are wired for all of them.
-- **Grafana**: a custom **Axon Showcase** dashboard is provisioned automatically (39 panels across 7 sections covering
-  every service, the browser experience, and the Axon internals), and Grafana is preconfigured with a Tempo data source.
-  The default login is `admin` with the password from the chart's generated secret.
+- **Grafana**: a custom **Axon Showcase** dashboard is provisioned automatically (42 panels across 7 sections covering
+  every service, the projector's operating state, the browser experience, and the Axon internals), and Grafana is
+  preconfigured with a Tempo data source. The default login is `admin` with the password from the chart's generated
+  secret.
 - **Tracing**: services export **OpenTelemetry** traces to **Grafana Tempo** (`tempo.monitoring`), viewable in Grafana's
   Explore. The web UI propagates W3C trace context on its API calls, so a page load's requests join one trace that
   continues through the gateway into the command and query services.

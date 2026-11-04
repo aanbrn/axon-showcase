@@ -534,13 +534,6 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
 
 ## 2026-10-18
 
-- Widen `ci.yml`'s OpenSpec probe to fail on the CLI's "is not a delta section" warning — parked; no change yet.
-  `openspec validate --all` exits 0 while warning and `openspec archive` drops the requirement, so a misnamed delta
-  header is a silent trap — the config's `rules.specs` named `DEPRECATED` until `fix-openspec-config-rules`, where the
-  CLI's fourth delta operation is `RENAMED`. The probe can grep `validate --all`'s output in the shape it already uses,
-  and the change that trips it can remediate its own header. This subsumes the weaker "check the config's rules against
-  the CLI's operation set" park, since a drafter following a wrong config name writes exactly this header.
-
 - Assert the config's cross-artifact clause parity in a committed check — parked; no change yet. The `rules` are
   injected per artifact alone, so a clause several artifacts need is repeated identically, and nothing detects drift
   between the copies or an absence where a recorded failure happened — `fix-openspec-config-rules` found both by reading

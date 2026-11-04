@@ -534,6 +534,15 @@ tasks.register<Exec>("testCommitHygiene") {
     commandLine(pythonExecutable, "scripts/test-commit-hygiene.py")
 }
 
+tasks.register<Exec>("testOpenSpecDeltaGuard") {
+    group = "verification"
+    description = "Runs the OpenSpec delta guard's tests"
+    inputs.file("scripts/verify-openspec-delta-guard.py")
+    inputs.file("scripts/test-verify-openspec-delta-guard.py")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/test-verify-openspec-delta-guard.py")
+}
+
 tasks.register<Exec>("testClaimScan") {
     group = "verification"
     description = "Runs the claim scanner's tests"
@@ -856,6 +865,7 @@ tasks.named("check") {
     dependsOn("verifyCapturedMarkers")
     dependsOn("testCommitHygiene")
     dependsOn("testClaimScan")
+    dependsOn("testOpenSpecDeltaGuard")
     dependsOn("testDoctorCharter")
     dependsOn("testEnsureIdeaSettings")
     dependsOn("testSetupIdea")

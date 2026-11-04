@@ -170,7 +170,9 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
   change. There is no proposal/implementation/archive vocabulary for those, so map the rule onto what exists: run
   `review-quick` over the diff against the repo (and the change dir when one exists), fix the findings, re-run until
   clean, route the deep review, then ask the user for the manual pass — all _before_ committing, pushing, or opening the
-  PR. Docs refreshes shipped as their own PR and standalone fixes describe _where the work ships_, not a waiver (several
+  PR. Only where the owner's authorization itself names each direct edit the unit may make does that mapping take the
+  manual pass once, before delivery; presenting the work as a proposed edit without that authorization does not. Docs
+  refreshes shipped as their own PR and standalone fixes describe _where the work ships_, not a waiver (several
   docs-refresh PRs were pushed branch → commit → push → PR with neither review, until the user rejected the tool call
   and asked "Why again you commit and push without any quick or manual review?"). Anything published outside the
   repository — most of all an upstream issue or comment — is reviewed the same as a diff: draft it, run it past
@@ -307,6 +309,20 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
 
 **Workspace** — one active unit per working tree; the primary checkout is a unit's tree like any linked worktree.
 
+- **A unit starts only on the owner's instruction.** An agent that believes it has understood what the owner wants
+  states the proposal and waits. A unit begins only on an explicit instruction to begin it, on the owner's approval of a
+  proposal the agent presented, or on the owner naming the unit to continue. A discussion of what should be done, a
+  question the owner asks, an idea they explore, or the agent's own conclusion that the task is clear is not that
+  authorization.
+- **A proposal passes the owner's manual review before any implementation edit.** The review gate's pass runs at each
+  boundary a unit has: the proposal before implementation, the implementation before delivery. A unit takes the single
+  pass instead only where the owner's authorization itself names each direct edit the unit may make; presenting the work
+  as a proposed edit does not remove the proposal's pass. The delivery stop is that rule's and is unchanged.
+- **Until the approval its route requires, only the unit's own artifacts are writable.** A two-pass unit waits for the
+  proposal's review; a single-pass unit's writable scope begins with the owner's authorization that names each direct
+  edit the unit may make. Either way an agent may create and edit the unit's planning artifacts and its records under
+  `docs/units/<unit>/`, and changes no implementation target and no live rule file until that approval.
+
 - **Establish the unit's workspace before its first write.** Record it as
   `Workspace: unit=<unit>; path=<absolute-path>; branch=<branch>; writer=<ses_…>` — the writing session's own
   identifier, never a description of it and never the reviewer's identifier the ledger records. The record is evidence
@@ -359,17 +375,23 @@ fix, or a dependency bump. Where a rule says "change", read "unit of work".
 
 **Procedure**
 
-1. Propose the change in the unit's assigned working tree (see **Workspace** above): create its artifacts (or the unit's
+1. **Begin the unit only on that authorization** (see the invariants above), in the unit's assigned working tree.
+2. **Propose the change**: create its artifacts (or, where the unit's authorization names each direct edit, the unit's
    edits) and put them on a branch named after the change, created per the "Fork every new branch" invariant. Commit
    nothing.
-2. Leave the work uncommitted. The proposal, the review findings, and the implementation all stay in the working tree,
+3. Leave the work uncommitted. The proposal, the review findings, and the implementation all stay in the working tree,
    and the unit's new files are staged so the user's review pass shows them in the Changes panel of the tree the
    workspace record names (the staging step is the review gate's §5); the change's `docs/ideas.md` removal rides the
-   branch like the rest.
-3. Run the review gate (see "Workflow: The review gate") and fix every finding until it is clean.
-4. Ask the user for the manual review pass, and end the turn there. Do not commit, push, open a PR, archive, or merge
-   before the user approves the implementation — except a commit the user explicitly asks for.
-5. Ship only on the owner's delivery request, per "Workflow: Ship a change": an approval alone is not that request, an
+   branch like the rest. After this step, a unit whose authorization itself names each direct edit the unit may make
+   proceeds to step 7's pass, without steps 4–6.
+4. Run the review gate's **proposal stage** and fix every finding until it is clean.
+5. Ask the user for the **manual review of the proposal**, and end the turn there: implementation begins only on their
+   approval of it.
+6. Implement the approved proposal, then run the review gate's **implementation stage** and fix every finding until it
+   is clean.
+7. Ask the user for the **manual review of the finished unit**, and end the turn there. Do not commit, push, open a PR,
+   archive, or merge before the user approves the implementation — except a commit the user explicitly asks for.
+8. Ship only on the owner's delivery request, per "Workflow: Ship a change": an approval alone is not that request, an
    approval answering a description of the sequence included. All subsequent work stays on this branch. captured:
    retain-auditor-run-reports captured: split-docs-refresh-conventions
 
@@ -461,7 +483,8 @@ point.
   `showcase/quality/commit-hygiene`;
 - the deep-review routing decision — `scripts/review-routing.py`, with the skill's recording rule;
 - the routed deep review — `/review-thorough` and `review-thorough.md`;
-- the manual review pass — the owner.
+- the manual review pass — the owner, asked at each boundary its unit has: the proposal before implementation, the
+  implementation before delivery.
 
 - **A clean closing quick-review round is a precondition for asking for the manual review, not a substitute for it** —
   with the recorded pre-write pass, any required deep review, and — at the implementation stage — the unit's

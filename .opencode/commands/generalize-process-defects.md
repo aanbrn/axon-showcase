@@ -59,7 +59,9 @@ approved improvements are applied or routed.
   `../axon-showcase-<unit>` — is established and recorded before the first write, per the **Workspace** rule of the
   lifecycle the bindings declare (`docs/contracts/process-bindings.md`); a declaration that names none stops the unit
   rather than being inferred.
+- The unit begins only on the owner's authorization, and its proposal passes the owner's manual review before any
+  implementation edit.
 - Unrelated dirty-worktree changes are preserved.
-- The work stays uncommitted until the manual approval pass.
+- The work stays uncommitted until the implementation's manual approval pass.
 - Nothing is committed, pushed, turned into a pull request, archived, or merged without that explicit approval.
 - The full per-unit review gate runs over the result; `AGENTS.md` and the `review-gate` skill own its steps.

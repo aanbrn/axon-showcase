@@ -65,9 +65,10 @@ The unit's record is `docs/units/reject-ignored-openspec-delta-sections/unit.md`
 
 - [x] 6.1 `openspec validate --all` passes; `./gradlew spotlessApply` and `spotlessCheck` run after the last edit;
       `workflowLint` passes; the new test task runs in `check`.
-- [ ] 6.2 The change's own `build` run exercises the new step on the good shape, and `--probe` passes where the CLI is
-      installed.
-- [ ] 6.3 The review gate runs over the change.
+- [x] 6.2 The change's own `build` run exercises the new step on the good shape, and `--probe` passes where the CLI is
+      installed. Observed in pull request #840's `build` run (2m49s, green) with the new step's log carrying the
+      validate summary.
+- [x] 6.3 The review gate runs over the change.
 
 ## Claims table
 

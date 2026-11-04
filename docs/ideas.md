@@ -330,12 +330,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   docs. A `check`-time assertion over the catalog's `paketo-*` keys closes it; parked rather than folded into
   `pin-jvm-buildpack-builder`, whose tasks and delta specs cover no new gate.
 
-- Guard every Deployment template's `Recreate` strategy the way the projection service's now is — parked; no change yet.
-  The other four Deployments render `strategy` from their `updateStrategy` values without the `rollingUpdate: null` the
-  projection service gained: a target that sets `type: Recreate` on any of them hits the same server-side-apply
-  rejection on an upgrade (the live release's `rollingUpdate` block survives the apply and the API refuses the pair).
-  `idempotent-projection-writes` only needed the projection service; the chart-wide guard is its own change.
-
 - Rehearse the snapshot-repository upgrade path and a multi-node projection rebuild — parked; no change yet. The
   populated legacy upgrade and its rollback ran on the local cluster in `idempotent-projection-writes`, but that path
   used the clone checkpoint on a single-node OpenSearch; a deployment with a snapshot repository and several nodes

@@ -1,0 +1,13 @@
+2026-11-04	guard-recreate-strategy-across-deployments	1	-	-	0	ses_e5a37e5c3ffeIulw133U4nBO03	created	-
+2026-11-04	guard-recreate-strategy-across-deployments	2	premise,contradiction,concurrency,wording,missing-task	-	6	ses_e5a37e5c3ffeIulw133U4nBO03	continued	-
+2026-11-04	guard-recreate-strategy-across-deployments	3	premise,test-control,claim-missing,dropped-content	premise	4	ses_e5a37e5c3ffeIulw133U4nBO03	continued	-
+2026-11-04	guard-recreate-strategy-across-deployments	4	dropped-content,claim-unreproducible	dropped-content	2	ses_e5a37e5c3ffeIulw133U4nBO03	continued	-
+2026-11-04	guard-recreate-strategy-across-deployments	5	claim-unreproducible	claim-unreproducible	1	ses_e5a37e5c3ffeIulw133U4nBO03	continued	-
+2026-11-04	guard-recreate-strategy-across-deployments	6	claim-unreproducible	claim-unreproducible	1	ses_e5a37e5c3ffeIulw133U4nBO03	continued	-
+2026-11-04	guard-recreate-strategy-across-deployments	7	-	-	0	ses_e5a37e5c3ffeIulw133U4nBO03	continued	-
+2026-11-04	guard-recreate-strategy-across-deployments	8	over-claim	-	1	ses_e5a37e5c3ffeIulw133U4nBO03	continued	-
+2026-11-04	guard-recreate-strategy-across-deployments	9	over-claim	-	1	ses_e5a37e5c3ffeIulw133U4nBO03	continued	-
+2026-11-04	guard-recreate-strategy-across-deployments	10	-	-	0	ses_e5a37e5c3ffeIulw133U4nBO03	continued	-
+2026-11-04	guard-recreate-strategy-across-deployments	11	docs-residue,incomplete-enumeration,redundant-code,structured-writing	-	4	ses_e5a37e5c3ffeIulw133U4nBO03	continued	-
+2026-11-04	guard-recreate-strategy-across-deployments	12	docs-residue,incomplete-enumeration	docs-residue,incomplete-enumeration	2	ses_e5a37e5c3ffeIulw133U4nBO03	continued	-
+2026-11-04	guard-recreate-strategy-across-deployments	13	-	-	0	ses_e5a37e5c3ffeIulw133U4nBO03	continued	-

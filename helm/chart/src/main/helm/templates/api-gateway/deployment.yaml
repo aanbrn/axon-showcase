@@ -23,9 +23,7 @@ spec:
   replicas: {{ .Values.apiGateway.replicaCount }}
   {{- end }}
   revisionHistoryLimit: {{ .Values.apiGateway.revisionHistoryLimit }}
-  {{- if .Values.apiGateway.updateStrategy }}
-  strategy: {{- include "common.tplvalues.render" (dict "value" .Values.apiGateway.updateStrategy "context" $) | nindent 4 }}
-  {{- end }}
+  {{- include "axon-showcase.deploymentStrategy" (dict "value" .Values.apiGateway.updateStrategy "context" $) | nindent 2 }}
   selector:
     matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
       app.kubernetes.io/component: api-gateway

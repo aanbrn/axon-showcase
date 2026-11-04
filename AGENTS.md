@@ -1467,9 +1467,10 @@ Key modules (libraries, not services):
   (`docs/contracts/shared-report.md` owns it); the main agent applies fixes.
 - **Technical-advisor subagent for independent consultation**: the `technical-advisor` subagent
   (`.opencode/agent/technical-advisor.md`) answers one concrete decision question from repository evidence and
-  recommends a direction; it does not edit, approve, or gate. Invoke `/consult <question>`, or delegate directly with
-  the same focused handoff, when a proposal, implementation, disagreement, or next step needs an independent check; the
-  definition owns the handoff, boundary, and report contract. It is not an automatic review step and adds no gate.
+  recommends a direction; it does not edit, approve, or gate. Using it is the owner's prerogative: a consultation runs
+  only when they authorize it — `/consult <question>`, or an explicit instruction — and an agent that judges one useful
+  states the question and proposes it, never delegating on its own initiative; the definition owns the handoff,
+  boundary, and report contract. It is not an automatic review step and adds no gate.
 - **A subagent is only invocable through a trigger, not its documentation**: documenting an `.opencode/agent/*.md`
   subagent in AGENTS.md does not make it reachable — ship a `.opencode/commands/*.md` command (e.g. the `/retrospective`
   trigger for `experience-analyzer`) alongside the agent definition. The experience-analyzer agent existed as

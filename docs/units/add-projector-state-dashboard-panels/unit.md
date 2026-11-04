@@ -3,9 +3,9 @@
 Workspace:
 `unit=add-projector-state-dashboard-panels; path=/Users/afanasyev/Development/axon-showcase; branch=add-projector-state-dashboard-panels; writer=ses_e5dece39fffeYkl8XkXm6Yg9Q3`
 
-State: active
+State: closed
 
-The unit's plan and tasks live in `openspec/changes/add-projector-state-dashboard-panels/`.
+The unit's plan and tasks are archived in `openspec/changes/archive/2026-11-04-add-projector-state-dashboard-panels/`.
 
 ## Resume checkpoint
 

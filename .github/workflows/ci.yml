@@ -101,7 +101,15 @@ jobs:
           else
             ./gradlew check
           fi
-          openspec validate --all
+          # A delta section the CLI does not recognise, or text outside any delta section, is dropped at archive when
+          # the change also carries content it applies; the CLI only warns, so the guard fails on that warning and the
+          # probe asserts the warning still exists for the pinned CLI.
+          openspec_log="$RUNNER_TEMP/openspec-validate.log"
+          if ! openspec validate --all 2>&1 | tee "$openspec_log"; then
+            exit 1
+          fi
+          python3 scripts/verify-openspec-delta-guard.py --validate-output "$openspec_log"
+          python3 scripts/verify-openspec-delta-guard.py --probe
           probe=openspec-config-probe
           trap 'rm -rf "openspec/changes/$probe"' EXIT
           output=$(openspec new change "$probe" 2>&1)

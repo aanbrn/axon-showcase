@@ -82,7 +82,9 @@ A pull request to the repository SHALL run the Docker-free quality tiers as a si
 standard `check` task with `-PskipITs` (unit tests, component tests, and all static gates — formatting, checkstyle,
 SpotBugs, ErrorProne), an OpenSpec validation of changes and specs, a verification that the OpenSpec configuration's
 declared list surfaces — its per-artifact rules and its operation guidance — are readable by the CLI, so a list the CLI
-would silently ignore fails the check, a verification that the OpenCode configuration (`.opencode/opencode.json*`) and
+would silently ignore fails the check, a verification that the validation output carries no content the CLI would drop
+at archive (a delta section it does not recognise, or text outside any delta section), so the change fails the check
+even when it also carries valid content, a verification that the OpenCode configuration (`.opencode/opencode.json*`) and
 the project's agent, command, and skill definitions are loadable by the consumer the `opencode` GitHub action installs
 with each definition's metadata intact, so a V2-only setting the action's V1 binary rejects, or a definition the loader
 silently degrades, fails the check instead of silently killing the cloud workflows, and a source-secret scan with
@@ -155,14 +157,23 @@ under the declared floor rather than whichever interpreter the runner image supp
   `.gradle/`, or `node_modules/`) rather than source
 - **THEN** the committed `gitleaks.toml` allowlists that path, so the scan reports no finding and stays scoped to source
 
+#### Scenario: Content the CLI would drop at archive fails the fast gate
+
+- **WHEN** a change's delta carries content the CLI would drop at archive beside content it applies, so
+  `openspec validate --all` exits 0 while warning: a section that is not a recognised operation, or text outside any
+  delta section
+- **THEN** the `build` check fails on the validation output's warning, naming the matched line, instead of that content
+  shipping as a silent no-op
+
 ### Requirement: Pushes to main run the full quality gate
 
 A push to `main` SHALL run the full quality gate as the same `build` check: the complete `check` task including the
 integration tier (Testcontainers — PostgreSQL, Kafka, OpenSearch) and the JaCoCo coverage gate, plus an OpenSpec
 validation and the same verification that the OpenSpec configuration's declared list surfaces — its per-artifact rules
-and its operation guidance — are readable by the CLI. The full gate SHALL require Docker. It SHALL provision the Python
-minimum the toolchain diagnosis declares, as the pull-request gate does, so the integration path runs the Python tooling
-under the same floor.
+and its operation guidance — are readable by the CLI, and the same verification that the validation output carries no
+content the CLI would drop at archive. The full gate SHALL require Docker. It SHALL provision the Python minimum the
+toolchain diagnosis declares, as the pull-request gate does, so the integration path runs the Python tooling under the
+same floor.
 
 #### Scenario: Push to main triggers the full gate
 
@@ -174,6 +185,11 @@ under the same floor.
 
 - **WHEN** the `build` check on `main` fails in the integration tier
 - **THEN** the check is reported as failed and the commit does not pass the quality gate
+
+#### Scenario: Content the CLI would drop at archive fails the main gate
+
+- **WHEN** a push to `main` carries a change whose delta content the CLI would drop at archive
+- **THEN** the `build` check fails on the validation output's warning, as the pull-request gate does
 
 ### Requirement: Merge protection requires the CI check for everyone
 

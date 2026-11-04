@@ -25,17 +25,13 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
-## 2026-11-03
+## 2026-11-04
 
-- Settle a corrected unit's shape with the advisor before its artifacts are written — parked; no change yet. Two units
-  in one session (`discover-paused-units` and `bound-self-learning-loop-consolidation`) wrote their proposal, design,
-  tasks and deltas before the consultation that then reversed the scope; in the second, the owner asked why the advisor
-  had not been consulted first. No rule makes that ordering mandatory, and a condition-triggered automatic consultation
-  would relax `showcase/quality/agent-skills`' "No automatic consultation SHALL be added", so the vehicle is a
-  `MODIFIED` delta on that requirement plus a scenario (the owner widened or corrected the unit's scope, and the
-  consultation on the resulting shape precedes the artifacts it governs) rather than an `AGENTS.md` bullet. Recorded by
-  `generalize-process-defects-2026-11-03`, whose advisor consultation on this entry narrowed it to the problem it
-  states.
+- Require the owner's approval of a unit's shape before its repository edits — parked; the owner will specify it. The
+  owner's correction to `generalize-process-defects-2026-11-03`'s disposition: in `discover-paused-units` and
+  `bound-self-learning-loop-consolidation` the skipped step was the owner's manual review, not an advisor consultation,
+  and the lifecycle as it stands writes the planning artifacts before that review. The rule's content is the owner's to
+  state; this entry records only that it is owed. Recorded by `make-advisor-consultation-owner-authorized`.
 
 ## 2026-11-01
 

@@ -6,9 +6,14 @@ description:
 Ask the `technical-advisor` subagent for an independent recommendation. It recommends; it does not implement, approve
 delivery, or gate a change. Present its report without turning a recommendation into authorization.
 
-**Trigger** — the owner invokes `/consult <question>`, or `/consult` with no argument to evaluate the current objective,
-progress, and next step. A calling agent may also delegate directly to `technical-advisor` with the same handoff; this
-command is the owner-facing entry point, not the only path.
+**Trigger** — the owner authorizes a consultation in one of these forms:
+
+- the owner invokes `/consult <question>`;
+- the owner invokes `/consult` with no argument, to evaluate the current objective, progress, and next step;
+- the owner explicitly instructs an agent to consult the advisor.
+
+A calling agent that judges a consultation useful states the question and proposes it, and runs nothing until one of
+those forms exists.
 
 **Prerequisite** — OpenCode V2. The advisor's `permissions` ruleset and `provider/model#variant` effort selection are V2
 features; V1 does not enforce or interpret them, and this command adds no V1 fallback.
@@ -21,6 +26,8 @@ features; V1 does not enforce or interpret them, and this command adds no V1 fal
      question.
 2. IF the target or question is ambiguous, THEN ask one focused clarification and stop; do not delegate a guess.
 3. Build the focused handoff with these fields:
+   - the owner's authorization for the consultation — the `/consult` invocation or the explicit instruction it rests on,
+     without which the advisor refuses the handoff as unauthorized;
    - the owner's objective and material constraints;
    - the question and the proposed next action;
    - the change identity and stage, when one applies;
@@ -60,10 +67,10 @@ features; V1 does not enforce or interpret them, and this command adds no V1 fal
    - Start the work the report proposes only on a later owner message that decides about that report; an earlier "please
      do" about a different matter is not that decision.
 
-**Direct delegation.** An agent that delegates directly supplies the same handoff, applies the same session rules,
-passes the effort override only on the owner's explicit request, and presents the report under the same rule: a
-recommendation is not authorization, and step 7's hand-over applies unchanged — the turn ends with the report, and the
-proposed work waits for the owner's decision.
+**Direct delegation.** When the owner's instruction authorizes it, an agent that delegates directly supplies the same
+handoff, applies the same session rules, passes the effort override only on the owner's explicit request, and presents
+the report under the same rule: a recommendation is not authorization, and step 7's hand-over applies unchanged — the
+turn ends with the report, and the proposed work waits for the owner's decision.
 
 **Decision points**
 

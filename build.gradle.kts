@@ -886,7 +886,9 @@ tasks.register("verifyDocumentedPins", VerifyDocumentedPinsTask::class.java) {
 
 tasks.register("verifyDashboardJson", VerifyDashboardJsonTask::class.java) {
     group = "verification"
-    description = "Verifies every bundled Grafana dashboard is valid JSON (Helm emits it as an opaque string)"
+    description =
+        "Verifies each bundled Grafana dashboard: one valid JSON document, sound panels, described queries " +
+            "(Helm emits the file as an opaque string)"
 
     dashboards.setFrom(layout.projectDirectory.dir("helm/chart/src/main/helm/files/grafana-dashboards").asFileTree)
 

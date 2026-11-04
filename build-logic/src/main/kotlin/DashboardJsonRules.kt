@@ -11,7 +11,8 @@ import java.io.File
  * malformed one is invisible to `helm lint` and must be parsed here.
  *
  * Beyond the document's shape, the rules cover the panel defects a hand re-layout produces and a live Grafana would
- * otherwise show: a repeated panel id, two panels on the same grid positions, and a target whose query was emptied.
+ * otherwise show: a repeated panel id, two panels on the same grid positions, a target whose query was emptied, and a
+ * panel that queries without saying what its number means.
  */
 internal object DashboardJsonRules {
 
@@ -49,7 +50,10 @@ internal object DashboardJsonRules {
     /** The panel-level failures of [tree], each naming [file] and the offending panel. */
     private fun panelViolations(file: File, tree: JsonNode): List<String> {
         val panels = tree.get("panels")?.takeIf { it.isArray }?.filter(JsonNode::isObject) ?: emptyList()
-        return repeatedIds(file, panels) + unplacedOrOverlapping(file, panels) + emptyExpressions(file, panels)
+        return repeatedIds(file, panels) +
+            unplacedOrOverlapping(file, panels) +
+            emptyExpressions(file, panels) +
+            undescribed(file, panels)
     }
 
     /** A failure for each panel id that appears more than once, at any depth, so a collapsed row's child counts. */
@@ -110,6 +114,24 @@ internal object DashboardJsonRules {
                 found += "dashboard '$file' gives panel '${titleOf(panel)}' a target with no query expression"
             }
         }
+        return found
+    }
+
+    /**
+     * A failure for each panel that declares a target and no readable description, at any depth. A row renders no query
+     * and a target-less panel is legitimate, so both are exempt; the rule asserts presence, not quality.
+     */
+    private fun undescribed(file: File, panels: List<JsonNode>): List<String> {
+        val found = mutableListOf<String>()
+        fun visit(panel: JsonNode) {
+            val targets = panel.get("targets")?.takeIf { it.isArray }?.filter(JsonNode::isObject) ?: emptyList()
+            val described = panel.get("description")?.takeIf { it.isTextual }?.asText()?.isNotBlank() == true
+            if (panel.get("type")?.asText() != "row" && targets.isNotEmpty() && !described) {
+                found += "dashboard '$file' gives panel '${titleOf(panel)}' no description"
+            }
+            panel.get("panels")?.takeIf { it.isArray }?.filter(JsonNode::isObject)?.forEach(::visit)
+        }
+        panels.forEach(::visit)
         return found
     }
 

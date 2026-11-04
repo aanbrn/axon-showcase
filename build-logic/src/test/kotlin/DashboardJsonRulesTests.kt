@@ -80,11 +80,13 @@ class DashboardJsonRulesTests {
         val file =
             panels(
                 """{"id": 84, "type": "stat", "title": "Projector State",
-                   "gridPos": {"x": 0, "y": 0, "w": 6, "h": 7}, "targets": [{"expr": "up"}]}""",
+                   "gridPos": {"x": 0, "y": 0, "w": 6, "h": 7}, "description": "What this panel counts.",
+                   "targets": [{"expr": "up"}]}""",
                 """{"id": 26, "type": "row", "title": "Projection Service",
                    "gridPos": {"x": 0, "y": 7, "w": 24, "h": 1},
                    "panels": [{"id": 84, "type": "timeseries", "title": "Event Age",
-                               "gridPos": {"x": 0, "y": 8, "w": 24, "h": 7}, "targets": [{"expr": "up"}]}]}""",
+                               "gridPos": {"x": 0, "y": 8, "w": 24, "h": 7}, "description": "What this panel counts.",
+                               "targets": [{"expr": "up"}]}]}""",
             )
 
         assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(1).allSatisfy {
@@ -98,9 +100,11 @@ class DashboardJsonRulesTests {
         val file =
             panels(
                 """{"id": 1, "type": "timeseries", "title": "Throughput",
-                   "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7}, "targets": [{"expr": "up"}]}""",
+                   "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7}, "description": "What this panel counts.",
+                   "targets": [{"expr": "up"}]}""",
                 """{"id": 2, "type": "timeseries", "title": "Latency",
-                   "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7}, "targets": [{"expr": "up"}]}""",
+                   "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7}, "description": "What this panel counts.",
+                   "targets": [{"expr": "up"}]}""",
             )
 
         assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(1).allSatisfy {
@@ -116,7 +120,8 @@ class DashboardJsonRulesTests {
                 """{"id": 1, "type": "row", "title": "Projection Service",
                    "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1}}""",
                 """{"id": 2, "type": "timeseries", "title": "Throughput",
-                   "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7}, "targets": [{"expr": "up"}]}""",
+                   "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7}, "description": "What this panel counts.",
+                   "targets": [{"expr": "up"}]}""",
             )
 
         assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(1).allSatisfy {
@@ -127,7 +132,11 @@ class DashboardJsonRulesTests {
     @Test
     @DisplayName("A panel without a grid position is a violation")
     fun aPanelWithoutGridPositionIsAViolation() {
-        val file = panels("""{"id": 1, "type": "timeseries", "title": "Throughput", "targets": [{"expr": "up"}]}""")
+        val file =
+            panels(
+                """{"id": 1, "type": "timeseries", "title": "Throughput", "description": "What this panel counts.",
+                "targets": [{"expr": "up"}]}""",
+            )
 
         assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(1).allSatisfy {
             assertThat(it).contains("'Throughput'").contains("no grid position")
@@ -140,7 +149,8 @@ class DashboardJsonRulesTests {
         val file =
             panels(
                 """{"id": 1, "type": "timeseries", "title": "Throughput",
-                   "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7}, "targets": [{"expr": "  "}]}""",
+                   "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7}, "description": "What this panel counts.",
+                   "targets": [{"expr": "  "}]}""",
             )
 
         assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(1).allSatisfy {
@@ -154,7 +164,8 @@ class DashboardJsonRulesTests {
         val file =
             panels(
                 """{"id": 1, "type": "timeseries", "title": "Throughput",
-                   "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7}, "targets": [{"legendFormat": "rate"}]}""",
+                   "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7}, "description": "What this panel counts.",
+                   "targets": [{"legendFormat": "rate"}]}""",
             )
 
         assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(1).allSatisfy {
@@ -169,7 +180,7 @@ class DashboardJsonRulesTests {
             panels(
                 """{"id": 1, "type": "timeseries", "title": "Throughput",
                    "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7},
-                   "targets": [{"expr": "up"}, {"expr": ""}]}""",
+                   "description": "What this panel counts.", "targets": [{"expr": "up"}, {"expr": ""}]}""",
             )
 
         assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(1).allSatisfy {
@@ -187,9 +198,11 @@ class DashboardJsonRulesTests {
                 """{"id": 2, "type": "text", "title": "How to read this",
                    "gridPos": {"x": 0, "y": 1, "w": 12, "h": 7}}""",
                 """{"id": 3, "type": "timeseries", "title": "Throughput",
-                   "gridPos": {"x": 12, "y": 1, "w": 12, "h": 7}, "targets": [{"expr": "up"}]}""",
+                   "gridPos": {"x": 12, "y": 1, "w": 12, "h": 7}, "description": "What this panel counts.",
+                   "targets": [{"expr": "up"}]}""",
                 """{"id": 4, "type": "timeseries", "title": "Latency",
-                   "gridPos": {"x": 0, "y": 8, "w": 24, "h": 7}, "targets": [{"expr": "up"}, {"expr": "up"}]}""",
+                   "gridPos": {"x": 0, "y": 8, "w": 24, "h": 7}, "description": "What this panel counts.",
+                   "targets": [{"expr": "up"}, {"expr": "up"}]}""",
             )
 
         assertThat(DashboardJsonRules.violations(listOf(file))).isEmpty()
@@ -201,7 +214,8 @@ class DashboardJsonRulesTests {
         val file =
             panels(
                 """{"id": 1, "type": "row", "title": "Projection Service",
-                   "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1}, "targets": [{"expr": ""}]}""",
+                   "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1}, "description": "What this panel counts.",
+                   "targets": [{"expr": ""}]}""",
             )
 
         assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(1).allSatisfy {
@@ -215,7 +229,8 @@ class DashboardJsonRulesTests {
         val file =
             panels(
                 """{"id": 1, "type": "timeseries", "title": "Throughput",
-                   "gridPos": {"x": "0", "y": 0, "w": 12, "h": 7}, "targets": [{"expr": "up"}]}""",
+                   "gridPos": {"x": "0", "y": 0, "w": 12, "h": 7}, "description": "What this panel counts.",
+                   "targets": [{"expr": "up"}]}""",
             )
 
         assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(1).allSatisfy {
@@ -226,10 +241,102 @@ class DashboardJsonRulesTests {
     @Test
     @DisplayName("An untitled panel is named by its id")
     fun anUntitledPanelIsNamedByItsId() {
-        val file = panels("""{"id": 7, "type": "timeseries", "targets": [{"expr": ""}]}""")
+        val file =
+            panels(
+                """{"id": 7, "type": "timeseries", "description": "What this panel counts.",
+                "targets": [{"expr": ""}]}""",
+            )
 
         assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(2).anySatisfy {
             assertThat(it).contains("untitled panel 7").contains("no query expression")
         }
+    }
+
+    @Test
+    @DisplayName("A panel that queries without a description is a violation")
+    fun aPanelWithoutADescriptionIsAViolation() {
+        val file =
+            panels(
+                """{"id": 1, "type": "timeseries", "title": "Throughput",
+                   "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7}, "targets": [{"expr": "up"}]}""",
+            )
+
+        assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(1).allSatisfy {
+            assertThat(it).contains("'Throughput'").contains("no description")
+        }
+    }
+
+    @Test
+    @DisplayName("An empty description is a violation")
+    fun anEmptyDescriptionIsAViolation() {
+        val file =
+            panels(
+                """{"id": 1, "type": "timeseries", "title": "Throughput", "description": "",
+                   "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7}, "targets": [{"expr": "up"}]}""",
+            )
+
+        assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(1).allSatisfy {
+            assertThat(it).contains("'Throughput'").contains("no description")
+        }
+    }
+
+    @Test
+    @DisplayName("A whitespace-only description is a violation")
+    fun aWhitespaceDescriptionIsAViolation() {
+        val file =
+            panels(
+                """{"id": 1, "type": "timeseries", "title": "Throughput", "description": "   ",
+                   "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7}, "targets": [{"expr": "up"}]}""",
+            )
+
+        assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(1).allSatisfy {
+            assertThat(it).contains("'Throughput'").contains("no description")
+        }
+    }
+
+    @Test
+    @DisplayName("A description that is not a string is a violation")
+    fun aNonStringDescriptionIsAViolation() {
+        val file =
+            panels(
+                """{"id": 1, "type": "timeseries", "title": "Throughput", "description": 42,
+                   "gridPos": {"x": 0, "y": 0, "w": 12, "h": 7}, "targets": [{"expr": "up"}]}""",
+            )
+
+        assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(1).allSatisfy {
+            assertThat(it).contains("'Throughput'").contains("no description")
+        }
+    }
+
+    @Test
+    @DisplayName("A panel nested in a row needs a description too")
+    fun aNestedPanelWithoutADescriptionIsAViolation() {
+        val file =
+            panels(
+                """{"id": 1, "type": "row", "title": "Projection Service",
+                   "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1},
+                   "panels": [{"id": 2, "type": "timeseries", "title": "Event Age",
+                               "gridPos": {"x": 0, "y": 1, "w": 24, "h": 7}, "targets": [{"expr": "up"}]}]}""",
+            )
+
+        assertThat(DashboardJsonRules.violations(listOf(file))).hasSize(1).allSatisfy {
+            assertThat(it).contains("'Event Age'").contains("no description")
+        }
+    }
+
+    @Test
+    @DisplayName("A row that declares a target, and a panel that declares none, need no description")
+    fun aRowAndATargetlessPanelNeedNoDescription() {
+        val file =
+            panels(
+                """{"id": 1, "type": "row", "title": "Projection Service",
+                   "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1}, "targets": [{"expr": "up"}]}""",
+                """{"id": 2, "type": "text", "title": "How to read this",
+                   "gridPos": {"x": 0, "y": 1, "w": 12, "h": 7}}""",
+                """{"id": 3, "type": "timeseries", "title": "Throughput", "description": "Requests per second.",
+                   "gridPos": {"x": 12, "y": 1, "w": 12, "h": 7}, "targets": [{"expr": "up"}]}""",
+            )
+
+        assertThat(DashboardJsonRules.violations(listOf(file))).isEmpty()
     }
 }

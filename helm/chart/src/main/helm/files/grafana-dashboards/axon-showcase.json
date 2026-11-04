@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Dashboard for Axon Showcase.",
+  "description": "The Axon Showcase stack: one section per service, the command bus, and the browser experience. Each panel's description states what it counts, which statistic it shows, and what an empty result means.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -72,15 +72,15 @@
             "steps": [
               {
                 "color": "green",
-                "value": 0
+                "value": null
               },
               {
                 "color": "#EAB839",
-                "value": 99.9
+                "value": 0.999
               },
               {
                 "color": "#6ED0E0",
-                "value": 99.99
+                "value": 0.9999
               }
             ]
           },
@@ -159,7 +159,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", uri!~\"/actuator.*\", status!~\"5..\"}) / sum(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", uri!~\"/actuator.*\"})",
+          "expr": "sum((fetch_showcase_list_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", error=\"none\"} or fetch_showcase_by_id_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", error=\"none\"})) / sum((fetch_showcase_list_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\"} or fetch_showcase_by_id_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\"}))",
           "hide": false,
           "instant": false,
           "legendFormat": "Query Bus",
@@ -167,8 +167,9 @@
           "refId": "Query Bus"
         }
       ],
-      "title": "Availability",
-      "type": "timeseries"
+      "title": "Processing Ratio",
+      "type": "timeseries",
+      "description": "Each line is one service's share of the work it completed since it started: the gateway's share of requests answered without a 5xx, the command bus's and the projector's shares of the commands and events they ingested and processed, and the query service's share of reads that completed without an error. The value is cumulative and resets when the process restarts, so it is not uptime and not an SLO; an absent line means that service has published no such counter yet, or that its series is not being scraped."
     },
     {
       "datasource": {
@@ -219,15 +220,16 @@
             "steps": [
               {
                 "color": "green",
-                "value": 0
+                "value": null
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 0.8
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "max": 1
         },
         "overrides": []
       },
@@ -287,22 +289,6 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "max(system_cpu_usage{application=\"$application\", service=\"axon-showcase-saga-service\"})",
-          "fullMetaSearch": false,
-          "hide": false,
-          "includeNullMetadata": true,
-          "legendFormat": "Saga Service",
-          "range": true,
-          "refId": "Saga Service",
-          "useBackend": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "disableTextWrap": false,
-          "editorMode": "code",
           "expr": "max(system_cpu_usage{application=\"$application\", service=\"axon-showcase-projection-service\"})",
           "fullMetaSearch": false,
           "hide": false,
@@ -330,7 +316,8 @@
         }
       ],
       "title": "CPU Usage",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "The machine's CPU usage as each service's JVM reports it (`system_cpu_usage`, a fraction of the machine's capacity). Because the JVMs share one node, the lines track the same load rather than each pod's own; a line disappears when the service's pods stop being scraped."
     },
     {
       "datasource": {
@@ -381,15 +368,16 @@
             "steps": [
               {
                 "color": "green",
-                "value": 0
+                "value": null
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 0.8
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "max": 1
         },
         "overrides": []
       },
@@ -440,18 +428,6 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(container_memory_usage_bytes{pod=~\"$application-saga-service-.+\"}) / sum(kube_pod_container_resource_limits{resource=\"memory\", pod=~\"$application-saga-service-.+\"})",
-          "hide": false,
-          "legendFormat": "Saga Service",
-          "range": true,
-          "refId": "Saga Service"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
           "expr": "sum(container_memory_usage_bytes{pod=~\"$application-projection-service-.+\"}) / sum(kube_pod_container_resource_limits{resource=\"memory\", pod=~\"$application-projection-service-.+\"})",
           "hide": false,
           "legendFormat": "Projection Service",
@@ -472,7 +448,8 @@
         }
       ],
       "title": "Memory Usage",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Each service's pods' total memory usage \u2014 resident memory plus page cache \u2014 over the total limit those pods declare. The cache counts, so the line is an upper bound on real pressure rather than a headroom figure; it disappears when the service's pods, or the limit they are compared against, stop being scraped or are missing."
     },
     {
       "collapsed": false,
@@ -544,7 +521,7 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -577,7 +554,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum(rate(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[1m]))",
+          "expr": "sum(rate(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": false,
           "legendFormat": "Total",
@@ -592,7 +569,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum by(method, uri) (rate(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[1m]))",
+          "expr": "sum by(method, uri) (rate(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": false,
@@ -603,7 +580,8 @@
         }
       ],
       "title": "Throughput",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Requests per second the gateway answered, excluding actuator endpoints, totalled and split by method and URI. An empty panel means no traffic was recorded in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -695,7 +673,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(http_server_requests_seconds_bucket{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(http_server_requests_seconds_bucket{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[$__rate_interval])))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": false,
@@ -711,7 +689,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(http_server_requests_seconds_bucket{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(http_server_requests_seconds_bucket{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[$__rate_interval])))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": false,
@@ -727,7 +705,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum by(method, uri) (rate(http_server_requests_seconds_sum{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[1m])) / sum by(method, uri) (rate(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[1m]))",
+          "expr": "sum by(method, uri) (rate(http_server_requests_seconds_sum{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[$__rate_interval])) / sum by(method, uri) (rate(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": false,
@@ -738,7 +716,8 @@
         }
       ],
       "title": "Latency",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Request latency at the 95th and 99th percentile and the mean per route, over the dashboard's rate interval. The percentiles come from the request-duration histogram; the mean divides its sum by its count. An empty panel means no request was routed in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -796,7 +775,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -829,7 +809,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum(rate(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\", status=~\"4..|5..\"}[1m]))",
+          "expr": "sum(rate(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\", status=~\"4..|5..\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -846,7 +826,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum by(status, method, uri) (rate(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\", status=~\"4..|5..\"}[1m]))",
+          "expr": "sum by(status, method, uri) (rate(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-api-gateway\", uri!~\"/actuator.*\", status=~\"4..|5..\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -858,7 +838,8 @@
         }
       ],
       "title": "Failure Rate",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Requests per second the gateway answered with a 4xx or 5xx status, excluding actuator endpoints. A 4xx is a client error rather than a service failure, so this shows rejected plus failed traffic. An empty panel means no request failed in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -1054,7 +1035,7 @@
       ],
       "title": "In-flight Batches",
       "type": "timeseries",
-      "description": "Batches whose writes are in flight. A sustained nonzero count can occur during healthy continuous processing; this gauge alone does not establish stalled writes."
+      "description": "Batches whose writes are in flight. A sustained nonzero count can occur during healthy continuous processing; this gauge alone does not establish stalled writes. An empty panel means the projector is not being scraped."
     },
     {
       "datasource": {
@@ -1150,7 +1131,7 @@
       ],
       "title": "Since Last Resolved Batch",
       "type": "timeseries",
-      "description": "Seconds since the projector last resolved a batch, idle time included. A growing age alone cannot distinguish a stall from a healthy idle system (ADR-0023); it is not a stall verdict."
+      "description": "Seconds since the projector last resolved a batch, idle time included. A growing age alone cannot distinguish a stall from a healthy idle system (ADR-0023); it is not a stall verdict. An empty panel means the projector is not being scraped, or has resolved no batch yet."
     },
     {
       "datasource": {
@@ -1208,7 +1189,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -1236,14 +1218,15 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum by (name) (rate(cache_gets_total{application=\"$application\", service=\"axon-showcase-api-gateway\", result=\"hit\"}[1m]))",
+          "expr": "sum by (name) (rate(cache_gets_total{application=\"$application\", service=\"axon-showcase-api-gateway\", result=\"hit\"}[$__rate_interval]))",
           "legendFormat": "__auto",
           "range": true,
           "refId": "By Name"
         }
       ],
       "title": "Fallback Cache Hits",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Cache lookups per second the gateway served from its fallback cache, by cache name \u2014 the reads answered without the primary path. An empty panel means the fallback answered no lookup in the window, or that this series is not being scraped."
     },
     {
       "collapsed": false,
@@ -1315,7 +1298,7 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -1347,7 +1330,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(distributedCommandBus_ingestedCounter_total{application=\"$application\"}[1m]))",
+          "expr": "sum(rate(distributedCommandBus_ingestedCounter_total{application=\"$application\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Total",
           "range": true,
@@ -1359,7 +1342,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (rate(distributedCommandBus_ingestedCounter_total{application=\"$application\"}[1m]))",
+          "expr": "sum by (payloadType) (rate(distributedCommandBus_ingestedCounter_total{application=\"$application\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "{{payloadType}}",
           "range": true,
@@ -1367,7 +1350,8 @@
         }
       ],
       "title": "Throughput",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Commands ingested by the distributed command bus per second, totalled and split by payload type. Ingestion is the bus's entry point, so this counts offered commands rather than completed ones. An empty panel means no command was ingested in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -1458,7 +1442,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(distributedCommandBus_allTimer_seconds_bucket{application=\"$application\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(distributedCommandBus_allTimer_seconds_bucket{application=\"$application\"}[$__rate_interval])))",
           "hide": false,
           "legendFormat": "P95",
           "range": true,
@@ -1470,7 +1454,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(distributedCommandBus_allTimer_seconds_bucket{application=\"$application\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(distributedCommandBus_allTimer_seconds_bucket{application=\"$application\"}[$__rate_interval])))",
           "hide": false,
           "legendFormat": "P99",
           "range": true,
@@ -1482,7 +1466,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by(payloadType) (rate(distributedCommandBus_allTimer_seconds_sum{application=\"$application\"}[1m])) / sum by(payloadType) (rate(distributedCommandBus_allTimer_seconds_count{application=\"$application\"}[1m]))",
+          "expr": "sum by(payloadType) (rate(distributedCommandBus_allTimer_seconds_sum{application=\"$application\"}[$__rate_interval])) / sum by(payloadType) (rate(distributedCommandBus_allTimer_seconds_count{application=\"$application\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "{{payloadType}}",
@@ -1491,7 +1475,8 @@
         }
       ],
       "title": "Latency",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Command latency on the bus at the 95th and 99th percentile and the mean per payload type. The percentiles come from the bus timer's histogram. An empty panel means no command ran on the bus in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -1550,7 +1535,7 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -1582,7 +1567,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(distributedCommandBus_failureCounter_total{application=\"$application\"}[1m]))",
+          "expr": "sum(rate(distributedCommandBus_failureCounter_total{application=\"$application\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Total",
           "range": true,
@@ -1594,7 +1579,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (rate(distributedCommandBus_failureCounter_total{application=\"$application\"}[1m]))",
+          "expr": "sum by (payloadType) (rate(distributedCommandBus_failureCounter_total{application=\"$application\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "{{payloadType}}",
           "range": true,
@@ -1602,7 +1587,8 @@
         }
       ],
       "title": "Failure Rate",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Commands the bus recorded as failed, per second, totalled and split by payload type. The counter does not distinguish a technical failure from a handler's business rejection. An empty panel means the bus recorded no failure in the window, or that this series is not being scraped."
     },
     {
       "collapsed": false,
@@ -1674,7 +1660,7 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -1706,7 +1692,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(commandBus_successCounter_total{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
+          "expr": "sum(rate(commandBus_successCounter_total{application=\"$application\", service=\"axon-showcase-command-service\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Succeeded",
           "range": true,
@@ -1718,7 +1704,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (rate(commandBus_failureCounter_total{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
+          "expr": "sum by (payloadType) (rate(commandBus_failureCounter_total{application=\"$application\", service=\"axon-showcase-command-service\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Failed {{payloadType}}",
           "range": true,
@@ -1726,7 +1712,8 @@
         }
       ],
       "title": "Command Handling Rate",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Commands handled per second by the command service, with the failures beside them: the `success` series counts handled commands and the `failure` series counts failed ones, by payload type. An empty panel means no command was handled in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -1817,7 +1804,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(commandBus_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(commandBus_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\"}[$__rate_interval])))",
           "legendFormat": "P95",
           "range": true,
           "refId": "P95"
@@ -1828,7 +1815,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(commandBus_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(commandBus_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\"}[$__rate_interval])))",
           "hide": false,
           "legendFormat": "P99",
           "range": true,
@@ -1840,7 +1827,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(payloadType) (rate(commandBus_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\"} [1m])) / sum by(payloadType) (rate(commandBus_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
+          "expr": "sum by(payloadType) (rate(commandBus_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\"} [$__rate_interval])) / sum by(payloadType) (rate(commandBus_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "__auto",
           "range": true,
@@ -1848,7 +1835,8 @@
         }
       ],
       "title": "Command Handling Latency",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Command handling latency at the 95th and 99th percentile and the mean per payload type, from the command bus timer. An empty panel means no command was handled in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -1907,7 +1895,7 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -1939,7 +1927,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(eventStore_successCounter_total{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
+          "expr": "sum(rate(eventStore_successCounter_total{application=\"$application\", service=\"axon-showcase-command-service\"}[$__rate_interval]))",
           "legendFormat": "Succeeded",
           "range": true,
           "refId": "Succeeded"
@@ -1950,7 +1938,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (rate(eventStore_failureCounter_total{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
+          "expr": "sum by (payloadType) (rate(eventStore_failureCounter_total{application=\"$application\", service=\"axon-showcase-command-service\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "Failed {{payloadType}}",
@@ -1959,7 +1947,8 @@
         }
       ],
       "title": "Event Storing Rate",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Events stored per second by the command service, with failures beside them: `success` counts stored events and `failure` counts the ones that could not be stored, by payload type. An empty panel means no event was stored in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -2050,7 +2039,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(eventStore_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(eventStore_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\"}[$__rate_interval])))",
           "legendFormat": "P95",
           "range": true,
           "refId": "P95"
@@ -2061,7 +2050,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(eventStore_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(eventStore_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\"}[$__rate_interval])))",
           "hide": false,
           "instant": false,
           "legendFormat": "P99",
@@ -2074,7 +2063,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(payloadType) (rate(eventStore_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\"} [1m])) / sum by(payloadType) (rate(eventStore_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\"}[1m]))",
+          "expr": "sum by(payloadType) (rate(eventStore_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\"} [$__rate_interval])) / sum by(payloadType) (rate(eventStore_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -2083,7 +2072,8 @@
         }
       ],
       "title": "Event Storing Latency",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Event-store latency at the 95th and 99th percentile and the mean per event type. An empty panel means no event was stored in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -2141,7 +2131,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -2173,7 +2164,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(eventProcessor_successCounter_total{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[1m]))",
+          "expr": "sum(rate(eventProcessor_successCounter_total{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[$__rate_interval]))",
           "legendFormat": "Succeeded",
           "range": true,
           "refId": "Succeeded"
@@ -2184,7 +2175,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (rate(eventProcessor_failureCounter_total{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[1m]))",
+          "expr": "sum by (payloadType) (rate(eventProcessor_failureCounter_total{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Failed {{payloadType}}",
           "range": true,
@@ -2192,7 +2183,8 @@
         }
       ],
       "title": "Saga Event Handling Rate",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Events the `showcase-saga` processor handled per second, with failures beside them. The saga runs inside the command service, so both series carry that service's labels. An empty panel means the saga processed no event in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -2284,7 +2276,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(eventProcessor_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(eventProcessor_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[$__rate_interval])))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -2301,7 +2293,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(eventProcessor_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(eventProcessor_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[$__rate_interval])))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -2318,7 +2310,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum by(payloadType) (rate(eventProcessor_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"} [1m])) / sum by(payloadType) (rate(eventProcessor_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[1m]))",
+          "expr": "sum by(payloadType) (rate(eventProcessor_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"} [$__rate_interval])) / sum by(payloadType) (rate(eventProcessor_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"showcase-saga\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -2330,7 +2322,8 @@
         }
       ],
       "title": "Saga Event Handling Latency",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Latency of the `showcase-saga` event processor at the 95th and 99th percentile and the mean per payload type. An empty panel means the saga processed no event in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -2421,7 +2414,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(dbscheduler_executionLag_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(dbscheduler_executionLag_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[$__rate_interval])))",
           "hide": false,
           "legendFormat": "P95",
           "range": true,
@@ -2433,7 +2426,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(dbscheduler_executionLag_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(dbscheduler_executionLag_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[$__rate_interval])))",
           "hide": false,
           "legendFormat": "P99",
           "range": true,
@@ -2445,7 +2438,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(deadline) (rate(dbscheduler_executionLag_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])) / sum by (deadline) (rate(dbscheduler_executionLag_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m]))",
+          "expr": "sum by(deadline) (rate(dbscheduler_executionLag_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[$__rate_interval])) / sum by (deadline) (rate(dbscheduler_executionLag_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "{{deadline}}",
           "range": true,
@@ -2453,7 +2446,8 @@
         }
       ],
       "title": "Deadline Handling Lag",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "How long a due deadline waited before its handler ran, at the 95th and 99th percentile and the mean per deadline. The scheduler polls for due deadlines, so the lag is bounded by its poll interval. An empty panel means no deadline fired in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -2512,7 +2506,7 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -2544,7 +2538,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(dbscheduler_executions_total{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\", result=\"ok\"}[1m]))",
+          "expr": "sum(rate(dbscheduler_executions_total{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\", result=\"ok\"}[$__rate_interval]))",
           "legendFormat": "Succeeded",
           "range": true,
           "refId": "Succeeded"
@@ -2555,7 +2549,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (deadline, error) (rate(dbscheduler_executions_total{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\", result=\"failed\"}[1m]))",
+          "expr": "sum by (deadline, error) (rate(dbscheduler_executions_total{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\", result=\"failed\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Failed {{deadline}} {{error}}",
           "range": true,
@@ -2563,7 +2557,8 @@
         }
       ],
       "title": "Deadline Handling Rate",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Deadline executions per second: `ok` counts the runs that completed and `failed` counts the ones that raised, by deadline and error. An empty panel means no deadline fired in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -2654,7 +2649,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(dbscheduler_executionDuration_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(dbscheduler_executionDuration_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[$__rate_interval])))",
           "hide": false,
           "legendFormat": "P95",
           "range": true,
@@ -2666,7 +2661,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(dbscheduler_executionDuration_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(dbscheduler_executionDuration_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[$__rate_interval])))",
           "hide": false,
           "legendFormat": "P99",
           "range": true,
@@ -2678,7 +2673,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (deadline) (rate(dbscheduler_executionDuration_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m])) / sum by (deadline) (rate(dbscheduler_executionDuration_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[1m]))",
+          "expr": "sum by (deadline) (rate(dbscheduler_executionDuration_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[$__rate_interval])) / sum by (deadline) (rate(dbscheduler_executionDuration_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", task=\"AxonDeadline\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "{{deadline}}",
           "range": true,
@@ -2686,7 +2681,8 @@
         }
       ],
       "title": "Deadline Handling Latency",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Time a deadline's handler took, at the 95th and 99th percentile and the mean per deadline. An empty panel means no deadline fired in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -2744,7 +2740,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -2776,7 +2773,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(eventProcessor_successCounter_total{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[1m]))",
+          "expr": "sum(rate(eventProcessor_successCounter_total{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[$__rate_interval]))",
           "legendFormat": "Succeeded",
           "range": true,
           "refId": "Succeeded"
@@ -2787,7 +2784,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (rate(eventProcessor_failureTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[1m]))",
+          "expr": "sum by (payloadType) (rate(eventProcessor_failureTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Failed {{payloadType}}",
           "range": true,
@@ -2795,7 +2792,8 @@
         }
       ],
       "title": "Event Publishing Rate",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Events the `event-publishing` processor published per second, with failures beside them. An empty panel means no event was published in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -2882,7 +2880,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(eventProcessor_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(eventProcessor_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[$__rate_interval])))",
           "hide": false,
           "instant": false,
           "legendFormat": "P95",
@@ -2895,7 +2893,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(eventProcessor_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(eventProcessor_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[$__rate_interval])))",
           "hide": false,
           "instant": false,
           "legendFormat": "P99",
@@ -2908,7 +2906,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(payloadType) (rate(eventProcessor_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"} [1m])) / sum by(payloadType) (rate(eventProcessor_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[1m]))",
+          "expr": "sum by(payloadType) (rate(eventProcessor_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"} [$__rate_interval])) / sum by(payloadType) (rate(eventProcessor_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-command-service\", processorName=\"event-publishing\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -2917,7 +2915,8 @@
         }
       ],
       "title": "Event Publishing Latency",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Latency of the `event-publishing` processor at the 95th and 99th percentile and the mean per payload type. An empty panel means no event was published in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -2975,7 +2974,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -3004,7 +3004,7 @@
         {
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum by(cache) (rate(cache_gets_total{application=\"$application\", service=\"axon-showcase-command-service\", result=\"hit\"}[1m]))",
+          "expr": "sum by(cache) (rate(cache_gets_total{application=\"$application\", service=\"axon-showcase-command-service\", result=\"hit\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -3014,7 +3014,8 @@
         }
       ],
       "title": "Cache Hits",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Cache lookups per second that hit, by cache name. An empty panel means no cache lookup happened in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -3072,7 +3073,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -3101,7 +3103,7 @@
         {
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum by(cache) (rate(cache_gets_total{application=\"$application\", service=\"axon-showcase-command-service\", result=\"miss\"}[1m]))",
+          "expr": "sum by(cache) (rate(cache_gets_total{application=\"$application\", service=\"axon-showcase-command-service\", result=\"miss\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -3111,7 +3113,8 @@
         }
       ],
       "title": "Cache Misses",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Cache lookups per second that missed, by cache name. A miss is served from the backing store, so a rising line means the cache is not paying for itself. An empty panel means no cache lookup happened in the window, or that this series is not being scraped."
     },
     {
       "collapsed": false,
@@ -3215,7 +3218,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(showcaseProjector_eventAge_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(showcaseProjector_eventAge_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval])))",
           "legendFormat": "P95",
           "range": true,
           "refId": "P95"
@@ -3226,7 +3229,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(showcaseProjector_eventAge_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(showcaseProjector_eventAge_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval])))",
           "hide": false,
           "legendFormat": "P99",
           "range": true,
@@ -3238,7 +3241,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(payloadType) (rate(showcaseProjector_eventAge_seconds_sum{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])) / sum by(payloadType) (rate(showcaseProjector_eventAge_seconds_count{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
+          "expr": "sum by(payloadType) (rate(showcaseProjector_eventAge_seconds_sum{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval])) / sum by(payloadType) (rate(showcaseProjector_eventAge_seconds_count{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "__auto",
           "range": true,
@@ -3246,7 +3249,8 @@
         }
       ],
       "title": "Event Age",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Age of an event when the projector ingested it, before the write, at the 95th and 99th percentile and the mean per payload type \u2014 how far behind the stream the projection runs. An empty panel means no event reached the projector in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -3304,7 +3308,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -3336,7 +3341,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(showcaseProjector_ingestedCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
+          "expr": "sum(rate(showcaseProjector_ingestedCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval]))",
           "legendFormat": "Total",
           "range": true,
           "refId": "Total"
@@ -3347,7 +3352,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (rate(showcaseProjector_ingestedCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
+          "expr": "sum by (payloadType) (rate(showcaseProjector_ingestedCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "{{payloadType}}",
           "range": true,
@@ -3355,7 +3360,8 @@
         }
       ],
       "title": "Throughput",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Events the projector ingested per second, totalled and split by payload type. Ingestion is the projector's throughput; events processed and ignored are split in the overview's processing ratio. An empty panel means no event reached the projector in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -3446,7 +3452,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(showcaseProjector_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(showcaseProjector_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval])))",
           "legendFormat": "P95",
           "range": true,
           "refId": "P95"
@@ -3457,7 +3463,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(showcaseProjector_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(showcaseProjector_allTimer_seconds_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval])))",
           "hide": false,
           "legendFormat": "P99",
           "range": true,
@@ -3469,7 +3475,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(payloadType) (rate(showcaseProjector_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])) / sum by(payloadType) (rate(showcaseProjector_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
+          "expr": "sum by(payloadType) (rate(showcaseProjector_allTimer_seconds_sum{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval])) / sum by(payloadType) (rate(showcaseProjector_allTimer_seconds_count{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "__auto",
           "range": true,
@@ -3477,7 +3483,8 @@
         }
       ],
       "title": "Latency",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Projection write latency at the 95th and 99th percentile and the mean per payload type. An empty panel means the projector wrote no batch in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -3536,7 +3543,7 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -3568,7 +3575,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(showcaseProjector_batch_size_events_sum{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])) / sum(rate(showcaseProjector_batch_size_events_count{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
+          "expr": "sum(rate(showcaseProjector_batch_size_events_sum{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval])) / sum(rate(showcaseProjector_batch_size_events_count{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Avg",
           "range": true,
@@ -3580,7 +3587,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(showcaseProjector_batch_size_events_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(showcaseProjector_batch_size_events_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval])))",
           "legendFormat": "P95",
           "range": true,
           "refId": "P95"
@@ -3591,7 +3598,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(showcaseProjector_batch_size_events_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(showcaseProjector_batch_size_events_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval])))",
           "hide": false,
           "legendFormat": "P99",
           "range": true,
@@ -3603,7 +3610,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(1.0, sum by(le) (rate(showcaseProjector_batch_size_events_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m])))",
+          "expr": "histogram_quantile(1.0, sum by(le) (rate(showcaseProjector_batch_size_events_bucket{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval])))",
           "hide": false,
           "legendFormat": "Max",
           "range": true,
@@ -3611,7 +3618,8 @@
         }
       ],
       "title": "Batch Size",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Events per batch the projector wrote: the mean, the 95th and 99th percentile, and the maximum. A batch is bounded by the projector's batch size and window, so a value at that bound means the window is closing on a full batch. An empty panel means the projector wrote no batch in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -3669,7 +3677,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -3701,7 +3710,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(showcaseProjector_failureCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
+          "expr": "sum(rate(showcaseProjector_failureCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval]))",
           "legendFormat": "Total",
           "range": true,
           "refId": "Total"
@@ -3712,7 +3721,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (payloadType) (rate(showcaseProjector_failureCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"}[1m]))",
+          "expr": "sum by (payloadType) (rate(showcaseProjector_failureCounter_total{application=\"$application\", service=\"axon-showcase-projection-service\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "{{payloadType}}",
           "range": true,
@@ -3724,7 +3733,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (error) (rate(project_showcase_seconds_count{application=\"$application\", service=\"axon-showcase-projection-service\", error!=\"none\"}[1m]))",
+          "expr": "sum by (error) (rate(project_showcase_seconds_count{application=\"$application\", service=\"axon-showcase-projection-service\", error!=\"none\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "{{error}}",
           "range": true,
@@ -3732,7 +3741,8 @@
         }
       ],
       "title": "Failure Rate",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Projection failures per second, totalled, split by payload type, and split by error for the write timer. An empty panel means no projection failed in the window, or that this series is not being scraped."
     },
     {
       "collapsed": false,
@@ -3804,7 +3814,7 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -3835,23 +3845,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum(rate(http_server_requests_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", uri!~\"/actuator.*\"}[1m]))",
-          "fullMetaSearch": false,
-          "includeNullMetadata": false,
-          "legendFormat": "Total",
-          "range": true,
-          "refId": "Total",
-          "useBackend": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(fetch_showcase_list_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\"}[1m]))",
+          "expr": "sum(rate(fetch_showcase_list_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "FetchShowcaseListQuery",
@@ -3864,7 +3859,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(fetch_showcase_by_id_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\"}[1m]))",
+          "expr": "sum(rate(fetch_showcase_by_id_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "FetchShowcaseByIdQuery",
@@ -3873,7 +3868,8 @@
         }
       ],
       "title": "Throughput",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Reads the query service performed per second, split between the list query and the by-id query. A line at zero means no such read was recorded in the sampled interval; missing points mean the series is unavailable rather than that reads stopped. The by-id line stays absent until the gateway has fetched a showcase by id, because its timer is created on first use."
     },
     {
       "datasource": {
@@ -3963,40 +3959,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(http_server_requests_seconds_bucket{application=\"$application\", service=\"axon-showcase-query-service\", uri!~\"/actuator.*\"}[1m])))",
-          "fullMetaSearch": false,
-          "hide": false,
-          "includeNullMetadata": false,
-          "legendFormat": "P95",
-          "range": true,
-          "refId": "P95",
-          "useBackend": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "disableTextWrap": false,
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(http_server_requests_seconds_bucket{application=\"$application\", service=\"axon-showcase-query-service\", uri!~\"/actuator.*\"}[1m])))",
-          "fullMetaSearch": false,
-          "hide": false,
-          "includeNullMetadata": false,
-          "legendFormat": "P99",
-          "range": true,
-          "refId": "P99",
-          "useBackend": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(fetch_showcase_list_seconds_sum[1m])) / sum(rate(fetch_showcase_list_seconds_count[1m]))",
+          "expr": "sum(rate(fetch_showcase_list_seconds_sum{application=\"$application\", service=\"axon-showcase-query-service\"}[$__rate_interval])) / sum(rate(fetch_showcase_list_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "FetchShowcaseListQuery",
@@ -4009,7 +3973,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(fetch_showcase_by_id_seconds_sum[1m])) / sum(rate(fetch_showcase_by_id_seconds_count[1m]))",
+          "expr": "sum(rate(fetch_showcase_by_id_seconds_sum{application=\"$application\", service=\"axon-showcase-query-service\"}[$__rate_interval])) / sum(rate(fetch_showcase_by_id_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "FetchShowcaseByIdQuery",
@@ -4018,7 +3982,8 @@
         }
       ],
       "title": "Latency",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Average duration of the query service's read timers, per query kind. A line with no points in the window means that kind of read was not recorded there, or that the series is not being scraped; the by-id line stays absent until the gateway has fetched a showcase by id, because its timer is created on first use."
     },
     {
       "datasource": {
@@ -4076,7 +4041,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -4108,7 +4074,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(fetch_showcase_list_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", error!=\"none\"}[1m])) + sum(rate(fetch_showcase_by_id_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", error!=\"none\"}[1m]))",
+          "expr": "sum(rate(fetch_showcase_list_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", error!=\"none\"}[$__rate_interval]) or rate(fetch_showcase_by_id_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", error!=\"none\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "Total",
@@ -4121,7 +4087,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (error) (rate(fetch_showcase_list_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", error!=\"none\"}[1m])) + sum by (error) (rate(fetch_showcase_by_id_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", error!=\"none\"}[1m]))",
+          "expr": "sum by (error) (rate(fetch_showcase_list_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", error!=\"none\"}[$__rate_interval]) or rate(fetch_showcase_by_id_seconds_count{application=\"$application\", service=\"axon-showcase-query-service\", error!=\"none\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "{{error}}",
@@ -4130,7 +4096,8 @@
         }
       ],
       "title": "Failure Rate",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Query reads that ended in an error, per second: the list and by-id families are combined, totalled and split by error value. A by-id read that finds no showcase completes empty rather than failing, because the not-found error is raised after the timer's observation, so this panel does not count every failed lookup. An empty panel means no read failed in the window, or that this series is not being scraped."
     },
     {
       "collapsed": false,
@@ -4234,7 +4201,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(nginx_http_requests_total{service=\"axon-showcase-web-ui\"}[1m]))",
+          "expr": "sum(rate(nginx_http_requests_total{service=\"axon-showcase-web-ui\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "Requests",
@@ -4243,7 +4210,8 @@
         }
       ],
       "title": "Requests",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "HTTP requests per second served by the web UI's nginx, from its `stub_status` exporter. An empty panel means nginx served no request in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -4343,7 +4311,8 @@
         }
       ],
       "title": "Active Connections",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Connections nginx currently has open, from `stub_status`. An empty panel means the exporter is not being scraped \u2014 nginx always reports a count."
     },
     {
       "datasource": {
@@ -4469,7 +4438,8 @@
         }
       ],
       "title": "Connection States",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Connections nginx is reading, writing, or keeping alive while waiting, from `stub_status`. An empty panel means the exporter is not being scraped \u2014 nginx always reports its states."
     },
     {
       "datasource": {
@@ -4528,7 +4498,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -4560,7 +4530,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(nginx_connections_accepted{service=\"axon-showcase-web-ui\"}[1m]))",
+          "expr": "sum(rate(nginx_connections_accepted{service=\"axon-showcase-web-ui\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "Accepted",
@@ -4573,7 +4543,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(nginx_connections_handled{service=\"axon-showcase-web-ui\"}[1m]))",
+          "expr": "sum(rate(nginx_connections_handled{service=\"axon-showcase-web-ui\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "Handled",
@@ -4582,7 +4552,8 @@
         }
       ],
       "title": "Accepted / Handled",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Connections accepted and handled per second by nginx. A gap between the two lines means connections were dropped before nginx handled them. An empty panel means the exporter is not being scraped."
     },
     {
       "collapsed": false,
@@ -4661,7 +4632,8 @@
         }
       ],
       "title": "Core Web Vitals p75 (ms)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "75th percentile of the browser's LCP, FCP, INP, and TTFB, in milliseconds, reported by the web UI's telemetry (CLS is on its own panel). The Web Vitals bands differ per metric: 2500/4000 ms for LCP, 1800/3000 ms for FCP, 200/500 ms for INP, and 800/1800 ms for TTFB. An empty panel means the browser reported no vitals in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -4727,7 +4699,8 @@
         }
       ],
       "title": "CLS p75",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "75th percentile of the browser's cumulative layout shift, a unitless score: at most 0.1 is good, above 0.25 is poor. An empty panel means the browser reported no layout shift in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -4756,7 +4729,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -4793,7 +4766,8 @@
         }
       ],
       "title": "Vitals by rating",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Samples per second the browser reported, by vital and by its rating (good, needs improvement, poor) \u2014 how the traffic is distributed across the Web Vitals bands. An empty panel means the browser reported no vitals in the window, or that this series is not being scraped."
     },
     {
       "datasource": {
@@ -4822,7 +4796,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -4859,7 +4833,8 @@
         }
       ],
       "title": "JavaScript errors by type",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "JavaScript errors the browser reported per second, by error type. The counter is created on the first error, so an empty panel can mean that no error has occurred since the gateway started, or that the counter has not been created or scraped yet \u2014 it cannot on its own prove that reporting works."
     }
   ],
   "preload": false,

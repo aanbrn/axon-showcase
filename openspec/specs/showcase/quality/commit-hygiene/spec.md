@@ -8,20 +8,20 @@ its reviewer-session continuity, the preservation of every recorded `(unit, roun
 finding instances — build checks that verify `captured:` marker placement, that the tracked set excludes ignored files,
 that no tracked file carries a merge conflict marker, that tracked scripts carry the executable bit, that no tracked
 file exceeds the configured size limit, that recognized tables in formatter-owned Markdown have consistent cell counts,
-that every dated ideas section carries an entry, that no two workflow cron schedules collide, that no two archived
-changes carry the same name apart from one recorded historical pair, that every unit records its workspace at
-`docs/units/<unit>/unit.md` and every live change's `tasks.md` references that record with each archive judged by its
-inline record or its reference according to its date, that the review-round ledger carries at most one row per unit and
-round, that each unit's rounds are contiguous from `1` apart from an explicitly acknowledged gap, that a round the
-caller names with `--expect` is recorded, that every class a row recorded after the canonical boundary carries is one
-the reviewer's definition names apart from an acknowledged label, that each round's reviewer session and its continuity
-are recorded, that every round recorded after the findings store's boundary carries its instances file — and, asserted
-at the review gate's manual-pass boundary rather than by a build check, that a unit the caller names with
-`--expect-clean` closes on a round carrying no finding class, since a round in flight is unclean by design, and that the
-unit's own tree is ready for the owner's pass: no unstaged new file, no stale indexed copy, and a base its `HEAD`
-contains, failing as not established when a read it needs fails rather than reporting the tree clean — and a committed
-`.gitattributes` that normalizes line endings (enforced by git, not the build) — so slips that were caught only by a
-human or a review pass are blocked by construction.
+that the Gradle wrapper pins its distribution with a checksum, that every dated ideas section carries an entry, that no
+two workflow cron schedules collide, that no two archived changes carry the same name apart from one recorded historical
+pair, that every unit records its workspace at `docs/units/<unit>/unit.md` and every live change's `tasks.md` references
+that record with each archive judged by its inline record or its reference according to its date, that the review-round
+ledger carries at most one row per unit and round, that each unit's rounds are contiguous from `1` apart from an
+explicitly acknowledged gap, that a round the caller names with `--expect` is recorded, that every class a row recorded
+after the canonical boundary carries is one the reviewer's definition names apart from an acknowledged label, that each
+round's reviewer session and its continuity are recorded, that every round recorded after the findings store's boundary
+carries its instances file — and, asserted at the review gate's manual-pass boundary rather than by a build check, that
+a unit the caller names with `--expect-clean` closes on a round carrying no finding class, since a round in flight is
+unclean by design, and that the unit's own tree is ready for the owner's pass: no unstaged new file, no stale indexed
+copy, and a base its `HEAD` contains, failing as not established when a read it needs fails rather than reporting the
+tree clean — and a committed `.gitattributes` that normalizes line endings (enforced by git, not the build) — so slips
+that were caught only by a human or a review pass are blocked by construction.
 
 ## Requirements
 
@@ -1434,3 +1434,30 @@ and a staged deletion is judged.
 
 - **WHEN** an instances file cannot be read, or its entries cannot be parsed
 - **THEN** the verification fails, naming the file, rather than reporting the round clean
+
+### Requirement: The wrapper's distribution checksum is verified by the build
+
+The standard `check` task SHALL verify that `gradle/wrapper/gradle-wrapper.properties` pins its distribution with a
+`distributionSha256Sum` of 64 hexadecimal characters and a `distributionUrl` whose archive name ends `-all.zip`, so a
+bump that drops or mangles the pin fails the build rather than leaving the wrapper accepting an unverified download.
+
+#### Scenario: The standard check verifies the wrapper's checksum
+
+- **WHEN** the standard `check` task runs
+- **THEN** it includes the wrapper-checksum verification
+
+#### Scenario: A properties file without a checksum fails the build
+
+- **WHEN** `gradle/wrapper/gradle-wrapper.properties` carries no `distributionSha256Sum`
+- **THEN** the verification fails and names the missing pin
+
+#### Scenario: A malformed checksum fails the build
+
+- **WHEN** the pinned value is not 64 hexadecimal characters, or the `distributionUrl` does not name a `-all.zip`
+  archive
+- **THEN** the verification fails and names the offending value
+
+#### Scenario: A clean wrapper passes
+
+- **WHEN** the properties pin a 64-hex checksum and an `-all.zip` distribution
+- **THEN** the wrapper-checksum verification passes

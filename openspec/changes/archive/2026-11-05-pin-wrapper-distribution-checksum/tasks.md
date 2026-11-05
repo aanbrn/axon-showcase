@@ -93,10 +93,12 @@ The unit's record is `docs/units/pin-wrapper-distribution-checksum/unit.md`.
       an incomplete bump. Done: the pack's wrapper bullet now names the tool, the required `--version`, the checksum,
       the byte-and-mode restore, the completion criterion that replaces the four-file diff, and the gate.
 
-- [ ] 3.3 `openspec/specs/showcase/quality/commit-hygiene/spec.md`: refresh the `## Purpose` so its enumeration of the
+- [x] 3.3 `openspec/specs/showcase/quality/commit-hygiene/spec.md`: refresh the `## Purpose` so its enumeration of the
       capability's build checks names the wrapper-checksum gate. A delta cannot carry a Purpose, so the edit is applied
       in the archive commit. Verify: the archived spec's Purpose names the new check, and the requirement's own text is
       unchanged by the edit.
+      Done: the archived spec's `## Purpose` names the wrapper-checksum guard among the capability's build checks;
+      the requirement's own text is unchanged by the edit.
 - [x] 3.4 `docs/ideas.md`: remove the entry this change implements. Verify: the entry is gone and its section keeps its
       other entries. Done: the entry is gone from `docs/ideas.md`, and `verifyIdeasSections` passes.
 

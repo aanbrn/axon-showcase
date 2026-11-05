@@ -3,7 +3,7 @@
 Workspace:
 `unit=pin-wrapper-distribution-checksum; path=/Users/afanasyev/Development/axon-showcase; branch=pin-wrapper-distribution-checksum; writer=ses_e5dece39fffeYkl8XkXm6Yg9Q3`
 
-State: active
+State: closed
 
 The unit's plan and tasks live in `openspec/changes/pin-wrapper-distribution-checksum/`.
 

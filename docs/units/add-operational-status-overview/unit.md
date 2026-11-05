@@ -3,9 +3,9 @@
 Workspace:
 `unit=add-operational-status-overview; path=/Users/afanasyev/Development/axon-showcase; branch=add-operational-status-overview; writer=ses_e5dece39fffeYkl8XkXm6Yg9Q3`
 
-State: active
+State: closed
 
-The unit's plan and tasks live in `openspec/changes/add-operational-status-overview/`.
+The unit's plan and tasks are archived in `openspec/changes/archive/2026-11-05-add-operational-status-overview/`.
 
 ## Resume checkpoint
 

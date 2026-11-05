@@ -11,34 +11,47 @@ Update the Gradle wrapper when a newer stable version is available.
 1. Run `./gradlew dependencyUpdates` and read the `Gradle CURRENT updates` section from the report **this run
    produced**. A candidate version comes only from a successfully regenerated report.
 2. Compare the pinned wrapper version in `gradle/wrapper/gradle-wrapper.properties` with the newest stable Gradle.
-3. IF a newer stable version exists, THEN run `./gradlew wrapper --gradle-version=<latest> --distribution-type all`
-   **twice** — the first run rewrites `distributionUrl`, and the second (executing under the new version) regenerates
-   `gradle-wrapper.jar` and `gradlew`/`gradlew.bat`. A single run leaves the jar and the scripts at the old version, and
-   omitting the flag flips the repository's `-all` distribution to `-bin`.
-4. Verify the result across all four wrapper files: `gradle/wrapper/gradle-wrapper.properties` (its `distributionUrl`
-   still ending `-all.zip` and naming the new version), `gradle/wrapper/gradle-wrapper.jar`, `gradlew`, and
-   `gradlew.bat`. `./gradlew --version` cannot confirm it — it reports the version from `distributionUrl` alone.
+3. IF a newer stable version exists, THEN run `python3 scripts/update-gradle-wrapper.py --version=<latest>` and read its
+   report. The tool resolves that version's published checksum, captures the four wrapper files' bytes and executable
+   modes, runs both `wrapper` passes with `--gradle-distribution-sha256-sum`, and verifies that the resulting
+   `distributionUrl` and `distributionSha256Sum` agree. It never chooses a version itself: the version it is given is
+   the one this command selected.
+4. The bump is complete when the tool exits zero. Its `distributionUrl` names the target version's `-all.zip` and its
+   `distributionSha256Sum` is the checksum the tool fetched — **not** when all four wrapper files differ: the generated
+   `gradle-wrapper.jar` is byte-identical when the running and target versions match, so a differing-files criterion
+   reports a complete bump as incomplete.
 
 **Decision points**
 
 - IF the report shows the wrapper current (`Gradle: [<version>: UP-TO-DATE]`), THEN report that no update is needed and
-  stop — do not run the wrapper task.
+  stop — do not run the wrapper task or the tool.
 - IF the report failed or is indeterminate, THEN treat the candidate version as indeterminate: report that, and do not
   read a report file an earlier run left behind.
-- IF only `gradle-wrapper.properties` changed after the two runs, THEN the bump is incomplete — report it rather than
-  success.
-- Only stable releases: never a `release-candidate` or `nightly` label.
+- IF the tool exits non-zero, THEN read its report for which of three outcomes it states, and pass that on as it stands:
+  the files were **restored** to the bytes and modes the run found; the restore is **incomplete**, in which case the
+  snapshot directory it names holds those bytes; or the run stopped **before touching anything** — a non-stable version,
+  a checksum it could not fetch, an empty or malformed checksum body, or a missing wrapper file — and says so. Do not
+  re-run the tool to "push through" a failure.
+- IF the tool was killed mid-run, THEN no final report may exist; recover the four files from the snapshot path it
+  announced before the passes, which it prints only once the capture has completed. Do that before anything else.
+- Only stable releases: never a `release-candidate` or `nightly` label, and the tool refuses a version that is not one.
 - IF the owner asks for the update to ship, THEN it is a normal standalone unit under the repository lifecycle — not a
   push from this command.
 
-**Failure handling** — a wrapper run that fails, or a verification that disagrees with the four files, is reported with
-what it found; the old wrapper files are not hand-edited.
+**Failure handling** — on a failed pass or a mismatched result the tool attempts restoration and reports whether it
+completed. A checksum-fetch failure leaves the wrapper files untouched, so there is nothing to restore. If restoration
+itself fails while the tool is still running, it reports the incomplete restore and retains the snapshot holding the
+bytes it found. If the process is killed, no final report may exist at all: recover from the snapshot path it announced
+before the passes, which it prints only once the capture has completed. The wrapper files are never hand-edited to
+repair a bump.
 
-**Verification** — the four-file diff above, plus the build still compiling (`./gradlew compileJava`).
+**Verification** — the tool's exit status, the properties' `distributionUrl`/`distributionSha256Sum` agreement, and
+`./gradlew --version` under a cleared wrapper home (`GRADLE_USER_HOME`) so the download is verified against the pin
+rather than served from a cache. `./gradlew compileJava` then confirms the build still runs on the new version.
 
-**Completion criteria** — the pinned wrapper version before and after, the new Gradle version, and the four files' state
-are reported; or, when the wrapper was current or the report indeterminate, that outcome is reported with no change
-made.
+**Completion criteria** — the pinned wrapper version before and after, the new Gradle version, the checksum the tool
+fetched, and the tool's report are stated; or, when the wrapper was current or the report indeterminate, that outcome is
+reported with no change made.
 
 **Repository lifecycle**
 

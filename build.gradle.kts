@@ -905,6 +905,34 @@ tasks.register("verifyPrettierAlignment", VerifyPrettierAlignmentTask::class.jav
     resultFile.set(layout.buildDirectory.file("verification/prettier-alignment.txt"))
 }
 
+tasks.register<Exec>("verifyWrapperChecksum") {
+    group = "verification"
+    description = "Verifies the Gradle wrapper pins its distribution with a checksum"
+    inputs.file("gradle/wrapper/gradle-wrapper.properties")
+    inputs.file("scripts/verify-wrapper-checksum.py")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/verify-wrapper-checksum.py")
+}
+
+tasks.register<Exec>("testVerifyWrapperChecksum") {
+    group = "verification"
+    description = "Runs the wrapper-checksum check's tests"
+    inputs.file("scripts/verify-wrapper-checksum.py")
+    inputs.file("scripts/test-verify-wrapper-checksum.py")
+    inputs.file("gradle/wrapper/gradle-wrapper.properties")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/test-verify-wrapper-checksum.py")
+}
+
+tasks.register<Exec>("testUpdateGradleWrapper") {
+    group = "verification"
+    description = "Runs the wrapper bump tool's tests"
+    inputs.file("scripts/update-gradle-wrapper.py")
+    inputs.file("scripts/test-update-gradle-wrapper.py")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/test-update-gradle-wrapper.py")
+}
+
 tasks.named("check") {
     dependsOn("verifyInfraImageVersions")
     dependsOn("verifyInstallCommands")
@@ -942,6 +970,9 @@ tasks.named("check") {
     dependsOn("verifyReviewClassVocabulary")
     dependsOn("verifyFindingInstances")
     dependsOn("verifyTableRows")
+    dependsOn("verifyWrapperChecksum")
+    dependsOn("testVerifyWrapperChecksum")
+    dependsOn("testUpdateGradleWrapper")
     // The chart's packaging path (its repository setup, dependency fetch, and strict lints), so a chart that cannot
     // bundle its declared dependency fails the pull request rather than only the nightly deployment smoke's install.
     dependsOn(":helm:chart:helmPackageMainChart")

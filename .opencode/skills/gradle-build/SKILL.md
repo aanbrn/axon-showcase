@@ -273,13 +273,17 @@ coordinates keep the leading-integer major comparison.
   its resolution claim covers, rather than resting that claim on the Docker-free check. captured:
   fix-main-ci-regressions captured: remove-unrecorded-redgate-repository
 
-- **Bumping the Gradle wrapper needs two `wrapper` runs with `--distribution-type all`.** The first run only rewrites
-  `distributionUrl`; the second, executing under the new version, regenerates `gradle-wrapper.jar`/`gradlew`/
-  `gradlew.bat`. A single run leaves the jar and scripts at the old version, and a run without the flag flips the repo's
-  `-all` distribution to `-bin` — both silently. `./gradlew --version` cannot see either (it reports the version from
-  `distributionUrl`), so verify by diffing all four wrapper files (`gradle/wrapper/gradle-wrapper.properties`,
-  `gradle/wrapper/gradle-wrapper.jar`, `gradlew`, `gradlew.bat`) and confirming `distributionUrl` still ends `-all.zip`;
-  if only `gradle-wrapper.properties` changed, the bump is incomplete. Keep `/gradle-update`'s two-step invocation. The
-  wrapper pins no `distributionSha256Sum`, and the bump has no rollback step. IF a wrapper run fails, or the four files
-  disagree after the second run, THEN `/gradle-update` reports what it found and does not hand-edit the wrapper files;
-  recovering them is the operator's step. captured: bump-gradle-and-web-ui-dependencies
+- **The Gradle wrapper is bumped through its checksum-carrying tool, not by hand.** `scripts/update-gradle-wrapper.py`
+  takes a required `--version` (the candidate `/gradle-update` read from `dependencyUpdates` — the tool never chooses
+  one), fetches that release's published `-all.zip.sha256`, captures the four wrapper files' bytes and executable modes,
+  runs both `wrapper` passes with `--gradle-distribution-sha256-sum`, and restores the capture when a pass fails or the
+  result disagrees. Two runs remain necessary: the first rewrites `distributionUrl`, while the second, executing under
+  the new version, regenerates `gradle-wrapper.jar`/`gradlew`/`gradlew.bat`. **A bump is complete when the second
+  generation ran under the target distribution and `distributionUrl` and `distributionSha256Sum` agree — not when all
+  four files differ**: the generated jar is byte-identical when the running and target versions match.
+  `gradle-wrapper.properties` pins `distributionSha256Sum`, which Gradle verifies before installing a download, and the
+  accepting half of that pin's evidence is a CI run whose cache is cold; Gradle itself refuses a version bump that would
+  leave the pin without a value for the new release, and `verifyWrapperChecksum` (in `check`) covers what that refusal
+  cannot — a pin that was never added, or one a hand edit removed. A killed run leaves the snapshot directory the tool
+  printed as its recovery material. captured: bump-gradle-and-web-ui-dependencies captured:
+  pin-wrapper-distribution-checksum

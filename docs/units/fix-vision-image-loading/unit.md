@@ -3,7 +3,7 @@
 Workspace:
 `unit=fix-vision-image-loading; path=/Users/afanasyev/Development/axon-showcase; branch=fix-vision-image-loading; writer=ses_e5dece39fffeYkl8XkXm6Yg9Q3`
 
-State: active
+State: closed
 
 The unit's plan and tasks live in `openspec/changes/fix-vision-image-loading/`.
 

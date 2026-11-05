@@ -23,6 +23,239 @@
   "links": [],
   "panels": [
     {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 87,
+      "panels": [],
+      "title": "Operational status",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Whether Prometheus is collecting each target right now: `up` is 1 when the last scrape succeeded, and each entry names the pod it scrapes, so two replicas of one service are distinguishable. A target that is no longer discovered leaves no entry rather than showing a stale Up, so a missing line is the signal. The dashboard's application variable does not filter this panel, which selects by job.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 1,
+                  "text": "Up"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "noValue": "No telemetry",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "gray",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "id": 88,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "up{job=~\"axon-showcase-.*\"}",
+          "instant": true,
+          "legendFormat": "{{pod}}",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Scrape status",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "How many replicas of each Deployment are available, beside how many it asks for. A Deployment present on one side only shows the other side empty rather than as zero, and a Deployment missing from both is visible by its absence. The dashboard's application variable does not filter this panel, which selects by deployment.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "id": 89,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "kube_deployment_status_replicas_available{deployment=~\"axon-showcase-.*\"}",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "kube_deployment_spec_replicas{deployment=~\"axon-showcase-.*\"}",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "B"
+        }
+      ],
+      "title": "Available / desired replicas",
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          }
+        },
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "deployment",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "__name__": true,
+              "__name__ 1": true,
+              "__name__ 2": true,
+              "container": true,
+              "container 1": true,
+              "container 2": true,
+              "endpoint": true,
+              "endpoint 1": true,
+              "endpoint 2": true,
+              "instance": true,
+              "instance 1": true,
+              "instance 2": true,
+              "job": true,
+              "job 1": true,
+              "job 2": true,
+              "namespace": true,
+              "namespace 1": true,
+              "namespace 2": true,
+              "pod": true,
+              "pod 1": true,
+              "pod 2": true,
+              "service": true,
+              "service 1": true,
+              "service 2": true
+            },
+            "renameByName": {
+              "deployment": "Deployment",
+              "kube_deployment_status_replicas_available": "Available",
+              "kube_deployment_spec_replicas": "Desired",
+              "Value #A": "Available",
+              "Value #B": "Desired"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
@@ -92,7 +325,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 8
       },
       "id": 4,
       "options": {
@@ -237,7 +470,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 7
+        "y": 15
       },
       "id": 29,
       "options": {
@@ -385,7 +618,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 7
+        "y": 15
       },
       "id": 44,
       "options": {
@@ -457,7 +690,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 22
       },
       "id": 1,
       "panels": [],
@@ -529,7 +762,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 15
+        "y": 23
       },
       "id": 2,
       "options": {
@@ -648,7 +881,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 15
+        "y": 23
       },
       "id": 3,
       "options": {
@@ -784,7 +1017,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 23
+        "y": 31
       },
       "id": 27,
       "options": {
@@ -903,7 +1136,7 @@
         "h": 7,
         "w": 6,
         "x": 0,
-        "y": 104
+        "y": 112
       },
       "id": 84,
       "options": {
@@ -1003,7 +1236,7 @@
         "h": 7,
         "w": 6,
         "x": 6,
-        "y": 104
+        "y": 112
       },
       "id": 85,
       "options": {
@@ -1099,7 +1332,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 104
+        "y": 112
       },
       "id": 86,
       "options": {
@@ -1198,7 +1431,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 23
+        "y": 31
       },
       "id": 28,
       "options": {
@@ -1234,7 +1467,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 38
       },
       "id": 58,
       "panels": [],
@@ -1306,7 +1539,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 31
+        "y": 39
       },
       "id": 6,
       "options": {
@@ -1418,7 +1651,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 31
+        "y": 39
       },
       "id": 56,
       "options": {
@@ -1543,7 +1776,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 38
+        "y": 46
       },
       "id": 59,
       "options": {
@@ -1596,7 +1829,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 45
+        "y": 53
       },
       "id": 5,
       "panels": [],
@@ -1668,7 +1901,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 46
+        "y": 54
       },
       "id": 57,
       "options": {
@@ -1780,7 +2013,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 46
+        "y": 54
       },
       "id": 7,
       "options": {
@@ -1903,7 +2136,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 54
+        "y": 62
       },
       "id": 8,
       "options": {
@@ -2015,7 +2248,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 54
+        "y": 62
       },
       "id": 9,
       "options": {
@@ -2140,7 +2373,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 61
+        "y": 69
       },
       "id": 67,
       "options": {
@@ -2251,7 +2484,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 61
+        "y": 69
       },
       "id": 68,
       "options": {
@@ -2390,7 +2623,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 68
+        "y": 76
       },
       "id": 73,
       "options": {
@@ -2514,7 +2747,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 75
+        "y": 83
       },
       "id": 12,
       "options": {
@@ -2625,7 +2858,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 75
+        "y": 83
       },
       "id": 13,
       "options": {
@@ -2749,7 +2982,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 82
+        "y": 90
       },
       "id": 10,
       "options": {
@@ -2856,7 +3089,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 82
+        "y": 90
       },
       "id": 11,
       "options": {
@@ -2983,7 +3216,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 89
+        "y": 97
       },
       "id": 51,
       "options": {
@@ -3082,7 +3315,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 89
+        "y": 97
       },
       "id": 52,
       "options": {
@@ -3122,7 +3355,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 96
+        "y": 104
       },
       "id": 16,
       "panels": [],
@@ -3194,7 +3427,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 97
+        "y": 105
       },
       "id": 19,
       "options": {
@@ -3317,7 +3550,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 111
+        "y": 119
       },
       "id": 65,
       "options": {
@@ -3428,7 +3661,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 111
+        "y": 119
       },
       "id": 71,
       "options": {
@@ -3551,7 +3784,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 118
+        "y": 126
       },
       "id": 72,
       "options": {
@@ -3686,7 +3919,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 118
+        "y": 126
       },
       "id": 66,
       "options": {
@@ -3750,7 +3983,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 125
+        "y": 133
       },
       "id": 22,
       "panels": [],
@@ -3822,7 +4055,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 126
+        "y": 134
       },
       "id": 60,
       "options": {
@@ -3936,7 +4169,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 126
+        "y": 134
       },
       "id": 61,
       "options": {
@@ -4050,7 +4283,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 133
+        "y": 141
       },
       "id": 64,
       "options": {
@@ -4105,7 +4338,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 140
+        "y": 148
       },
       "id": 74,
       "panels": [],
@@ -4177,7 +4410,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 141
+        "y": 149
       },
       "id": 75,
       "options": {
@@ -4278,7 +4511,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 141
+        "y": 149
       },
       "id": 76,
       "options": {
@@ -4379,7 +4612,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 148
+        "y": 156
       },
       "id": 77,
       "options": {
@@ -4506,7 +4739,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 148
+        "y": 156
       },
       "id": 78,
       "options": {
@@ -4561,7 +4794,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 155
+        "y": 163
       },
       "id": 79,
       "panels": [],
@@ -4603,7 +4836,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 156
+        "y": 164
       },
       "id": 80,
       "options": {
@@ -4670,7 +4903,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 156
+        "y": 164
       },
       "id": 81,
       "options": {
@@ -4737,7 +4970,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 163
+        "y": 171
       },
       "id": 82,
       "options": {
@@ -4804,7 +5037,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 163
+        "y": 171
       },
       "id": 83,
       "options": {

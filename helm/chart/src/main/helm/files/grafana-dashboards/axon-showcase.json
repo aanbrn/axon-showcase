@@ -3978,12 +3978,217 @@
       "description": "Projection failures per second, totalled, split by payload type, and split by error for the write timer. An empty panel means no projection failed in the window, or that this series is not being scraped."
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Records the consumer group has committed against the topic's end offset, per partition, sampled by the projector's own admin client every 15 seconds, with the replica that produced it. A gap means the last sample could not resolve that partition \u2014 the requirement \"The projector's consumer backlog is observable\" in `read-side/projection-service` states the cases \u2014 not that the projector is caught up; the Backlog sample panel states how old the number is and how many partitions went unresolved. A number here is not a stall verdict (ADR-0023).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "records",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 133
+      },
+      "id": 90,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "max by (partition, topic, pod) (showcaseProjector_consumerLag_records{application=\"$application\", service=\"axon-showcase-projection-service\"})",
+          "legendFormat": "partition {{partition}} \u00b7 {{pod}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Consumer backlog",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Age of the last successful backlog sample and the number of partitions it could not resolve, per replica. A fresh age with zero distances resolved and zero unresolved partitions is a healthy zero; a fresh age with no distance at all means the sample resolved nothing (a group that never committed), not that the projector is caught up; a growing age means that replica's sampler is failing, and the count beside it says how much of the answer is missing. Never a stall verdict (ADR-0023).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 60
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 133
+      },
+      "id": 91,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "time() - (showcaseProjector_consumerLag_observed_seconds{application=\"$application\", service=\"axon-showcase-projection-service\"} > 0)",
+          "legendFormat": "{{pod}} sample age",
+          "range": false,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "max by (pod) (showcaseProjector_consumerLag_unresolved_partitions{application=\"$application\", service=\"axon-showcase-projection-service\"})",
+          "legendFormat": "{{pod}} unresolved",
+          "range": false,
+          "refId": "B"
+        }
+      ],
+      "title": "Backlog sample",
+      "type": "stat"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 133
+        "y": 140
       },
       "id": 22,
       "panels": [],
@@ -4055,7 +4260,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 134
+        "y": 141
       },
       "id": 60,
       "options": {
@@ -4169,7 +4374,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 134
+        "y": 141
       },
       "id": 61,
       "options": {
@@ -4283,7 +4488,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 141
+        "y": 148
       },
       "id": 64,
       "options": {
@@ -4338,7 +4543,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 148
+        "y": 155
       },
       "id": 74,
       "panels": [],
@@ -4410,7 +4615,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 149
+        "y": 156
       },
       "id": 75,
       "options": {
@@ -4511,7 +4716,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 149
+        "y": 156
       },
       "id": 76,
       "options": {
@@ -4612,7 +4817,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 156
+        "y": 163
       },
       "id": 77,
       "options": {
@@ -4739,7 +4944,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 156
+        "y": 163
       },
       "id": 78,
       "options": {
@@ -4794,7 +4999,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 163
+        "y": 170
       },
       "id": 79,
       "panels": [],
@@ -4836,7 +5041,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 164
+        "y": 171
       },
       "id": 80,
       "options": {
@@ -4903,7 +5108,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 164
+        "y": 171
       },
       "id": 81,
       "options": {
@@ -4970,7 +5175,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 171
+        "y": 178
       },
       "id": 82,
       "options": {
@@ -5037,7 +5242,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 171
+        "y": 178
       },
       "id": 83,
       "options": {

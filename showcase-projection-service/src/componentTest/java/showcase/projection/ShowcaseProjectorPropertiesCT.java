@@ -50,6 +50,10 @@ class ShowcaseProjectorPropertiesCT {
                 assertThat(retry.getMinBackoff()).isEqualTo(Duration.ofMillis(100));
             });
             assertThat(properties.getRestart().getDelay()).isEqualTo(Duration.ofSeconds(10));
+            assertThat(properties.getBacklog()).satisfies(backlog -> {
+                assertThat(backlog.getInterval()).isEqualTo(Duration.ofSeconds(15));
+                assertThat(backlog.getTimeout()).isEqualTo(Duration.ofSeconds(5));
+            });
         });
     }
 
@@ -70,6 +74,10 @@ class ShowcaseProjectorPropertiesCT {
                 assertThat(retry.getMinBackoff()).isEqualTo(Duration.ofMillis(100));
             });
             assertThat(properties.getRestart().getDelay()).isEqualTo(Duration.ofSeconds(10));
+            assertThat(properties.getBacklog()).satisfies(backlog -> {
+                assertThat(backlog.getInterval()).isEqualTo(Duration.ofSeconds(15));
+                assertThat(backlog.getTimeout()).isEqualTo(Duration.ofSeconds(5));
+            });
         });
     }
 
@@ -128,6 +136,16 @@ class ShowcaseProjectorPropertiesCT {
                                 ShowcaseProjectorProperties>)
                         properties -> {
                             assertThat(properties.getRestart().getDelay()).isEqualTo(Duration.ofSeconds(20));
+                        }),
+                argumentSet("PROJECTOR_BACKLOG_INTERVAL", Map.of("PROJECTOR_BACKLOG_INTERVAL", "PT30S"), (Consumer<
+                                ShowcaseProjectorProperties>)
+                        properties -> {
+                            assertThat(properties.getBacklog().getInterval()).isEqualTo(Duration.ofSeconds(30));
+                        }),
+                argumentSet("PROJECTOR_BACKLOG_TIMEOUT", Map.of("PROJECTOR_BACKLOG_TIMEOUT", "PT2S"), (Consumer<
+                                ShowcaseProjectorProperties>)
+                        properties -> {
+                            assertThat(properties.getBacklog().getTimeout()).isEqualTo(Duration.ofSeconds(2));
                         }));
     }
 
@@ -159,7 +177,9 @@ class ShowcaseProjectorPropertiesCT {
                 argumentSet("PROJECTOR_RETRY_MIN_BACKOFF", Map.of("PROJECTOR_RETRY_MIN_BACKOFF", "PT-1S")),
                 argumentSet("PROJECTOR_RETRY_MIN_BACKOFF", Map.of("PROJECTOR_RETRY_MIN_BACKOFF", "PT2S")),
                 argumentSet("PROJECTOR_RESTART_DELAY", Map.of("PROJECTOR_RESTART_DELAY", "PT0.5S")),
-                argumentSet("PROJECTOR_RESTART_DELAY", Map.of("PROJECTOR_RESTART_DELAY", "PT61S")));
+                argumentSet("PROJECTOR_RESTART_DELAY", Map.of("PROJECTOR_RESTART_DELAY", "PT61S")),
+                argumentSet("PROJECTOR_BACKLOG_INTERVAL", Map.of("PROJECTOR_BACKLOG_INTERVAL", "PT0.5S")),
+                argumentSet("PROJECTOR_BACKLOG_TIMEOUT", Map.of("PROJECTOR_BACKLOG_TIMEOUT", "PT0.05S")));
     }
 
     @Configuration

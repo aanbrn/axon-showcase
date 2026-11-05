@@ -359,6 +359,16 @@ note.
   which half ran rather than ticking a task on the script's assumed completion. captured: propagate-ui-trace-context
   (#362) captured: expose-grafana-by-hostname
 
+- **The projector's backlog is read with its freshness and its unresolved count — a number alone says nothing.** The
+  projection service samples the consumer group's committed offsets against the topic's end offsets every 15 seconds, so
+  three readings belong together: a distance with a fresh sample age is the outstanding work; a growing sample age means
+  the sampler is failing, and the distance beside it is stale; an unresolved-partition count above zero means part of
+  the answer is missing, because a partition the sample cannot resolve publishes no distance rather than a zero — the
+  requirement "The projector's consumer backlog is observable" in `read-side/projection-service` states the cases. A
+  zero distance does not prove the read model is complete either — an acknowledged record whose projection was logged
+  and skipped leaves the distance at zero. This is a diagnostic, not a stall policy: the health indicator still reports
+  a stalled projector `UP` (ADR-0023).
+
 - **A probe path names a health group, and the root endpoint aggregates every indicator — adding a `HealthIndicator`
   changes what every probe pointed at the root means.** Wire the indicator into its group explicitly
   (`management.endpoint.health.group.readiness.include`) and assert the membership in a test, then re-check every probe

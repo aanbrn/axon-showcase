@@ -66,6 +66,9 @@ showcase:
       min-backoff: ${PROJECTOR_RETRY_MIN_BACKOFF:PT0.1S}
     restart:
       delay: ${PROJECTOR_RESTART_DELAY:PT10S}
+    backlog:
+      interval: ${PROJECTOR_BACKLOG_INTERVAL:PT15S}
+      timeout: ${PROJECTOR_BACKLOG_TIMEOUT:PT5S}
 
 server:
   port: 8082

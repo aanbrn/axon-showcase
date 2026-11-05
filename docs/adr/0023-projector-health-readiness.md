@@ -47,4 +47,26 @@ distinguish that from healthy idleness.
 - The liveness path is unchanged in meaning, so a pod is never restarted for the projector's state alone.
 - No not-ready-address publication is needed: the ServiceMonitor keeps the target while readiness is down.
 - Consumer-lag-based stall detection is parked in `docs/ideas.md` (2026-10-24); if it lands, this ADR's
-  `UP`-while-stalled boundary is the clause to revisit.
+  `UP`-while-stalled boundary is the clause to revisit. **Superseded by the 2026-11-05 amendment below: the parked entry
+  was implemented as backlog visibility, and this boundary is retained.**
+
+## Amendment — 2026-11-05: the backlog is observable, the health boundary is retained
+
+Context: the change `surface-projector-backlog` implements **the observation** the parked entry "Detect a stalled
+projector from consumer lag" deferred — it reads the consumer group's committed offsets against the topic's end offsets
+through its own `AdminClient`, so the distance no longer depends on the consumption pipeline reporting anything. The
+detection the entry's title named is superseded out of scope rather than shipped; what lands is the visible distance,
+and this amendment supersedes the entry rather than the Decision:
+
+- the projector's health indicator carries `consumerLag` (the maximum resolved partition distance),
+  `consumerLagUnresolvedPartitions`, and `consumerLagObservedEpochSecond`;
+- the dashboard renders the per-partition distance beside the sample's age and its unresolved-partition count;
+- a partition the sample cannot resolve — such as one with no committed offset, a committed offset past the end, or a
+  partition the topic no longer reports — publishes no distance and is counted as unresolved, so an unavailable answer
+  is never a healthy zero; the requirement "The projector's consumer backlog is observable" in
+  `read-side/projection-service` owns that list.
+
+The Decision above stands unchanged, including its `UP`-while-stalled boundary. A diagnostic distance is not a binary
+health policy: a stalled projector still reports `UP`, because no measured threshold distinguishes an unacceptable delay
+from a large but healthy batch, and the readiness group's meaning — "the consumer holds partitions" — is what a rollout
+should turn on. `docs/ideas.md` therefore no longer carries that entry; the surviving content is this amendment.

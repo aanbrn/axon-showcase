@@ -91,6 +91,30 @@ class ShowcaseProjectorProperties {
     }
 
     /**
+     * Configuration for sampling the consumer group's backlog.
+     */
+    @Data
+    @AllArgsConstructor
+    static class Backlog {
+        /**
+         * The delay between two backlog samples.
+         */
+        @NotNull
+        @DurationMin(seconds = 1)
+        private Duration interval;
+
+        /**
+         * The timeout bounding each admin call of a backlog sample.
+         *
+         * <p>A sample issues a topic description, an end-offset read, and a group-offset read, so the whole sample can
+         * take up to three times this value.
+         */
+        @NotNull
+        @DurationMin(millis = 100)
+        private Duration timeout;
+    }
+
+    /**
      * The minimum number of concurrent partition groups.
      */
     @Min(1)
@@ -122,4 +146,11 @@ class ShowcaseProjectorProperties {
     @NotNull
     @Valid
     private Restart restart = new Restart(Duration.ofSeconds(10));
+
+    /**
+     * The backlog sampling configuration.
+     */
+    @NotNull
+    @Valid
+    private Backlog backlog = new Backlog(Duration.ofSeconds(15), Duration.ofSeconds(5));
 }

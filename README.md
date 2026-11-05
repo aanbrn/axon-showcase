@@ -128,10 +128,11 @@ You can also drive the lifecycle by hand — start or finish a showcase before t
   retries, and the gateway serves repeated reads from a read-through cache.
 - **It is observable.** Tempo traces, Prometheus metrics (including web-UI nginx metrics), a dedicated Grafana
   dashboard, health checks, and Gatling load tests are wired in — the same observability a production service needs. The
-  projection service exposes its observed lifecycle state and last resolved batch time (`showcaseProjector.state` and
-  the readiness detail); readiness reports `DOWN` before initial assignment and during stream-restart waits, and can
-  remain `UP` while Kafka is unreachable after assignment. Observability is available in the **Kubernetes deployment**
-  (Prometheus, Grafana, and Tempo run in the `monitoring` namespace); the local docker-compose stack runs without it.
+  projection service exposes its observed lifecycle state, last resolved batch time, and outstanding consumer backlog
+  (`showcaseProjector.state`, and a backlog sampled by its own admin client so a consumer that stopped polling is still
+  measured); readiness reports `DOWN` before initial assignment and during stream-restart waits, and can remain `UP`
+  while Kafka is unreachable after assignment. Observability is available in the **Kubernetes deployment** (Prometheus,
+  Grafana, and Tempo run in the `monitoring` namespace); the local docker-compose stack runs without it.
 - **Identifiers are KSUIDs** (sortable, collision-resistant), enforced through a custom identifier extension.
 
 ## Architecture
@@ -1164,13 +1165,13 @@ Observability is part of the **Kubernetes deployment** — `./gradlew helmInstal
 and Tempo into the `monitoring` namespace alongside the application. The local docker-compose stack does not run it.
 
 - **Metrics**: each service exports Prometheus metrics (HTTP throughput/latency/failure, Axon command bus, event store,
-  saga, deadlines, projection lag, cache hits, query performance); the web UI exports nginx `stub_status` via a sidecar
-  and reports browser-side Core Web Vitals and JavaScript errors through the gateway, which exposes them as Prometheus
-  metrics. ServiceMonitors are wired for all of them.
-- **Grafana**: a custom **Axon Showcase** dashboard is provisioned automatically (44 panels across 8 sections covering
-  every service, the scrape status and replica capacity of each Deployment, the projector's operating state, the browser
-  experience, and the Axon internals), and Grafana is preconfigured with a Tempo data source. The default login is
-  `admin` with the password from the chart's generated secret.
+  saga, deadlines, projection lag and consumer backlog, cache hits, query performance); the web UI exports nginx
+  `stub_status` via a sidecar and reports browser-side Core Web Vitals and JavaScript errors through the gateway, which
+  exposes them as Prometheus metrics. ServiceMonitors are wired for all of them.
+- **Grafana**: a custom **Axon Showcase** dashboard is provisioned automatically (46 panels across 8 sections covering
+  every service, the scrape status and replica capacity of each Deployment, the projector's operating state and consumer
+  backlog, the browser experience, and the Axon internals), and Grafana is preconfigured with a Tempo data source. The
+  default login is `admin` with the password from the chart's generated secret.
 - **Tracing**: services export **OpenTelemetry** traces to **Grafana Tempo** (`tempo.monitoring`), viewable in Grafana's
   Explore. The web UI propagates W3C trace context on its API calls, so a page load's requests join one trace that
   continues through the gateway into the command and query services.

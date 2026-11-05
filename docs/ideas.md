@@ -308,11 +308,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   with `spec.strategy.rollingUpdate: Forbidden`, as the local baseline restore reproduced; deleting the Deployment first
   (Helm recreates it) or an explicit `--force` path belongs in ADR-0022's procedure.
 
-- Detect a stalled projector from consumer lag — parked; no change yet. `projector-operability`'s reported state
-  distinguishes assignment from stream-restart waits, but an assigned receiver can remain `UP` while Kafka is
-  unreachable or processing stalls, and an old progress timestamp alone cannot tell a stall from healthy idleness
-  (ADR-0023); judging staleness needs the consumer's lag, i.e. a Kafka admin client the service does not have today.
-
 - Correct the documented platform override for the image builds — parked; no change yet. The `deployment-operations`
   pack's Docker Images section gives `-PimagePlatform=linux/amd64`, but `-P` sets a Gradle project property and no build
   script forwards it to the task, while Spring Boot's `BootBuildImage` reads the value from a `--imagePlatform` task

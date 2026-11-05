@@ -94,6 +94,7 @@ testing {
                 implementation(project(":showcase-projection-model"))
 
                 implementation(libs.axon.extensions.kafka)
+                implementation(libs.axon.extensions.kafka.springBootStarter)
                 implementation(libs.axon.test)
                 implementation(libs.spring.boot.starter.test)
                 implementation(libs.spring.boot.testcontainers)

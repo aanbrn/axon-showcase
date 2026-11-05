@@ -3,7 +3,7 @@
 Workspace:
 `unit=surface-projector-backlog; path=/Users/afanasyev/Development/axon-showcase; branch=surface-projector-backlog; writer=ses_e5dece39fffeYkl8XkXm6Yg9Q3`
 
-State: active
+State: closed
 
 The unit's plan and tasks live in `openspec/changes/surface-projector-backlog/`.
 

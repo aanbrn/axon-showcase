@@ -139,8 +139,9 @@ system SHALL handle such duplicates without failing the stream.
 ### Requirement: Projector operating state is observable
 
 The system SHALL expose the projector's observed lifecycle state, last resolved batch time, and in-flight batch count
-through its actuator and metrics surface. The indicator SHALL report `UP` only for `RUNNING` and `DOWN` for `RETRYING`
-or `STOPPED`, SHALL participate in readiness, and SHALL NOT participate in liveness.
+through its actuator and metrics surface, together with the consumer backlog the next requirement owns. The indicator
+SHALL report `UP` only for `RUNNING` and `DOWN` for `RETRYING` or `STOPPED`, SHALL participate in readiness, and SHALL
+NOT participate in liveness.
 
 #### Scenario: A retrying projector is not reported healthy
 
@@ -180,3 +181,44 @@ or `STOPPED`, SHALL participate in readiness, and SHALL NOT participate in liven
   emitting an error
 - **THEN** the projector remains reported as running, its indicator remains healthy, and the last-progress timestamp
   remains the time of the last resolved batch (or `0` if none resolved)
+
+### Requirement: The projector's consumer backlog is observable
+
+The system SHALL expose the consumer group's outstanding backlog per partition — the distance between the topic's end
+offset and the group's committed offset — with the freshness of the last successful sample, the number of samples that
+failed, and the number of partitions the sample could not resolve. It SHALL report a partition it cannot resolve as
+unresolved rather than as zero, and SHALL NOT change the projector's health status.
+
+#### Scenario: The projector's outstanding backlog is observable
+
+- **WHEN** the projector is running and the topic's end offsets are ahead of the group's committed offsets
+- **THEN** the metrics surface exports the distance per partition and the time of the last successful sample, and the
+  indicator's details carry the maximum resolved partition distance and the number of partitions the sample could not
+  resolve, so a reader sees how many records are outstanding, how much of that answer is complete, and how old the
+  observation is
+- **AND** the backlog does not change the indicator's status, the readiness endpoint, or liveness
+
+#### Scenario: A backlog the sampler cannot resolve is not reported as zero
+
+- **WHEN** a sample finds a partition with no committed offset for the group, a committed offset past the end, or a
+  partition the topic no longer reports
+- **THEN** that partition reports no backlog value and is counted as unresolved — in the metrics and in the indicator's
+  unresolved-partition count — rather than publishing a zero
+
+#### Scenario: A failed sample publishes no value and is counted
+
+- **WHEN** the sampler's own admin calls fail — the broker is unreachable or the topic cannot be described
+- **THEN** the last published distances and the observation time stay unchanged, the failed-sample count increments, and
+  no zero is published in place of the missing observation
+
+#### Scenario: A sample that resolves no partition reports no summary
+
+- **WHEN** the sampler has not completed a successful sample yet
+- **THEN** the observation time is `0`, no distance is published, the failed-sample count reports how many attempts have
+  failed, and the indicator carries no maximum-distance detail
+
+#### Scenario: A group that never committed reports no distance
+
+- **WHEN** a sample finds the topic's partitions and no committed offsets for the group
+- **THEN** every partition is counted by the unresolved gauge, no distance is published, and the observation time is
+  fresh while the indicator carries no maximum-distance detail

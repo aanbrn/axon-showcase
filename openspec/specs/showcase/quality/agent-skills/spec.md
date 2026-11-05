@@ -2070,7 +2070,8 @@ is recorded on the change's review task.
 
 The repository SHALL produce and inspect diagrams and screenshots through the specialist subagents — `vision` for visual
 review and `diagrammer` for diagram geometry — rather than through the text-only main agent. The scenarios below are
-carried unchanged from the requirement this one replaces; the diagram stage's own consolidation is a later unit.
+carried unchanged from the requirement this one replaces, and the last is added by this change; the diagram stage's own
+consolidation is a later unit.
 
 #### Scenario: Screenshots are reviewed visually
 
@@ -2125,6 +2126,13 @@ carried unchanged from the requirement this one replaces; the diagram stage's ow
   observation is not a measurement
 - **AND** an unavailable live GitHub render is stated as a limitation, never treated as equivalent to one that was
   inspected
+
+#### Scenario: A review that obtains no pixels says so
+
+- **WHEN** the artifact the caller names yields no inspectable image — the page cannot be loaded, or the capture returns
+  no image
+- **THEN** the `vision` subagent reports that the visual review was not performed, showing the tools' own outputs under
+  "what the image cannot settle", rather than returning a review of nothing
 
 ### Requirement: The review gate's caller procedure is maintained in its project skill
 

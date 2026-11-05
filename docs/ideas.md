@@ -369,10 +369,11 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   asserts no such outcome. Route: the `review-gate` skill's stage 2, extending its preflight; the probe's proposed text
   is a starting point, not an accepted rule.
 
-- Consolidate the diagram and vision scenarios into their definitions — parked; no change yet. The four diagram
-  scenarios carried verbatim by the same change restate the `vision` definition's review groups and measurement rule,
-  and the `diagrammer` definition's mapping, hand-off, and render rule. Same route: one owner per obligation, the spec
-  pointing at the definition.
+- Consolidate the diagram and vision scenarios into their definitions — parked; no change yet. The requirement's five
+  scenarios restate the `vision` definition's review groups, measurement rule, and acquisition-failure rule, and the
+  `diagrammer` definition's mapping, hand-off, and render rule. `fix-vision-image-loading` added the fifth — "A review
+  that obtains no pixels says so" — which repeats that definition's step 4, so the duplication grew rather than shrank.
+  Same route: one owner per obligation, the spec pointing at the definition.
 
 - Decide what a retrospective may state when the evidence cannot establish a cause — parked; no change yet.
   - **Gap:** the `agent-skills` requirement asks the retrospective to trace each significant failure to a root cause,

@@ -3,7 +3,7 @@
 Workspace:
 `unit=unit-layout-allowlist; path=/Users/afanasyev/Development/axon-showcase; branch=unit-layout-allowlist; writer=ses_e5dece39fffeYkl8XkXm6Yg9Q3`
 
-State: active
+State: closed
 
 The unit's plan and tasks live in `openspec/changes/unit-layout-allowlist/`.
 
@@ -15,7 +15,8 @@ The unit's plan and tasks live in `openspec/changes/unit-layout-allowlist/`.
 - **Stage** — implementation written: the layout predicate, the `--unit-layout` mode with its `check` task, eight test
   arms with two controls, the store's stray clause removed, and the writer step repointed. `rounds.tsv` is the record of
   the closed rounds; its proposal rounds closed before the implementation began.
-- **Next step** — the owner's manual pass over the finished unit.
+- **Next step** — merged in pull request #850; the tree is released after the merge, and the change is archived as
+  `openspec/changes/archive/2026-11-06-unit-layout-allowlist/`.
 - **Change set** — staged: the change dir, this unit's record set (`unit.md`, `rounds.tsv`, `findings/`, the hand-over,
   `process-defects.md`), and the `docs/ideas.md` removal.
 - **Blockers and open decisions** — none.

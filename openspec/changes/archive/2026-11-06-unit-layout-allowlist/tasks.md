@@ -78,7 +78,8 @@ The unit record — its `Workspace:`, state, and pause checkpoint — is `docs/u
       and the signals it matched are recorded on this task. Verify: the outcome is recorded with its signals, and a
       `REQUIRED` outcome is run before completion. Done: `review-routing.py` returns `REQUIRED` on the completed
       implementation, its signal `requirement-block-added`; the deep review runs before completion.
-- [ ] 4.5 `openspec/specs/showcase/quality/commit-hygiene/spec.md`: refresh the `## Purpose`, which now names the
+- [x] 4.5 `openspec/specs/showcase/quality/commit-hygiene/spec.md`: refresh the `## Purpose`, which now names the
       store's file set as the guard's reach; the layout requirement owns the kinds instead. A delta cannot carry a
       Purpose, so the edit rides the archive commit. Verify: the Purpose names the unit layout, and the requirement's
       text is untouched by the edit.
+      Done: the Purpose now names the unit layout's kinds, and the requirement's text is untouched by the edit.

@@ -1,3 +1,8 @@
+---
+name: begin-unit
+description: Establish an owner-authorized unit's workspace, record, and claim before its first content write
+---
+
 # Skill: begin-unit
 
 The workspace-establishment procedure `AGENTS.md`'s lifecycle names at its **Begin** stage. This skill owns the ordered

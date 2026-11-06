@@ -1,0 +1,3 @@
+- [over-claim] `proposal.md` — the Impact still said the plugin surface "cannot veto" a model selection.
+- [claim-missing] `design.md` — the skill's load path had no row and omitted the AGENTS.md pointer.
+- [coherence] `unit.md` — the Stage reintroduced a closed-round counter.

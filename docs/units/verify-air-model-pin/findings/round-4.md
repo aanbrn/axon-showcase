@@ -1,0 +1,2 @@
+- [over-claim] `proposal.md` — the plan said "overrides" while the README sentence says "may override".
+- [incomplete-enumeration] `unit.md` — the change set omitted `README.md`'s modification.

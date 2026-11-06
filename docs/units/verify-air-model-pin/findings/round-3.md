@@ -1,0 +1,4 @@
+- [coherence] `unit.md` — Stage named a lifecycle stage and Next step listed three actions.
+- [wording] `tasks.md` — it said three invocations but listed two; the exclusivity note applied to one flag.
+- [incomplete-enumeration] `design.md` — the cross-ref dismissal named only unit records and artifacts.
+- [formatting] `tasks.md` — an inline span carried a five-space run from the formatter's reflow.

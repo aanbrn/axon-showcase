@@ -611,6 +611,10 @@ parallel work never writes into the same tree.
 can then be removed, and the primary checkout is handed to the next sequential unit and never removed. The workspace
 safety and release rules live in [`AGENTS.md`](AGENTS.md#workflow-unit-lifecycle).
 
+If you run the agent inside JetBrains Air, check its session model picker before submitting a session's first prompt —
+and again after changing agent or model: the picker may override the repository's pinned model, and nothing in the build
+notices a change.
+
 ### Slash Commands
 
 | Command                       | What it does                                                                                                                                                                                      |

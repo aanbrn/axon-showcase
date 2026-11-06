@@ -1,29 +1,32 @@
 ---
 name: ship-change
 description:
-  Ship an approved unit through push → pull request → CI → archive → merge, and complete a cloud agent's `/oc` pull
-  request. Load it before the first `git push`, `gh pr create`, `openspec archive`, or `gh pr merge`.
+  Ship and settle an approved unit through push → pull request → CI → merge, archiving a change directory within that
+  delivery, and complete a cloud agent's `/oc` pull request. Load it before the first `git push`, `gh pr create`,
+  `openspec archive`, or `gh pr merge`.
 ---
 
-# Ship a change
+# Ship and settle a unit
 
-The authoritative procedure for the two stages `AGENTS.md` triggers. It grants no permission of its own: the invariants
-and the review gate in `AGENTS.md` govern, and the owner's approval is the precondition for every guarded step.
+The authoritative procedure for the two stages `AGENTS.md` triggers — the unit lifecycle's **Deliver** and **Settle**.
+It grants no permission of its own: the invariants and the review gate in `AGENTS.md` govern, and the owner's approval
+is the precondition for every guarded step. A unit that carries no change directory delivers without an archive.
 
 ## Ship a change (CI → archive → merge)
 
-Source: `AGENTS.md` "Workflow: Ship a change (CI → archive → merge)".
+Source: `AGENTS.md` "Workflow: Ship a change (CI → archive → merge)" and "Workflow: Unit lifecycle" → Deliver, Settle.
 
-**Trigger** — a request that moves the unit towards delivery (the Change lifecycle's shipping step states what is not
+**Trigger** — a request that moves the unit towards delivery (the unit lifecycle's Deliver stage states what is not
 one).
 
 1. Push the implementation branch and open a pull request with the code and the active change directory, titled and
    described per the standard `.github/PULL_REQUEST_TEMPLATE.md` states — a `--body-file` body bypasses that template,
    so carry its sections and its title rule yourself.
 2. Wait for the `build` check to be green.
-3. Archive the change (move the change directory and sync the main spec) as an additional commit in the _same_ pull
-   request. That commit also sets the unit record's `State: closed`, because a write after the merge cannot reach the
-   branch it merges; a unit without a change directory sets it in its final commit instead.
+3. IF the unit carries a change directory, THEN archive it — move the change directory and sync the main spec — as an
+   additional commit in the _same_ pull request; a unit without one skips this step. Either way that commit, or the
+   unit's final commit when no change directory exists, sets the unit record's `State: closed`, because a write after
+   the merge cannot reach the branch it merges.
 4. Merge once. The archive — the declaration that a change is done — always follows CI, never precedes it. A pause after
    the archive writes nothing to the branch, because a pause commits nothing, so the archive commit's `closed` is what
    the merge carries; a resume that continues after such a pause sets `closed` again before any further merge.
@@ -68,9 +71,9 @@ one).
 
 ### Completion criteria
 
-CI green, the change archived (change directory moved and main spec synced), the pull request merged, any tracker it
-implements preserved when that tracker outlives it, and the unit's tree settled: a linked worktree removed, or the
-primary released to the next unit.
+CI green, the unit merged, any tracker it implements preserved when that tracker outlives it, and the unit's tree
+settled: a linked worktree removed, or the primary released to the next unit. A change unit's directory is archived and
+its main spec synced within that delivery; a unit without a change directory carries no archive.
 
 ## Complete a cloud (`/oc`) agent pull request
 

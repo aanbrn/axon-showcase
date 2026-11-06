@@ -2,6 +2,9 @@
 description: Set up the tooling MCP servers (GitHub core; IntelliJ IDEA's built-in MCP server, from a terminal or Air)
 ---
 
+**Lifecycle:** outside-unit | **Invocation:** owner-invoked | **Effect:** host operation | **Owner:**
+.opencode/skills/setup-agent-tools/SKILL.md
+
 Set up this repo's tooling MCP servers for the current user.
 
 **Trigger** — the owner invokes `/setup-agent-tools`.

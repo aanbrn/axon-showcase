@@ -4,6 +4,9 @@ description:
   owner
 ---
 
+**Lifecycle:** cross-cutting | **Invocation:** owner-invoked | **Effect:** operation within an existing unit |
+**Owner:** docs/ideas.md
+
 Manage the lightweight ideas scratchpad at `docs/ideas.md`.
 
 **Trigger** — the owner invokes `/ideas`, with or without a note, `/ideas promote <words>`, `/ideas promote --top`, or

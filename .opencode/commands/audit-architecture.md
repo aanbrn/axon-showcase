@@ -5,6 +5,9 @@ description:
   architecture-auditor subagent
 ---
 
+**Lifecycle:** outside-unit | **Invocation:** owner-invoked, scheduled | **Effect:** report-only | **Owner:**
+.opencode/agent/architecture-auditor.md
+
 Run the architecture audit, which reports only — it never edits a file.
 
 **Trigger** — the owner invokes `/audit-architecture`, or the scheduled `audit` workflow runs it report-only.

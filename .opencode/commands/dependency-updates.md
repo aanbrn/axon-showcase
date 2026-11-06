@@ -2,6 +2,9 @@
 description: Run the Gradle, web UI, and build-logic pin dependency update reports
 ---
 
+**Lifecycle:** outside-unit | **Invocation:** owner-invoked, scheduled | **Effect:** report-only | **Owner:**
+build.gradle.kts
+
 Report the available dependency updates. This command reports only — it never applies a dependency change unless asked.
 
 **Trigger** — the owner invokes `/dependency-updates`, or the weekly `dependency-updates` workflow runs the same report

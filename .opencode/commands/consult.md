@@ -3,6 +3,9 @@ description:
   Ask the technical advisor for an independent recommendation on a proposal, implementation, disagreement, or next step
 ---
 
+**Lifecycle:** cross-cutting | **Invocation:** owner-invoked | **Effect:** report-only | **Owner:**
+.opencode/agent/technical-advisor.md
+
 Ask the `technical-advisor` subagent for an independent recommendation. It recommends; it does not implement, approve
 delivery, or gate a change. Present its report without turning a recommendation into authorization.
 

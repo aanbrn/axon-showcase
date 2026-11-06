@@ -3,6 +3,9 @@ description:
   Draw or fix an ASCII or Mermaid diagram with the pro-model diagrammer, then visually review a Mermaid render
 ---
 
+**Lifecycle:** cross-cutting | **Invocation:** owner-invoked | **Effect:** operation within an existing unit |
+**Owner:** .opencode/agent/diagrammer.md
+
 Draw a new diagram or fix an existing one using the `diagrammer` subagent (pinned to the pro model), in whichever medium
 the target uses — ASCII for plain text, Mermaid for a Markdown host that renders it (e.g. GitHub) — so the cheap flash
 main agent does not spend its own effort on diagram geometry or on Mermaid's rendering pitfalls.

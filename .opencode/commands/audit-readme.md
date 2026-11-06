@@ -5,6 +5,9 @@ description:
   the pro-model readme-auditor subagent
 ---
 
+**Lifecycle:** outside-unit | **Invocation:** owner-invoked | **Effect:** report-only | **Owner:**
+.opencode/agent/readme-auditor.md
+
 Run the README audit, which reports only — it never edits a file.
 
 **Trigger** — the owner invokes `/audit-readme`. It is deliberately absent from the scheduled `audit` workflow.

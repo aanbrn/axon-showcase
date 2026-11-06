@@ -4,6 +4,9 @@ description:
   restarting OpenCode
 ---
 
+**Lifecycle:** outside-unit | **Invocation:** owner-invoked | **Effect:** host operation | **Owner:**
+scripts/reconnect-mcp.py
+
 Report, and recover, the MCP servers in the current workspace.
 
 **Trigger** — the owner invokes `/reconnect-mcp` (with no target, `--all`, or one server name), or an MCP tool is

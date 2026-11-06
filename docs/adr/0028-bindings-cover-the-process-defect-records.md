@@ -90,3 +90,9 @@ Decision.
 - The `process-defect-records` value is now `docs/units/<unit>/process-defects.md`, so a unit's defect history sits in
   the same dossier as its `unit.md`, `rounds.tsv`, `findings/`, and `review-handover.md`. The role, its referenced owner
   (the record's field set), and the locating-not-creating rule are unchanged; only the value the bullet states moves.
+
+## Amendment — 2026-11-06
+
+The `branch-refresh` bullet this decision's 2026-11-03 amendment places under "Workflow: Change lifecycle" now lives
+under "Workflow: Unit lifecycle", the heading renamed by `make-unit-lifecycle-explicit`. The role, its referenced owner,
+and the resolution are unchanged; `docs/contracts/process-bindings.md` carries the current value.

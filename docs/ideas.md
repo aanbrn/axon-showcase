@@ -504,18 +504,6 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   delta and a control, and its set is derived from the workflows' own `./gradlew` invocations, so a newly added
   workflow-invoked task joins it by construction.
 
-- Enforce the command lifecycle preflight with a check rather than prose in seventeen files — parked; no change yet.
-  `harden-command-definitions` added the requirement that a project-authored command starting a mutating unit states the
-  lifecycle its unit owes, and wrote it into ten command definitions, but nothing enforces it: the drift it repairs
-  (four of five apply-finding commands running the formatter and a quick review instead of the full review gate) was
-  invisible to every gate for many changes, and a rule copied into N files is the drift surface the single-sourcing
-  bullet names. A `verifyCommandLifecycle` task in `check`, in the `VerifyDocumentedPinsTask` shape, would declare the
-  mutating command set beside the check and fail when a declared command's text lacks the lifecycle anchors the
-  requirement names (the freshly-fetched `origin/main` branch rule and the approval clause, matched as tokens) or when a
-  declared entry names no file, so the list cannot go stale by deletion. Parked rather than built: it needs its own
-  `commit-hygiene` or `agent-skills` delta and a `*RulesTests` control, and the judgment of _which_ commands are
-  mutating stays human.
-
 ## 2026-10-18
 
 - Assert the config's cross-artifact clause parity in a committed check — parked; no change yet. The `rules` are

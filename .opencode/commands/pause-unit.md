@@ -2,6 +2,9 @@
 description: Put the current unit on pause by writing its resume checkpoint, changing no delivery state
 ---
 
+**Lifecycle:** cross-cutting | **Invocation:** owner-invoked | **Effect:** operation within an existing unit |
+**Owner:** .opencode/skills/pause-resume-unit/SKILL.md
+
 Record the pause of the unit this tree holds.
 
 **Trigger** — the owner invokes `/pause-unit`, or says they are stopping for now.

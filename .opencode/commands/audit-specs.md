@@ -2,6 +2,9 @@
 description: Audit the openspec/specs corpus for structure and consistency with the pro-model specs-auditor subagent
 ---
 
+**Lifecycle:** outside-unit | **Invocation:** owner-invoked, scheduled | **Effect:** report-only | **Owner:**
+.opencode/agent/specs-auditor.md
+
 Run the spec-corpus audit, which reports only — it never edits a file.
 
 **Trigger** — the owner invokes `/audit-specs`, or the scheduled `audit` workflow runs it report-only.

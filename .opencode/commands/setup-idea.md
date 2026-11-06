@@ -2,6 +2,9 @@
 description: Set up the project's IntelliJ configuration (settings + formatters incl. web Prettier + Python analysis)
 ---
 
+**Lifecycle:** outside-unit | **Invocation:** owner-invoked | **Effect:** host operation | **Owner:**
+.opencode/skills/setup-idea/SKILL.md
+
 Set up the project's IntelliJ configuration so the IDE matches the build formatter.
 
 **Trigger** — the owner invokes `/setup-idea`.

@@ -3,7 +3,7 @@
 Workspace:
 `unit=verify-air-model-pin; path=/Users/afanasyev/Development/axon-showcase-verify-air-model-pin; branch=verify-air-model-pin; writer=ses_e500773ebffePTHtVKvbxnk063`
 
-State: active
+State: closed
 
 The unit's plan and tasks live in `openspec/changes/verify-air-model-pin/`.
 

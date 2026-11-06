@@ -1,6 +1,7 @@
 import io.github.build.extensions.oss.gradle.plugins.helm.dsl.HelmRepository
 import io.github.build.extensions.oss.gradle.plugins.helm.release.dsl.HelmRelease
 import java.time.Duration
+import org.gradle.api.artifacts.VersionCatalogsExtension
 
 plugins {
     id("dependency-security-conventions")
@@ -543,9 +544,10 @@ tasks.register<Exec>("testOpenSpecDeltaGuard") {
     commandLine(pythonExecutable, "scripts/test-verify-openspec-delta-guard.py")
 }
 
+val versionCatalog = the<VersionCatalogsExtension>().named("libs")
+val catalogVersionAliases = versionCatalog.versionAliases
 val chartStrategiesDir = layout.buildDirectory.dir("chart-strategies")
-val helmClientVersion =
-    the<org.gradle.api.artifacts.VersionCatalogsExtension>().named("libs").findVersion("helm").get().requiredVersion
+val helmClientVersion = versionCatalog.findVersion("helm").get().requiredVersion
 val collectedChartDir = "helm/chart/build/helm/charts/${rootProject.name}"
 
 listOf("Recreate", "RollingUpdate").forEach { strategy ->
@@ -870,7 +872,7 @@ tasks.register("verifyInstallCommands", VerifyInstallCommandsTask::class.java) {
 
 tasks.register("verifyDocumentedPins", VerifyDocumentedPinsTask::class.java) {
     group = "verification"
-    description = "Verifies the catalog's Paketo pins a live doc states match the catalog"
+    description = "Verifies the catalog's Paketo pins are all checked and match the versions a live doc states"
 
     docs.from(
         layout.projectDirectory.file("AGENTS.md"),
@@ -880,6 +882,7 @@ tasks.register("verifyDocumentedPins", VerifyDocumentedPinsTask::class.java) {
 
     repoRoot.set(layout.projectDirectory)
     paketoPins.set(buildpackChecks.associate { it.name to it.pinnedVersion })
+    catalogAliases.set(catalogVersionAliases)
 
     resultFile.set(layout.buildDirectory.file("verification/documented-pins.txt"))
 }

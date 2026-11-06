@@ -296,7 +296,9 @@ deploy as-is — no `image.tag` override in build logic or values files. To bump
 verifies the manual `helm install … --version` commands in this file's Kubernetes Deployment section against the catalog
 chart pins, so a chart bump cannot leave the documented command stale. The `verifyDocumentedPins` task (also part of
 `check`) verifies the catalog's Paketo pins — every pinned builder and buildpack — wherever `AGENTS.md`, `README.md`, or
-this pack states them, so a builder or buildpack bump cannot leave a documented pin stale. The
+this pack states them, so a builder or buildpack bump cannot leave a documented pin stale. It also asserts that those
+pins and the `buildpackChecks` list the update report reads are the same set in both directions: a catalog pin with no
+check entry fails `check`, naming the key, and so does an entry naming a pin the catalog does not hold. The
 `verifyInfraImageVersions` task (part of `check`) derives its checks from the actual `helm.releases` container, resolves
 each pinned chart's preconfigured `image.tag` via the Helm CLI (`helm show values bitnami/<chart> --version <pinned>`,
 using the plugin-managed client; the task adds and updates the declared chart repositories itself), fails the build if

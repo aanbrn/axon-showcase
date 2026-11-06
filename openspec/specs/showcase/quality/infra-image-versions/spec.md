@@ -7,8 +7,9 @@ Keeps the repository's pinned versions single-sourced: the version catalog holds
 chart versions, every chart coordinate being concrete — the Bitnami infrastructure charts, the observability charts, and
 the application chart's `common` subchart. The `deployment-operations` pack states those chart versions in its manual
 `helm install` commands and the catalog's Paketo builder/buildpack pins, and a build gate verifies each documented pin
-against its catalog coordinate, and each infrastructure component's chart-preconfigured `image.tag` against the official
-image tag used in tests.
+against its catalog coordinate, that the catalog's Paketo pins and the build's update-check list cover the same set in
+both directions, and each infrastructure component's chart-preconfigured `image.tag` against the official image tag used
+in tests.
 
 ## Requirements
 
@@ -24,7 +25,10 @@ reproducible at a reviewable version. The `deployment-operations` pack's Kuberne
 `helm install … --version` commands SHALL quote each chart's catalog version, so a chart bump cannot leave the
 documented command stale. That pack SHALL state the catalog's Paketo pins — every pinned builder and buildpack — at
 their catalog versions, so a builder or buildpack bump cannot leave the documented pin stale. `check` SHALL verify every
-stated pin in that pack, `AGENTS.md`, and `README.md`, keeping the coverage the root's pins had before the move.
+stated pin in that pack, `AGENTS.md`, and `README.md`, keeping the coverage the root's pins had before the move. `check`
+SHALL also assert that every `paketo-*` pin the catalog holds has an entry in the build's Paketo check list and that
+every entry names a pin the catalog holds, so a pin cannot be added outside the gates that report its updates and verify
+its documented state.
 
 #### Scenario: All surfaces resolve from the catalog
 
@@ -76,6 +80,13 @@ stated pin in that pack, `AGENTS.md`, and `README.md`, keeping the coverage the 
   as written, and the catalog version — so a builder or buildpack bump cannot leave the documented pin stale; a stated
   pin whose key the catalog does not pin fails `check` too, naming the key; and a catalog key the pack does not state
   fails `check`, naming the key and the pack, so a pin cannot vanish from the document the requirement names
+
+#### Scenario: A catalog Paketo pin without a check entry fails the build
+
+- **WHEN** `check` runs and the catalog holds a `paketo-*` pin with no entry in the Paketo check list
+- **THEN** the gate fails, naming the uncovered catalog key, so a new pin cannot escape both the update report and the
+  documented-pin verification
+- **AND** an entry naming a key the catalog does not hold fails `check` too, naming the entry
 
 ### Requirement: The deployed Bitnami image tag is the chart's preconfigured tag
 

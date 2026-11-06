@@ -25,6 +25,45 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
+## 2026-11-06
+
+- Reconcile the review-record artifacts with the unit layout — parked; no change yet. Two leftovers of inventing records
+  outside `docs/units/<unit>/`'s regulated set. First, the five `findings/advisor-<n>.md` files in the merged units
+  `surface-projector-backlog` and `pin-wrapper-distribution-checksum` belong in their `review-handover.md` sections,
+  with the same class recorded in each unit's `process-defects.md`; deleting them is a docs change, since their content
+  is already summarized in the hand-overs. Second, the `commit-hygiene` requirement that owns `findings/round-<N>.md`
+  states only the mechanism: it should also say why a per-round file earns its place beside the now-permanent hand-over
+  — the build gate cross-checks each round against its file, and the hand-over is written before a round runs while its
+  findings arrive after — because the reason recorded when the store was introduced (the hand-over left with the
+  archive) stopped being true an hour later, when #833 moved the hand-over into the unit directory. A third leftover
+  belongs to the same sweep: the merged unit `surface-projector-backlog` records its deep-review round (12) as
+  `replaced`/`caller-restarted`, where the honest reason is `definition-changed` — the deep pass runs
+  `review-thorough`'s definition, not the quick reviewer's — and that row therefore reads as a restart violation it was
+  not.
+
+- Replace Steroid with IDEA's built-in MCP Server, and optionally run OpenCode as an ACP agent inside JetBrains Air.
+  Steroid 0.102.0 (`com.jonnyzzz.mcp-steroid`) is broken on IDEA 2026.3 —
+  `NoClassDefFoundError: com/fasterxml/jackson/databind/ObjectMapper` in `McpScriptContextImpl.<init>`, even for
+  `println(project.name)`. Its descriptor declares only `com.intellij.modules.platform` and bundles no Jackson jar,
+  while 2026.3 keeps that class in the separate module `lib/intellij.libraries.jackson.databind.jar`, so it is an
+  upstream defect and not a local setting. The bundled server (`com.intellij.mcpServer`, 263.7307.200) was already
+  enabled and listening: an `initialize` against `http://127.0.0.1:64342/stream` returns `IntelliJ IDEA MCP Server`
+  2026.3 at protocol `2025-06-18`, `tools/list` returns 66 tools, and the same port serves `/sse`. It covers what this
+  repository uses an IDE for — `lint_files` and `get_file_problems` (inspections), `rename_refactoring`,
+  `reformat_file`, `optimize_imports`, `analyze_calls`, `build_project`, run configurations, `execute_terminal_command`,
+  sixteen debugger tools, coverage, profiler, VCS, `apply_patch` — and `run_ide_script` reproduces
+  `steroid_execute_code` (Kotlin in the IDE process, full classpath, `project` bound) behind Brave Mode plus a
+  per-script confirmation. Wiring the OpenCode client is one entry in the global flat `mcp` map —
+  `"intellij": {"type": "remote", "url": "http://127.0.0.1:64342/stream"}` — the same transport shape the `amplicode`
+  entry already uses; running OpenCode inside Air instead is one entry in `~/.jetbrains/acp.json`
+  (`"OpenCode": {"command": "/opt/homebrew/bin/opencode", "args": ["acp"], "use_idea_mcp": true, "use_custom_mcp": true}`),
+  since Air is bundled in 2026.3 as `air-plugin` and `use_idea_mcp` injects the IDE server. Steroid then stays warranted
+  only for headless remote-development backends (`devrig backend`) and screenshot or UI-input work. The change would
+  touch `AGENTS.md`'s two Steroid rules (the IDE-inspections bullet with `runInspectionsDirectly`, and the tooling-setup
+  bullet), `.opencode/skills/setup-agent-tools/SKILL.md`, and `.opencode/commands/setup-agent-tools.md`; the README is
+  unaffected, since it deliberately documents only the GitHub and Playwright servers. Revisit after
+  `assert-paketo-pin-coverage` ships, on the owner's instruction. — parked; no change yet.
+
 ## 2026-11-01
 
 - Gate a `Decision` line's link with a check — parked; no change yet. The generalization workflow requires `proposed`
@@ -310,12 +349,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   option (`@Option(option = "imagePlatform")` in 3.5.16). Surfaced while pinning the JVM builder
   (`pin-jvm-buildpack-builder`), which touched the same section for an unrelated reason; verifying the correct form
   needs a real build on each platform, so it ships as its own docs change.
-
-- Assert that every catalog `paketo-*` pin has a `buildpackChecks` entry — parked; no change yet. `verifyDocumentedPins`
-  derives its key set from `buildpackChecks`, and `buildpackUpdates` is the only check that reads a bare Paketo
-  `[versions]` pin, so a new catalog Paketo pin added without an entry is neither reported stale nor required in the
-  docs. A `check`-time assertion over the catalog's `paketo-*` keys closes it; parked rather than folded into
-  `pin-jvm-buildpack-builder`, whose tasks and delta specs cover no new gate.
 
 - Rehearse the snapshot-repository upgrade path and a multi-node projection rebuild — parked; no change yet. The
   populated legacy upgrade and its rollback ran on the local cluster in `idempotent-projection-writes`, but that path

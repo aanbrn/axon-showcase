@@ -25,6 +25,19 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
+## 2026-11-07
+
+- Move the OpenCode definition-inventory probe from the build workflow's step into `check` — parked; no change yet. The
+  probe is the only check that a definition is _registered_: `make-unit-lifecycle-explicit` shipped
+  `.opencode/skills/begin-unit/SKILL.md` without frontmatter, `check`, `openspec validate --all`, and the marker/table
+  checks all passed, and only the pull request's `build` job reported the absent-skill error (run `42250066417`, whose
+  `agents=11 commands=31 skills=21` counts the tree's definition files rather than the loader's inventory). The probe
+  installs the v1 `opencode` binary and reads its resolved config, so a `check`-time variant needs the binary (a cached
+  tool install) or a committed inventory fixture, and the v2 binary the local workflow runs may resolve definitions
+  differently, which is unverified. Building it owes a `MODIFIED` delta on `showcase/quality/merge-governance` — its
+  pull-request gate requirement puts this verification in `build` — a known-bad unregistered definition as the control,
+  and the acquisition decision.
+
 ## 2026-11-06
 
 - Report the MCP Steroid defect for IDEA 2026.3 upstream once the project publishes a venue. The reproduction is

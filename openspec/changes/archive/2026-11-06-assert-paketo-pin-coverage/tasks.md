@@ -70,13 +70,15 @@ The unit's record is `docs/units/assert-paketo-pin-coverage/unit.md`.
 - [x] 3.1 `docs/ideas.md`: remove the entry this change implements. Verify: the entry is gone and its section keeps its
       other entries. Done: the entry is gone from `docs/ideas.md` and `verifyIdeasSections` passes.
 
-- [ ] 3.2 `openspec/specs/showcase/quality/infra-image-versions/spec.md`: refresh the `## Purpose` only if the added
+- [x] 3.2 `openspec/specs/showcase/quality/infra-image-versions/spec.md`: refresh the `## Purpose` only if the added
       requirement widens a class it names; a delta cannot carry a Purpose, so an edit rides the archive commit. Verify:
       either the Purpose is unchanged and says so here, or it names the coverage and the requirement's text is
       untouched. Decided: the Purpose is refreshed in the archive commit — its sentence names the gate the change widens
       ("a build gate verifies each documented pin against its catalog coordinate"), and the gate now also asserts that
       the catalog's Paketo pins and the build's check list cover the same set, so the class the Purpose names has
-      widened.
+      widened. Done: the Purpose named the gate this change widens, so its sentence now also states that the catalog's
+      Paketo pins and the build's update-check list cover the same set. Applied in the archive commit.
+
 - [x] 3.3 The two packs that describe the gate: `.opencode/skills/deployment-operations/SKILL.md` (its
       `verifyDocumentedPins` sentence) and `.opencode/skills/gradle-build/SKILL.md` (the buildpack-pin bullet, or its
       absence) — each states that the catalog's Paketo pins and the check list move together. Verify: both name the

@@ -17,3 +17,23 @@
 - **Knowledge boundary** — observed: the edit order and the first round's findings. Not checked: whether loading the
   packs first would have produced the same decision shape, or whether a different wording would have avoided the
   findings.
+
+### make-unit-lifecycle-explicit#2 — A new skill's definition was delivered unregistered, and only CI noticed
+
+- **Recorded** — 2026-11-06, by the main agent, after the unit merged.
+- **Stage** — ship.
+- **Expected** — a definition would be verified to register before it shipped; the `build` gate's definition-inventory
+  assertion is the check that implements that expectation.
+- **Observed** — `.opencode/skills/begin-unit/SKILL.md` was written without frontmatter, so the loader's resolved skill
+  inventory held 21 entries and the new skill was absent from it. The local `check`, `openspec validate --all`, and the
+  marker/table checks all passed; the defect surfaced only in the pull request's `build` job, at the step that probes
+  the OpenCode configuration, and required a fixup commit and a second run.
+- **Evidence** — the failed run `42250066417` reports `agents=11 commands=31 skills=21` and then
+  `##[error]OpenCode definition skill '.opencode/skills/begin-unit' is absent from the resolved skill inventory`; the
+  repository's own note says the gate probes that every agent/command/skill definition resolves with its metadata
+  intact, and the probe lives in the workflow's `build` job rather than in the `check` graph.
+- **Consequence** — one fixup commit registered the frontmatter and the rerun passed; the delivered definition is
+  correct, and no other artifact needed repair. None of the gates this unit ran detects the class locally.
+- **Knowledge boundary** — observed: the failing step's log, the local green gates, and the workflow's step list. Not
+  checked: whether adding the probe to `check` is feasible (it installs the v1 binary), and whether other definition
+  kinds (agents, commands) fail the same way when unregistered.

@@ -1358,10 +1358,11 @@ Key modules (libraries, not services):
     enforce-line-endings.
 - **IDE inspections (optional)**: the build gates are the canonical verification — after each edit, run
   `./gradlew spotlessApply` and the touched module's quality gates (`compileJava`/`check`); no IDE is required. If the
-  IDE is available, you may additionally run its inspections on the touched files (through the Steroid MCP
-  `steroid_execute_code`, via its `runInspectionsDirectly` helper) and fix warnings, but this is not required and never
-  a gate. Prefer assertions like `assertThat(x).isNotNull()` over `Objects.requireNonNull(x)` when guarding nullable
-  values in tests, since the IDE recognizes them for dataflow. The null-check case is the mirror:
+  IDE is available, you may additionally run its inspections on the touched files and fix warnings, but this is not
+  required and never a gate: on the IDE build this repo was verified against (IDEA 2026.3), its bundled MCP server
+  exposes `lint_files` for a set of files and `get_file_problems` for one — read the installed server's tool list rather
+  than assuming those names. Prefer assertions like `assertThat(x).isNotNull()` over `Objects.requireNonNull(x)` when
+  guarding nullable values in tests, since the IDE recognizes them for dataflow. The null-check case is the mirror:
   `assertThat(frame.data()).isNull()` trips `DataFlowIssue` twice — "The call to 'isNull' always fails with an
   exception" and "Argument 'frame.data()' might be null" — and the intermediate
   `assertThat(frame).extracting(ServerSentEvent::data).isNull()` still warns ("Function may return null, but it's not
@@ -1619,12 +1620,15 @@ Key modules (libraries, not services):
   for the tools — not from the location in hand. captured: state-tooling-placement-rule (#458)
 - **Tooling-setup skill and command**: `.opencode/skills/setup-agent-tools/` and
   `.opencode/commands/setup-agent-tools.md` (project-local, **not** a vendored skill) let a contributor ask the agent to
-  wire the per-user MCP servers — the GitHub MCP (core) and, for IntelliJ IDEA users only, the Steroid MCP — into the
-  flat `mcp` map of their global `~/.config/opencode/opencode.jsonc` (not the `mcp.servers` nesting: `opencode mcp add`
-  needs `--global`, and Gotchas carries the shape rationale and the upstream reference). Playwright is
-  project-configured. The README deliberately documents only GitHub (and the project-configured Playwright): Steroid is
-  optional, IDEA-only, and nothing in the repo requires it (formatting is Spotless), so it is surfaced on demand via
-  `/setup-agent-tools` rather than advertised — do not re-add it to the README's server list.
+  wire the per-user MCP servers: the GitHub MCP (core) and, for IntelliJ IDEA users only, the IDE's own MCP server. The
+  GitHub entry lives in the flat `mcp` map of their global `~/.config/opencode/opencode.jsonc` (not the `mcp.servers`
+  nesting: `opencode mcp add` needs `--global`, and Gotchas carries the shape rationale and the upstream reference),
+  while the IDE connection has two surfaces the skill owns — that same map for OpenCode in a terminal or the desktop
+  app, and JetBrains' `~/.jetbrains/acp.json` for OpenCode hosted inside Air. Playwright is project-configured. The MCP
+  Steroid bridge is the fallback where the built-in server cannot serve: a `devrig`-provisioned headless backend,
+  screenshots, and UI input, which it has no tools for. The README names the integrations and their user-facing benefit;
+  the skill owns the configuration procedure, the fallback selection, and the hosting path — keep the Steroid procedure
+  there rather than adding it to the README's server list.
 - **Agent scratch files go in `$TMPDIR/opencode`, which OpenCode v2 allows by default.** v2's managed temporary
   directory _is_ `<tmpdir>/opencode` (`opencode debug paths`), and its permissions docs say v2 allows
   `external_directory` access to that directory, so no rule is needed; put PR-body files and similar there — including a

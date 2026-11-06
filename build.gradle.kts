@@ -848,6 +848,15 @@ tasks.register<Exec>("verifyFindingInstances") {
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--finding-instances")
 }
 
+tasks.register<Exec>("verifyUnitLayout") {
+    group = "verification"
+    description = "Verifies each unit directory holds only the record kinds the layout admits"
+    inputs.file("scripts/commit-hygiene.py")
+    inputs.dir("docs/units")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--unit-layout")
+}
+
 tasks.register<VerifyTableRowsTask>("verifyTableRows") {
     group = "verification"
     description = "Verifies every markdown table's rows carry its delimiter row's column count"
@@ -972,6 +981,7 @@ tasks.named("check") {
     dependsOn("verifyWorkspaceRecords")
     dependsOn("verifyReviewClassVocabulary")
     dependsOn("verifyFindingInstances")
+    dependsOn("verifyUnitLayout")
     dependsOn("verifyTableRows")
     dependsOn("verifyWrapperChecksum")
     dependsOn("testVerifyWrapperChecksum")

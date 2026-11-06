@@ -1,0 +1,17 @@
+2026-11-06	unit-layout-allowlist	1	coherence,claim-unreproducible,missing-task,test-control,contradiction,over-claim	-	1	ses_e503b6cc7ffeeI3r2NZOZdI0cM	created	-
+2026-11-06	unit-layout-allowlist	2	incomplete-enumeration,claim-unreproducible,contradiction,over-claim,single-sourcing	claim-unreproducible,over-claim,contradiction	2	ses_e503b6cc7ffeeI3r2NZOZdI0cM	continued	-
+2026-11-06	unit-layout-allowlist	3	contradiction,claim-unreproducible,incomplete-enumeration	contradiction,claim-unreproducible,incomplete-enumeration	2	ses_e503b6cc7ffeeI3r2NZOZdI0cM	continued	-
+2026-11-06	unit-layout-allowlist	4	contradiction,incomplete-enumeration	contradiction,incomplete-enumeration	1	ses_e503b6cc7ffeeI3r2NZOZdI0cM	continued	-
+2026-11-06	unit-layout-allowlist	5	contradiction,dropped-content	contradiction	2	ses_e503b6cc7ffeeI3r2NZOZdI0cM	continued	-
+2026-11-06	unit-layout-allowlist	6	-	-	0	ses_e503b6cc7ffeeI3r2NZOZdI0cM	continued	-
+2026-11-06	unit-layout-allowlist	7	contradiction,coherence,wording,over-claim	contradiction,coherence,over-claim	1	ses_e503b6cc7ffeeI3r2NZOZdI0cM	continued	-
+2026-11-06	unit-layout-allowlist	8	coherence	coherence	0	ses_e503b6cc7ffeeI3r2NZOZdI0cM	continued	-
+2026-11-06	unit-layout-allowlist	9	coherence	coherence	0	ses_e503b6cc7ffeeI3r2NZOZdI0cM	continued	-
+2026-11-06	unit-layout-allowlist	10	-	-	0	ses_e503b6cc7ffeeI3r2NZOZdI0cM	continued	-
+2026-11-06	unit-layout-allowlist	11	missing-scenario,claim-unreproducible,wording	claim-unreproducible,wording	0	ses_e503b6cc7ffeeI3r2NZOZdI0cM	continued	-
+2026-11-06	unit-layout-allowlist	12	incomplete-enumeration	incomplete-enumeration	0	ses_e503b6cc7ffeeI3r2NZOZdI0cM	continued	-
+2026-11-06	unit-layout-allowlist	13	dropped-content	dropped-content	1	ses_e503b6cc7ffeeI3r2NZOZdI0cM	continued	-
+2026-11-06	unit-layout-allowlist	14	incomplete-enumeration	incomplete-enumeration	0	ses_e503b6cc7ffeeI3r2NZOZdI0cM	continued	-
+2026-11-06	unit-layout-allowlist	15	-	-	0	ses_e503b6cc7ffeeI3r2NZOZdI0cM	continued	-
+2026-11-06	unit-layout-allowlist	16	dropped-content,incomplete-enumeration,wording	-	3	ses_e4ff042c4ffeg07bUWXO0uAVPp	replaced	definition-changed
+2026-11-06	unit-layout-allowlist	17	-	-	0	ses_e503b6cc7ffeeI3r2NZOZdI0cM	replaced	definition-changed

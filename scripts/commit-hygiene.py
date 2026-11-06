@@ -26,7 +26,9 @@ its date, apart from one it acknowledges by name — the guard applies the same 
 the tree and branch the record names; and
 `--class-vocabulary` verifies every class in a review-round row dated after the
 digest script's canonical boundary is one the reviewer's definition names, reading both rather than restating either,
-and exempting only a label a class-acknowledgement comment names on that row.
+and exempting only a label a class-acknowledgement comment names on that row; `--finding-instances` verifies each
+round recorded after the finding store's boundary carries its instances file; and `--unit-layout` verifies a unit's
+directory holds only the record kinds the layout admits, at its two levels.
 
 No mode reads a failed read as a clean result — a git invocation or a tracked file's size: a read whose failure would
 look like an empty offender list raises, and `main` reports it as the check having failed. The exits that answer a
@@ -1897,19 +1899,33 @@ def index_text(repo: Path, path: str) -> str:
         raise ValueError("cannot read the index copy of {0}".format(path))
 
 
-def store_stray_files(repo: Path) -> list[str]:
-    """Every tracked file under a unit's findings directory that is not a round's instances file."""
+UNIT_LAYOUT_FILES = ("unit.md", "rounds.tsv", "review-handover.md", "process-defects.md")
+
+
+def layout_stray_paths(repo: Path) -> list[str]:
+    """Every tracked path under a unit's directory that the layout's two levels do not admit."""
     prefix = UNIT_RECORD_DIR + "/"
     strays: list[str] = []
     for path in git_output(repo, "ls-files", "-z", "--", UNIT_RECORD_DIR).split("\0"):
         if not path.startswith(prefix):
             continue
         parts = path[len(prefix):].split("/")
-        if len(parts) >= 3 and parts[1] == FINDING_INSTANCES_DIR:
-            canonical = len(parts) == 3 and re.fullmatch(r"round-\d+\.md", parts[2])
-            if not canonical:
-                strays.append(path)
+        if len(parts) < 2:
+            continue
+        admitted = (len(parts) == 2 and parts[1] in UNIT_LAYOUT_FILES) or (
+            len(parts) == 3 and parts[1] == FINDING_INSTANCES_DIR and re.fullmatch(r"round-\d+\.md", parts[2])
+        )
+        if not admitted:
+            strays.append(path)
     return strays
+
+
+def check_unit_layout(repo: Path) -> int:
+    """Name each path the unit layout does not admit; return their count."""
+    problems = layout_stray_paths(repo)
+    for problem in problems:
+        print("Unit layout: {0} is not a path the unit layout admits".format(problem), file=sys.stderr)
+    return len(problems)
 
 
 def check_finding_instances(repo: Path) -> int:
@@ -1919,10 +1935,6 @@ def check_finding_instances(repo: Path) -> int:
     except ValueError as failure:
         print("Review-round finding instances: {0}".format(failure), file=sys.stderr)
         return 1
-    problems += [
-        "{0} is not a round's instances file, and the store holds review rounds only".format(stray)
-        for stray in store_stray_files(repo)
-    ]
     for problem in problems:
         print("Review-round finding instances: {0}".format(problem), file=sys.stderr)
     return len(problems)
@@ -1947,6 +1959,7 @@ MODE_FLAGS = (
     "--class-vocabulary",
     "--workspace-records",
     "--finding-instances",
+    "--unit-layout",
 )
 
 
@@ -2478,6 +2491,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="check each round recorded after the boundary has its finding instances",
     )
+    mode.add_argument(
+        "--unit-layout",
+        action="store_true",
+        help="check a unit's directory holds only the record kinds the layout admits",
+    )
     parser.add_argument(
         "--expect",
         action="append",
@@ -2550,6 +2568,8 @@ def dispatch(args: argparse.Namespace, repo: Path) -> int:
         return 1 if check_workspace_records(repo) else 0
     if args.finding_instances:
         return 1 if check_finding_instances(repo) else 0
+    if args.unit_layout:
+        return 1 if check_unit_layout(repo) else 0
     return 1 if check_staged(repo, args.formatter) else 0
 
 

@@ -16,12 +16,13 @@ ledger carries at most one row per unit and round, that each unit's rounds are c
 explicitly acknowledged gap, that a round the caller names with `--expect` is recorded, that every class a row recorded
 after the canonical boundary carries is one the reviewer's definition names apart from an acknowledged label, that each
 round's reviewer session and its continuity are recorded, that every round recorded after the findings store's boundary
-carries its instances file — and, asserted at the review gate's manual-pass boundary rather than by a build check, that
-a unit the caller names with `--expect-clean` closes on a round carrying no finding class, since a round in flight is
-unclean by design, and that the unit's own tree is ready for the owner's pass: no unstaged new file, no stale indexed
-copy, and a base its `HEAD` contains, failing as not established when a read it needs fails rather than reporting the
-tree clean — and a committed `.gitattributes` that normalizes line endings (enforced by git, not the build) — so slips
-that were caught only by a human or a review pass are blocked by construction.
+carries its instances file and that the store holds no file that is not a round's — and, asserted at the review gate's
+manual-pass boundary rather than by a build check, that a unit the caller names with `--expect-clean` closes on a round
+carrying no finding class, since a round in flight is unclean by design, and that the unit's own tree is ready for the
+owner's pass: no unstaged new file, no stale indexed copy, and a base its `HEAD` contains, failing as not established
+when a read it needs fails rather than reporting the tree clean — and a committed `.gitattributes` that normalizes line
+endings (enforced by git, not the build) — so slips that were caught only by a human or a review pass are blocked by
+construction.
 
 ## Requirements
 
@@ -1346,21 +1347,26 @@ retired header, and no per-unit file SHALL carry a normative header of its own.
 ### Requirement: Every review round recorded after the boundary keeps its finding instances
 
 Each unit's finding instances SHALL be stored at `docs/units/<unit>/findings/round-<N>.md`, one file per recorded round,
-and the build SHALL verify that every round recorded after the store's boundary has one. A file SHALL carry one entry
-per finding of that round — its class, its location (`file:line`), and its claim — or state that the round raised none,
-so a clean round is recorded as clean rather than left absent. An entry MAY be wrapped across source lines, because the
-file sits under `docs/` and the formatter reflows it; its fields SHALL be read from the joined text. A round dated on or
-before the boundary SHALL be exempt, because it was recorded before the store existed, and the exemption SHALL be stated
-as that date rather than inferred from a missing file.
+and the build SHALL verify that every round recorded after the store's boundary has one. The store exists beside the
+unit's permanent hand-over rather than inside it, because the hand-over is written before a round runs while the round's
+findings arrive after it, and because the build cross-checks each round's classes against its file. It SHALL hold review
+rounds only: a consultation, or any other pass that is not a review round, SHALL record its findings in the unit's
+`review-handover.md`, and SHALL NOT record them in a round file or in any other file under the store's directory. A file
+SHALL carry one entry per finding of that round — its class, its location (`file:line`), and its claim — or state that
+the round raised none, so a clean round is recorded as clean rather than left absent. An entry MAY be wrapped across
+source lines, because the file sits under `docs/` and the formatter reflows it; its fields SHALL be read from the joined
+text. A round dated on or before the boundary SHALL be exempt, because it was recorded before the store existed, and the
+exemption SHALL be stated as that date rather than inferred from a missing file.
 
 The verification SHALL be a `commit-hygiene.py` mode run by a `check` task over the tracked records, and it SHALL fail
 when a round has no instances file, when a file names a round its record does not carry, when an entry lacks one of its
-three fields, when the file states no entry and no `- none`, when it states `- none` beside entries, and when the
-classes the entries name differ from the round's `classes raised` field — so a file stating none beside a round that
-raised classes fails instead of misleading a reader. The pre-commit guard SHALL refuse a commit that changes either a
-record or its instances files and leaves an affected post-boundary round without its instances: it SHALL read the
-index's contents for the affected unit rather than the working tree's copy, so a file an earlier commit recorded is seen
-and a staged deletion is judged.
+three fields, when the file states no entry and no `- none`, when it states `- none` beside entries, when the classes
+the entries name differ from the round's `classes raised` field, and when the store holds a file that is not a round's
+instances file — so a file stating none beside a round that raised classes fails instead of misleading a reader, and a
+file the store does not hold is named rather than ignored. The pre-commit guard SHALL refuse a commit that changes
+either a record or its instances files and leaves an affected post-boundary round without its instances: it SHALL read
+the index's contents for the affected unit rather than the working tree's copy, so a file an earlier commit recorded is
+seen and a staged deletion is judged.
 
 #### Scenario: The standard check verifies the rounds' instances
 
@@ -1434,6 +1440,17 @@ and a staged deletion is judged.
 
 - **WHEN** an instances file cannot be read, or its entries cannot be parsed
 - **THEN** the verification fails, naming the file, rather than reporting the round clean
+
+#### Scenario: A file the store does not hold fails
+
+- **WHEN** `docs/units/<unit>/findings/` holds a tracked file whose name is not `round-<N>.md`
+- **THEN** the verification fails, naming the file, since the store holds review rounds only
+
+#### Scenario: A consultation records its findings in the hand-over
+
+- **WHEN** a pass that is not a review round raises findings for a unit
+- **THEN** they are recorded in that unit's `review-handover.md`, and no file under its `findings/` directory carries
+  them
 
 ### Requirement: The wrapper's distribution checksum is verified by the build
 

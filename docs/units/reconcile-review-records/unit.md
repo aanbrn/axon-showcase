@@ -3,7 +3,7 @@
 Workspace:
 `unit=reconcile-review-records; path=/Users/afanasyev/Development/axon-showcase; branch=reconcile-review-records; writer=ses_e5dece39fffeYkl8XkXm6Yg9Q3`
 
-State: active
+State: closed
 
 The unit's plan and tasks live in `openspec/changes/reconcile-review-records/`.
 
@@ -16,7 +16,8 @@ The unit's plan and tasks live in `openspec/changes/reconcile-review-records/`.
   reason corrected with a dated note, the store's check extended with three tests at any depth below `findings/`, the
   writer step, two process-defect records and the `#3` correction written. Six proposal rounds and eight implementation
   rounds (7–14) closed clean; a consultation on the proposal and a follow-up on the implementation were both resolved.
-- **Next step** — the owner's manual pass over the finished unit.
+- **Next step** — merged in pull request #849; the tree is released after the merge, and the change is archived as
+  `openspec/changes/archive/2026-11-06-reconcile-review-records/` (task 4.5's Purpose edit rides this commit).
 - **Change set** — staged: the change dir, this unit's record set under `docs/units/reconcile-review-records/` (whose
   ledger lists the rounds and their instances files), and the `docs/ideas.md` removal.
 - **Blockers and open decisions** — none: the continuity violation (`process-defects.md#2`) is resolved, the owner

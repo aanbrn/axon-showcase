@@ -110,11 +110,12 @@ The unit record — its `Workspace:`, state, and pause checkpoint — is `docs/u
       and a `REQUIRED` outcome is run before completion, while `NOT_NEEDED` spends no deep-review session. Done:
       `review-routing.py` returns `NOT_NEEDED` on the completed implementation, so no deep-review session is created and
       no hand-over is prepared.
-- [ ] 4.5 `openspec/specs/showcase/quality/commit-hygiene/spec.md`: refresh the `## Purpose`, because it enumerates the
+- [x] 4.5 `openspec/specs/showcase/quality/commit-hygiene/spec.md`: refresh the `## Purpose`, because it enumerates the
       guard's reach ("that every round recorded after the findings store's boundary carries its instances file") and the
       widened check now also rejects a file the store does not hold. A delta cannot carry a Purpose, so the edit rides
       the archive commit. Verify: the Purpose names the store's file set, and the requirement's text is untouched by the
       edit.
+      Done: the Purpose now names the store's file set, the requirement's text is untouched by the edit.
 
 ## 5. The consultation
 

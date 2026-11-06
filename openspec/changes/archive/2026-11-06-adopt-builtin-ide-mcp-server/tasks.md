@@ -217,8 +217,9 @@ The unit's record is `docs/units/adopt-builtin-ide-mcp-server/unit.md`.
 - [x] 7.2 The owner's manual pass over the proposal. Verify: the approval is recorded before any implementation edit.
       Done: the owner approved after the advisor's three-round review-to-agreement ("Одобряю. Реализуй."), and
       implementation began only afterwards.
-- [ ] 7.3 The implementation stage's quick review. Verify: the closing round carries no finding class, and
+- [x] 7.3 The implementation stage's quick review. Verify: the closing round carries no finding class, and
       `python3 scripts/commit-hygiene.py --review-ready` passes.
+      Done: rounds 16–22, closing round 22 with no finding class; `--review-ready` passes on base `3dac4109`.
 - [x] 7.4 The deep-review routing decision on the completed diff. Verify:
       `python3 scripts/review-routing.py --unit adopt-builtin-ide-mcp-server --change adopt-builtin-ide-mcp-server` ran
       and its outcome and signals are recorded. Done: RECOMMENDED on one `[repeated-class]` signal (ten rows repeat a

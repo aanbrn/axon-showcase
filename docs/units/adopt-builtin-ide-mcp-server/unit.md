@@ -16,10 +16,9 @@ The unit's plan and tasks live in `openspec/changes/adopt-builtin-ide-mcp-server
   proposal after the advisor's three-round review-to-agreement; `AGENTS.md`, `README.md`, the setup skill and command,
   and `docs/ideas.md` are edited; `check`, `spotlessCheck`, `openspec validate --all` and the commit guard pass; the
   client path and both Air configurations were exercised and the skill states the observed combination.
-- **Next step** — the owner's explicit skip-or-run decision on the deep review (routing RECOMMENDED; the advisor, asked
-  to settle it, recommends a skip), then the owner's manual pass over the finished unit.
-- **Change set** — no commits yet; the six edited files, the change dir and this record's directory are staged and
-  uncommitted.
+- **Next step** — the merge of pull request #853; the implementation commit is pushed and the archive commit follows.
+- **Change set** — the implementation commit `1b39fc45` on `adopt-builtin-ide-mcp-server` and the archive commit that
+  follows it, carrying the change-dir move and this record's `State: closed`.
 - **Blockers and open decisions** — none; the IDE's MCP endpoint answered after the owner toggled the server, and the
   restored per-user configuration is the client entry plus `use_idea_mcp: false`.
 - **Pending decision** — the owner's manual pass over the finished unit.

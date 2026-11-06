@@ -1,0 +1,8 @@
+- [test-control] `design.md` — the identifier check used `git diff --` on staged paths, which prints nothing.
+- [claim-missing] `design.md` — no row sourced that a picker selection governs the session's model.
+- [incomplete-enumeration] `design.md` — the dismissals omitted the scan's `cross-ref` kind.
+- [wording] `tasks.md` — three mutually exclusive commit-hygiene flags read as one invocation.
+- [coherence] `design.md` — `begin-unit` has no referent on this branch; it now says the lifecycle's Begin step.
+- [claim-unreproducible] `review-handover.md` — scan counts moved with the record's own writes.
+- [claim-unreproducible] `unit.md` — the revision named the primary's head, not this tree's HEAD.
+- [structured-writing] `proposal.md` — the check, branch, recheck, pointer, and constraints were packed together.

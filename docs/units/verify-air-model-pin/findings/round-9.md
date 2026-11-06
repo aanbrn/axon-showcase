@@ -1,0 +1,3 @@
+- [single-sourcing] `SKILL.md` — the block restated the caveat its plan says to point at.
+- [contradiction] `unit.md` — "proposal stage" and a pending proposal approval contradicted the recorded approval.
+- [incomplete-enumeration] `unit.md` — the change set omitted the skill file's modification.

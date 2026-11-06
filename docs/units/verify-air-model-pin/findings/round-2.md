@@ -1,0 +1,4 @@
+- [stale-base] `README.md` — the branch was behind origin/main; refreshed to 428a3522 and the sentence reapplied.
+- [wording] `tasks.md` — `--expect-clean` needs `--unique-rounds` in the same invocation.
+- [test-control] `design.md` — the planted control must be staged in a target file, not a scratch file.
+- [coherence] `proposal.md` — the read-back clause applied to both texts; now split per text.

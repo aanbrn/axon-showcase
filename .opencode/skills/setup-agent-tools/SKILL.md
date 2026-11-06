@@ -127,6 +127,19 @@ the source commit and the source retained all staged, unstaged, and untracked ma
 (`docs/decisions/2026-11-06-air-worktree-exercise.md`), despite the creation dialog's copy promise — so a unit session
 started there works outside the tree the unit record names and without the unit's uncommitted work.
 
+When this guidance is loaded in a new or resumed session, check the model before continuing substantive work — a
+best-effort check, since the skill is loaded on a setup request and from the Workspace rule's Air pointer, not
+automatically in every session:
+
+- if trustworthy runtime model information is available, compare it with the repository's configured model for the
+  selected agent; otherwise ask the owner to confirm the session's picker;
+- on a mismatch, ask the owner to restore the configured model or confirm the override — unless a verified way to switch
+  the model from the session is available;
+- recheck after switching agent or model.
+
+`AGENTS.md`'s model-pin bullet states the default-versus-session caveat. This is a precaution: no project-level lock on
+a host's picker is established.
+
 Before a unit session starts:
 
 - choose **Local** in the unit's assigned tree;

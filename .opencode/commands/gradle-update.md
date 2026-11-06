@@ -2,6 +2,9 @@
 description: Update the Gradle wrapper to the latest stable version
 ---
 
+**Lifecycle:** Begin | **Invocation:** owner-invoked | **Effect:** unit start | **Owner:** AGENTS.md "Workflow: Unit
+lifecycle"
+
 Update the Gradle wrapper when a newer stable version is available.
 
 **Trigger** — the owner invokes `/gradle-update`, or `/dependency-updates` flagged a newer stable Gradle.

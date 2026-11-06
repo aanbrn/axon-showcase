@@ -2,6 +2,8 @@
 description: Check whether this machine has everything the build, tests, and deployment need
 ---
 
+**Lifecycle:** outside-unit | **Invocation:** owner-invoked | **Effect:** host operation | **Owner:** scripts/doctor.sh
+
 Check this machine's toolchain against the project's prerequisites.
 
 **Trigger** — the owner invokes `/check-tooling`.

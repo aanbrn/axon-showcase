@@ -269,12 +269,18 @@ the intro describes.
 
 ### Spec-Driven Development
 
-This repository is built spec-first. Behavior is captured as OpenSpec specs under `openspec/specs/` (the behavioral
-source of truth) and changes are planned under `openspec/changes/` using the propose → apply → archive workflow (via the
-`/opsx-*` OpenCode commands / `openspec-*` skills). `AGENTS.md` records the development workflow and conventions — read
-it before contributing.
+Work is organized into **units of work**: one branch, intended for one pull request. The unit lifecycle is the enclosing
+process; an **OpenSpec change** is one form a unit may take. Behavior is captured in `openspec/specs/` (the behavioral
+source of truth) and changes are planned under `openspec/changes/`. `AGENTS.md` owns the lifecycle model, the entry
+points to its stage procedures, and the repository's conventions — read it before contributing.
 
-Every change flows through the same loop:
+On the normal proposal-led route, a unit follows **Begin → Plan → Proposal review → Implement → Implementation review →
+Deliver → Settle**. Discussion alone does not start a unit: the owner authorizes the work. The lifecycle also covers
+units without an OpenSpec change directory, which have no archive step; its exceptional routes, including work
+authorized as named direct edits, are described in `AGENTS.md`.
+
+**The nested OpenSpec path.** For a unit carrying a change, planning runs in **Plan**, applying in **Implement**, and
+archiving in **Deliver**. The diagram below shows that change path — not the whole unit lifecycle:
 
 ```mermaid
 flowchart TB
@@ -318,30 +324,32 @@ flowchart TB
 
 </details>
 
-An idea becomes a **proposal** (what and why), then a **spec delta** (the new behavior, scoped to a capability), a
-**design** (how), and **tasks**. Applying writes the code and tests.
+Within **Plan**, an OpenSpec change captures the proposal (what and why), a capability-scoped spec delta, a design
+(how), and tasks; within **Implement**, applying follows the approved tasks to produce and verify the implementation. A
+unit without a change directory plans and implements without those OpenSpec artifacts.
 
-Each phase ends in **two reviews**: an **auto-review** (the `review-quick` subagent, repeated until it finds nothing
-new) and your **manual review**. Before your manual review, the agent checks the branch against `origin/main` and
-refreshes it when it has fallen behind, so you review the diff against current `main`; it then stages the unit's new
-files so they appear in your IDE's Changes panel. A conflict is resolved for both sides rather than by picking one. If
-the branch carries both its own commits and uncommitted work, the agent asks you to decide how to proceed. After
-implementation, a deep `review-thorough` pass also runs whenever the review gate's routing decision requires one.
+At each review boundary the unit has, an **auto-review** (the `review-quick` subagent, repeated until it finds nothing
+new) precedes your **manual review**; the review gate decides whether a deep `review-thorough` pass is also required.
+You review the proposal before implementation and the finished work before delivery; the lifecycle's named-direct-edit
+route skips the proposal review and keeps the implementation one. Before your manual review the agent refreshes the
+branch against `origin/main` so you read the diff against current `main`, and stages the unit's new files so they appear
+in your IDE's Changes panel.
 
-The change's single **PR** may be opened as a draft after the proposal review (to share the plan); your go-ahead after
-the implementation review starts delivery — the agent pushes the branch and opens the PR for real, and CI runs on it.
-Once CI is green it archives the change — the change dir moves to `openspec/changes/archive/` and its delta spec is
-folded into the main spec — as a commit in the same PR, then merges. So the main spec always describes behavior the code
-has been verified against.
+The unit is intended to ship in one **PR**; a draft PR can share the plan after the proposal review. Implementation
+approval alone does not start delivery — the owner must also request it. During **Deliver**, the agent publishes the
+work and follows CI: a unit carrying a change directory is archived after green CI and before the merge, as a commit in
+the same PR (the directory moves to `openspec/changes/archive/` and its delta specs are folded into the main specs),
+while a unit without one skips that step. So the main spec always describes behavior the code has been verified against.
+Merge is followed by **Settle**, which accounts for the outcome and the remaining work before the workspace is released.
 
 A vague idea is usually sharpened first in **explore mode** (`/opsx-explore`) — a thinking stance that investigates the
 codebase and clarifies what to build, without writing code. Only when the idea is concrete enough does it become a
 proposal.
 
-The loop is **iterative, not a strict pipeline** — you can step back and rework at any point. A question in review can
-send you back to the proposal, a realization mid-implementation to the spec delta; the agent revises the affected
-artifacts (`/opsx-update` reworks a change's planning artifacts) and re-verifies. The loop repeats until the change is
-right — the archive is a snapshot of a settled state, not the end of a one-way flow.
+The lifecycle is **iterative, not a strict pipeline**: a material scope change returns the unit through the planning and
+approval boundary it invalidates. A question in review can send you back to the proposal, a realization
+mid-implementation to the spec delta; the agent revises the affected artifacts (`/opsx-update` reworks a change's
+planning artifacts) and re-verifies. The archive is a snapshot of the verified change, not the end of a one-way flow.
 
 The specs are organized by architectural role (`gateway`, `write-side`, `read-side`, `clients`, `extensions`,
 `deployment`, `quality`) — a capability spec per capability, grouped into these role areas, covering everything from the
@@ -361,8 +369,8 @@ is the usual starting point for an explore session that decides whether it deser
 
 An idea isn't the only entry point, though: a session can start just as well from a reported issue, a failing CI job, or
 any other observation — you describe it in a prompt; the agent investigates (reading the issue or the failing check
-through the GitHub MCP) and proposes from there. The loop is identical whatever kicked it off; `docs/ideas.md` holds
-ideas not yet acted on — it is not a required gate.
+through the GitHub MCP) and proposes from there. The source of the request does not change the unit's authorization or
+review boundaries; `docs/ideas.md` holds ideas not yet acted on — it is not a required entry point.
 
 Cross-cutting architecture decisions and their rationale are recorded as Architecture Decision Records under
 `docs/adr/`. OpenSpec captures what the system does and how a change is planned; ADRs capture why the system is shaped
@@ -499,7 +507,7 @@ Add a custom title color to showcases. The API should accept an optional color i
 service should validate it, and the UI should render the title in that color.
 ```
 
-That one prompt starts the whole loop. The agent:
+That one prompt starts a unit. Before planning, the agent establishes the authorized unit's workspace. Then:
 
 1. **Proposes** (`/opsx-propose`): scaffolds the change under `openspec/changes/` — a proposal, design, tasks, and a
    spec delta that states the new behavior — then runs the quick auto-review of the plan and shows it to you.
@@ -514,7 +522,8 @@ That one prompt starts the whole loop. The agent:
 6. **Ships**: on your go-ahead it pushes a branch and opens a PR and watches CI until green.
 7. **You approve archiving** (`/opsx-archive`): the change dir moves to the archive and the main spec is updated to
    match — as a commit in the same PR — and then the PR is merged. The feature is now part of the source of truth. On
-   this repo the owner's merge is direct (admin); the agent only merges with your approval.
+   this repo the owner's merge is direct (admin); the agent only merges with your approval. After the merge, **Settle**
+   accounts for the outcome and releases the workspace safely.
 
 Throughout, the only manual work was the initial prompt and a few approvals. The agent wrote the plan, the code, the
 tests, and the PR; you steered.
@@ -593,11 +602,14 @@ confirms each reached `connected`, without restarting OpenCode.
 
 ### Parallel Units
 
-Units running side by side work in separate checkouts: the **primary checkout** carries the sequential unit, and a
-parallel unit runs in a sibling worktree beside it — `../axon-showcase-<unit>`, created from `origin/main` and prepared
-by `./scripts/new-worktree.sh` — so the two never write into the same tree. The rule is procedural: a unit records the
-tree it owns before its first write. A parallel unit's tree is removed after its pull request merges, while the primary
-is handed to the next unit and never removed.
+**Begin** establishes an authorized unit's workspace before its first content edit, and `/begin-unit` is its entry
+point: the **primary checkout** carries the sequential unit, while a new unit takes a prepared sibling worktree beside
+it — `../axon-showcase-<unit>` — when the primary belongs to another unit. Each unit records the tree it owns, so
+parallel work never writes into the same tree.
+
+**Settle** releases that workspace only after the outcome and any remaining work are accounted for; a sibling worktree
+can then be removed, and the primary checkout is handed to the next sequential unit and never removed. The workspace
+safety and release rules live in [`AGENTS.md`](AGENTS.md#workflow-unit-lifecycle).
 
 ### Slash Commands
 
@@ -612,7 +624,7 @@ is handed to the next unit and never removed.
 | `/setup-agent-tools`          | Sets up the GitHub MCP, and offers the optional connection to IntelliJ IDEA's built-in MCP server                                                                                                 |
 | `/reconnect-mcp`              | Reports every MCP server's status, or reconnects one named server or the whole failed set, verifying each reached `connected` — without restarting OpenCode                                       |
 | `/setup-idea`                 | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier + Python analysis)                                                                                         |
-| `/new-worktree`               | Creates a unit's sibling worktree and prepares it for IntelliJ in one operation, reporting whether it is ready                                                                                    |
+| `/begin-unit`                 | Establishes a unit's workspace — the primary checkout or a prepared sibling worktree — and writes its record and claim before the first content edit                                              |
 | `/check-tooling`              | Checks whether this machine has the prerequisites (Java, Docker, Python, and the optional tools)                                                                                                  |
 | `/review-thorough`            | Deep risk-routed review of a change (the review gate's routing decision, or this explicit run)                                                                                                    |
 | `/pause-unit`                 | Records the current unit's `Resume checkpoint` and ends the turn: no commit, stash, push, or teardown                                                                                             |

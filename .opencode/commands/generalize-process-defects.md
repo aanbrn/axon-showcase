@@ -4,6 +4,9 @@ description:
   `lesson-capture` subagent, and record a decision per record — in a unit of its own, on the owner's decision.
 ---
 
+**Lifecycle:** Begin | **Invocation:** owner-invoked | **Effect:** unit start | **Owner:** AGENTS.md "Workflow:
+Generalize process defects"
+
 Run the generalization pass `AGENTS.md`'s "Workflow: Generalize process defects" triggers.
 
 **Trigger** — the owner invokes `/generalize-process-defects`, optionally naming the units whose records to analyze. The

@@ -4,6 +4,9 @@ description:
   inline, a content-move routed to the change workflow — under the full review gate
 ---
 
+**Lifecycle:** Begin | **Invocation:** owner-invoked | **Effect:** unit start | **Owner:** AGENTS.md "Workflow: Unit
+lifecycle"
+
 Apply the reduction candidates an audit report names, so they do not age. This is the standing, owner-gated unit for a
 report's reductions; it never runs automatically, and the scheduled `audit` workflow only reports.
 

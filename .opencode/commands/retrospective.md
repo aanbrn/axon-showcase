@@ -2,6 +2,9 @@
 description: Run a sprint retrospective / experience analysis over a window of merged work
 ---
 
+**Lifecycle:** Begin | **Invocation:** owner-invoked | **Effect:** unit start | **Owner:** AGENTS.md "Workflow: Unit
+lifecycle"
+
 Run the experience-analyzer workflow to produce a retrospective and improvement suggestions from recent work.
 
 **Trigger** — the owner invokes `/retrospective`, optionally with a window.

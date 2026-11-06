@@ -2,6 +2,9 @@
 description: Run the JVM Snyk scan and the web UI npm audit
 ---
 
+**Lifecycle:** outside-unit | **Invocation:** owner-invoked, scheduled | **Effect:** report-only | **Owner:**
+build.gradle.kts
+
 Report the dependency-security scan results. This command reports only — it never fixes a finding unless asked.
 
 **Trigger** — the owner invokes `/dependency-security-check`, or the weekly `dependency-security` workflow runs the same

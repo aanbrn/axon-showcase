@@ -4,6 +4,9 @@ description:
   handover before any work write
 ---
 
+**Lifecycle:** cross-cutting | **Invocation:** owner-invoked | **Effect:** operation within an existing unit |
+**Owner:** .opencode/skills/pause-resume-unit/SKILL.md
+
 Continue an unfinished unit.
 
 **Trigger** — the owner invokes `/resume-unit`, with or without a unit name, or asks to continue an unfinished unit,

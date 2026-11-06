@@ -145,7 +145,7 @@ change, so where a rule says "change", read "unit of work".
   PR (a fix PR ended up shipping a change's commit history); recover by rebasing `--onto origin/main` and force-pushing,
   then verify the PR's changed-file set is the intended one. Create the branch with `--no-track`
   (`git switch -c <name> --no-track origin/main`; a worktree creation takes the same flag, and its command is the
-  **Workspace** rule's in "Workflow: Change lifecycle"), or push its first time with `git push -u origin <branch>`. A
+  **Workspace** rule's in "Workflow: Unit lifecycle"), or push its first time with `git push -u origin <branch>`. A
   plain `git checkout -b <name> origin/main` silently makes `origin/main` the new branch's upstream
   (`branch.autoSetupMerge`), so a later bare `git push` refuses with "The upstream branch of your current branch does
   not match the name of your current branch" — fix it with `git push -u origin <branch>`, which repoints it, or
@@ -304,11 +304,51 @@ change, so where a rule says "change", read "unit of work".
   establish-structured-writing-standard captured: require-evidence-in-report-contracts captured:
   harden-command-definitions
 
-### Workflow: Change lifecycle
+### Workflow: Unit lifecycle
 
 **Trigger** — you are starting, implementing, or shipping any unit of work that will become a PR.
 
-**Workspace** — one active unit per working tree; the primary checkout is a unit's tree like any linked worktree.
+**Stages** — a unit passes seven stages. The names label the part of the work being performed; they are never the
+record's state, which stays `active`, `paused`, or `closed`.
+
+| Stage                     | The work                                                                             | Normal exit                                                         |
+| ------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| **Begin**                 | Authorization, identity, workspace, writer, record, claim                            | Plan, or Implement on the named-direct-edit route                   |
+| **Plan**                  | The unit's proposal and its verification; a change unit's planning artifacts         | Proposal review                                                     |
+| **Proposal review**       | The review gate at the proposal boundary, ending in the owner's manual pass          | Implement on approval; Plan on correction                           |
+| **Implement**             | The authorized work and its verification                                             | Implementation review                                               |
+| **Implementation review** | The review gate at the implementation boundary, ending in the owner's manual pass    | Deliver on approval and a delivery request; Implement on correction |
+| **Deliver**               | Publication, CI, and the merge — and, only for a change unit, the archive in this PR | Settle                                                              |
+| **Settle**                | The outcome, the remaining work, and the tree's release                              | The unit closes                                                     |
+
+**Transitions and exits**
+
+- Discussion is outside the lifecycle: a question, an exploration, or the agent's own reading of the task authorizes
+  nothing.
+- A transition rests on the evidence and the authority it requires, never on a command's completion alone.
+- An unresolved manual approval holds the unit at its review boundary, and a tangential reply is not clearance.
+- A material scope change invalidates the affected approval and returns the unit through the planning and review
+  boundary that approval covered.
+- Pause and resume are a transition from any unfinished stage, never a stage: the skill's checkpoint preserves the
+  position and the unanswered decisions.
+- Continuing an existing branch or pull request is an entry mode, not a stage.
+- Rejection or abandonment is an exit: the unit settles with that outcome and runs no delivery.
+- A unit that carries no change directory passes the same stages and owes no archive.
+
+**Scope** — these rules govern every unit, whether or not it carries an OpenSpec change. For a change unit the OpenSpec
+planning runs in Plan, its apply in Implement, and its archive in Deliver, and no OpenSpec operation substitutes for the
+unit's authorization, review, delivery, or settlement.
+
+**Owners** — this section owns the lifecycle ordering, the workspace rules, and the approval boundaries; a stage entry
+that names a skill defers that stage's procedure to it, and the Plan and Implement entries are this section's own.
+`.opencode/skills/review-gate/SKILL.md` owns the gate, `.opencode/skills/pause-resume-unit/SKILL.md` interruption and
+continuation, and `.opencode/skills/ship-change/SKILL.md` delivery and settlement. `docs/contracts/process-bindings.md`
+locates their declared roles.
+
+**Workspace** — one active unit per working tree; the primary checkout is a unit's tree like any linked worktree. Begin
+establishes the workspace through `.opencode/skills/begin-unit/SKILL.md`, which owns the ordered steps and the tree's
+creation, preparation, and readiness failure handling; `/begin-unit` is its entry point. A missing or unreadable skill
+stops Begin: report it rather than reconstructing the procedure here.
 
 - **A unit starts only on the owner's instruction.** An agent that believes it has understood what the owner wants
   states the proposal and waits. A unit begins only on an explicit instruction to begin it, on the owner's approval of a
@@ -339,24 +379,14 @@ change, so where a rule says "change", read "unit of work".
   `check` verifies every unit record, every live change's reference to it, and every archive in scope, so a missing or
   wrong one fails the pull request rather than only being noticed at a resume. captured: bump-kps-chart-2026-10-25
   captured: reject-a-foreign-change-dir-at-commit
-- The primary checkout carries the sequential unit. A **new** unit that finds the primary assigned to another unit — or
-  whose ownership it cannot establish — works in a sibling worktree, `../axon-showcase-<unit>`, created and prepared by
-  `./scripts/new-worktree.sh <unit>` (the wrapper resolves the primary from its own repository, never from the caller's
-  cwd), and the session moves there (`session_move`) before the first write.
+- **A new unit works in a sibling worktree when the primary belongs to another unit.** The primary checkout carries the
+  sequential unit; a new unit that finds it assigned to another unit — or whose ownership it cannot establish — works in
+  a sibling worktree beside it. The choice, the branch, and the tree's preparation belong to the Begin skill; the tree's
+  first write is its first unit-content edit, not the checkout and not the setup's own writes. captured:
+  auto-setup-new-worktree captured: bump-openspec-cli-2026-11-01
 - **Air-hosted unit sessions use Local mode in their assigned tree, not New Local Worktree.** Follow the
   `setup-agent-tools` skill's Air section for session selection and for recovering an accidental worktree. captured:
   document-air-worktree-safety
-- A unit that **continues** an existing branch or pull request — a cloud agent's `opencode/…` branch, a head pushed from
-  elsewhere — takes a tree on that existing branch with `./scripts/new-worktree.sh --continue <branch>` (git's DWIM
-  creates the local tracking branch when only `origin/<branch>` exists), never a new branch from `origin/main`, and
-  never by switching a primary that belongs to another unit.
-- **Create and prepare a tree in one operation, before its first unit-content write.** `./scripts/new-worktree.sh` runs
-  the preparation the `setup-idea` skill's initialization section describes: it inherits the primary's
-  `.python-version`, runs `./scripts/setup-idea.sh` in the tree, and reports both stage lines. When the primary carries
-  `.idea/`, write nothing in the tree unless the preparation succeeded and its Python stage reported `CONFIGURED`. The
-  first write is the tree's first unit-content edit — not the checkout, and not the setup's own writes. A failed
-  preparation keeps the tree: fix the cause and re-run the setup rather than recreating it. A tree the owner creates by
-  hand is outside this step. captured: auto-setup-new-worktree captured: bump-openspec-cli-2026-11-01
 - Occupancy is read from the registry: a tree with a unit branch checked out belongs to that unit whether the tree is
   clean or dirty and whether the branch is merged or awaiting review, and a tree with an unknown branch, a detached
   HEAD, or evidence contradicting the registry is occupied until the owner resolves it. A clean `git status` never
@@ -377,27 +407,40 @@ change, so where a rule says "change", read "unit of work".
   than writing an improvised checkpoint or reconstructing the procedure from this file. captured: pause-resume-unit
   captured: hand-over-unfinished-work
 
-**Procedure**
+**Stage entries**
 
-1. **Begin the unit only on that authorization** (see the invariants above), in the unit's assigned working tree.
-2. **Propose the change**: create its artifacts (or, where the unit's authorization names each direct edit, the unit's
-   edits) and put them on a branch named after the change, created per the "Fork every new branch" invariant. Commit
-   nothing.
-3. Leave the work uncommitted. The proposal, the review findings, and the implementation all stay in the working tree,
-   and the unit's new files are staged so the user's review pass shows them in the Changes panel of the tree the
-   workspace record names (the staging step is the review gate's §5); the change's `docs/ideas.md` removal rides the
-   branch like the rest. After this step, a unit whose authorization itself names each direct edit the unit may make
-   proceeds to step 7's pass, without steps 4–6.
-4. Run the review gate's **proposal stage** and fix every finding until it is clean.
-5. Ask the user for the **manual review of the proposal**, and end the turn there: implementation begins only on their
-   approval of it.
-6. Implement the approved proposal, then run the review gate's **implementation stage** and fix every finding until it
-   is clean.
-7. Ask the user for the **manual review of the finished unit**, and end the turn there. Do not commit, push, open a PR,
-   archive, or merge before the user approves the implementation — except a commit the user explicitly asks for.
-8. Ship only on the owner's delivery request, per "Workflow: Ship a change": an approval alone is not that request, an
-   approval answering a description of the sequence included. All subsequent work stays on this branch. captured:
-   retain-auditor-run-reports captured: split-docs-refresh-conventions
+- **Begin** — the Begin skill, after the owner's authorization.
+- **Plan** — create the unit's proposal artifacts, or a change's artifacts through the OpenSpec planning commands; put
+  them on a branch named for the unit, created per the "Fork every new branch" invariant, and commit nothing. Leave the
+  work uncommitted: the proposal, the review findings, and the implementation all stay in the working tree, and the
+  unit's new files are staged so the owner's pass sees them (the staging step is the review gate's §5). A change's
+  `docs/ideas.md` removal rides the branch like the rest. A unit whose authorization itself names each direct edit
+  performs those edits as its Implement work and starts at Implementation review.
+- **Proposal review** — run the review gate's proposal stage and fix every finding; then ask the owner for the manual
+  review of the proposal and end the turn there.
+- **Implement** — implement the approved proposal, keeping its planning artifacts current, then run the review gate's
+  implementation stage and fix every finding.
+- **Implementation review** — ask the owner for the manual review of the finished unit and end the turn there. Do not
+  commit, push, open a PR, archive, or merge before that approval — apart from a commit the owner explicitly requests.
+- **Deliver** — only on the owner's delivery request, per "Workflow: Ship a change": an approval alone is not that
+  request, an approval answering a description of the sequence included. All subsequent work stays on this branch.
+  captured: retain-auditor-run-reports captured: split-docs-refresh-conventions
+- **Settle** — `ship-change`'s settle step, for the tree the unit used.
+
+**Change entry points** — a generated OpenSpec entry serves one stage, and its definition is never edited:
+
+- `/opsx-propose` and `/opsx-update` plan or replan in Plan, within the current unit;
+- `/opsx-apply` implements in Implement, after the proposal's approval;
+- `/opsx-archive` is Deliver's change-specific operation, after green CI; `/opsx-sync` runs only inside it;
+- `/opsx-explore` is discussion or authorized investigation in Plan, and it writes no artifact outside the unit's route.
+
+**Command declarations** — every project-authored command declares the lifecycle entry it serves: its lifecycle as a
+stage from the table above, or `cross-cutting`, or `outside-unit`; its invocation as `owner-invoked`,
+`procedure-invoked`, or `scheduled`; its effect as `report-only`, `host operation`, `unit start`, or
+`operation within an existing unit`; and its owning procedure. `verifyCommandLifecycle` in `check` verifies the
+declarations, their values, their references, the preflight on a unit-starting command, and the generated mapping above.
+The declaration is documentation of the entry, not authority: an invocation still satisfies the authorization and
+boundary rules this section states.
 
 **Decision points**
 
@@ -463,12 +506,12 @@ change, so where a rule says "change", read "unit of work".
   facts survive in every file both touched. captured: route-the-smoke-through-the-ingress captured:
   fix-advisor-worktree-read captured: reject-a-foreign-change-dir-at-commit (#700)
 
-**Completion criteria** — the user has approved the implementation and the change is committed, pushed, and archived per
-"Workflow: Ship a change". Review findings are edited in the working tree, never committed as an "Address review
-findings" commit, and nothing is committed while a review loop runs. Committing early and then adding one "Address
-quick-review findings" commit per review round produced 11 commits for a single change (squashed before delivery) — the
-discipline above removes that failure mode by construction, leaving nothing to squash. captured:
-capture-reverted-sweep-lessons (#283)
+**Completion criteria** — the user has approved the implementation and the unit is committed, pushed, and delivered per
+"Workflow: Ship a change"; a change unit is archived within that delivery, and a unit without a change directory is not.
+Review findings are edited in the working tree, never committed as an "Address review findings" commit, and nothing is
+committed while a review loop runs. Committing early and then adding one "Address quick-review findings" commit per
+review round produced 11 commits for a single change (squashed before delivery) — the discipline above removes that
+failure mode by construction, leaving nothing to squash. captured: capture-reverted-sweep-lessons (#283)
 
 ### Workflow: The review gate
 
@@ -805,8 +848,8 @@ remedy, and the archive step's placement.
 - Merge only after the `build` check is green and the owner has approved.
 - A user who is not a repository administrator requests a reviewer rather than merging.
 
-**Ordering** — the archive is a commit in the **same** pull request, after the `build` check is green and before the
-merge.
+**Ordering** — a change unit's archive is a commit in the **same** pull request, after the `build` check is green and
+before the merge; a unit without a change directory delivers without that commit.
 
 **Failure handling** — IF the skill is missing or unreadable, THEN stop and report it; never ship from memory. A push
 that needs an explicit refspec is still a publication and still loads the skill; the "Fork every new branch" invariant
@@ -1613,7 +1656,7 @@ Key modules (libraries, not services):
   `setup-hosts.sh`; and `.opencode/` holds the OpenCode-runtime surface — agents, commands, skills — with **no
   executable**, so a command may trigger a `scripts/` tool but never hosts its implementation. A `scripts/` tool an
   agent drives gets its own command trigger, and the tool keeps the implementation (`doctor.sh` ↔ `/check-tooling`,
-  `setup-idea.sh` ↔ `/setup-idea`, `new-worktree.sh` ↔ `/new-worktree`, `experience-analysis.sh` ↔ `/retrospective`,
+  `setup-idea.sh` ↔ `/setup-idea`, `new-worktree.sh` ↔ `/begin-unit`, `experience-analysis.sh` ↔ `/retrospective`,
   `claim-scan.py` ↔ `/seed-claims`, `reconnect-mcp.py` ↔ `/reconnect-mcp`); a tool with no agent caller stays
   untriggered (`install-git-hooks.sh`, `load-test-baseline.sh`, `review-rounds.py`), and `commit-hygiene.py` is driven
   by the tracked `scripts/git-hooks/pre-commit` and by the Gradle `verify*` tasks, and `review-routing.py` by the review

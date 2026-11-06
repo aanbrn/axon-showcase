@@ -2,6 +2,9 @@
 description: Verifies a process defect the owner reports and appends a record only for a confirmed outcome.
 ---
 
+**Lifecycle:** cross-cutting | **Invocation:** owner-invoked | **Effect:** operation within an existing unit |
+**Owner:** AGENTS.md "Workflow: Record process defects"
+
 # Flag a process defect
 
 The entry point that turns an owner's report — "the agent missed something here" — into a verified outcome. It is a

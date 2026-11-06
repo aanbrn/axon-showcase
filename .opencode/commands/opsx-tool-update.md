@@ -4,6 +4,9 @@ description:
   after a new openspec CLI release
 ---
 
+**Lifecycle:** Begin | **Invocation:** owner-invoked | **Effect:** unit start | **Owner:** AGENTS.md "Workflow: Unit
+lifecycle"
+
 Regenerate the OpenSpec instruction files when a new `openspec` CLI version has been installed, so the generated
 `.opencode/commands/opsx-*.md` commands and `.opencode/skills/openspec-*.md` skills stay in sync with the CLI's built-in
 templates.

@@ -4,6 +4,9 @@ description:
   review gate's routing decision selects, or a manual explicit run
 ---
 
+**Lifecycle:** cross-cutting | **Invocation:** owner-invoked, procedure-invoked | **Effect:** operation within an
+existing unit | **Owner:** .opencode/agent/review-thorough.md
+
 Run a deep review pass of a change. This command owns the **procedure**; the review gate owns **whether** a deep review
 runs (its routing decision — `REQUIRED`, `RECOMMENDED`, or `NOT_NEEDED`). A manual invocation is an **explicit run**: it
 does not route, and it is never a substitute for a `REQUIRED` outcome.

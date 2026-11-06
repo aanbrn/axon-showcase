@@ -4,6 +4,9 @@ description:
   instruction budget and the authoring-system gaps that keep producing a defect
 ---
 
+**Lifecycle:** outside-unit | **Invocation:** owner-invoked, scheduled | **Effect:** report-only | **Owner:**
+.opencode/agent/agents-auditor.md
+
 Run the agent-tooling audit, which reports only — it never edits a file.
 
 **Trigger** — the owner invokes `/audit-agents`, or the scheduled `audit` workflow runs it report-only.

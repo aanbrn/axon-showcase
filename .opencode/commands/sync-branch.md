@@ -3,6 +3,9 @@ description:
   Check the current branch against origin/main and, on the owner's request, refresh it by the rule AGENTS.md states
 ---
 
+**Lifecycle:** cross-cutting | **Invocation:** owner-invoked | **Effect:** operation within an existing unit |
+**Owner:** AGENTS.md "Workflow: Unit lifecycle"
+
 Refresh the current branch when it has fallen behind, by the procedure the repository already states.
 
 **Trigger** — the owner invokes `/sync-branch`.

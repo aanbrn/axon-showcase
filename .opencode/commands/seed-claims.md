@@ -4,6 +4,9 @@ description:
   claims table starts from a search rather than from what the author noticed stating
 ---
 
+**Lifecycle:** cross-cutting | **Invocation:** owner-invoked, procedure-invoked | **Effect:** operation within an
+existing unit | **Owner:** .opencode/skills/review-gate/SKILL.md
+
 Seed the pre-write derivation pass's claims table from the unit's own diff.
 
 **Trigger** — the owner invokes `/seed-claims`, or the review gate's pre-write pass runs it.

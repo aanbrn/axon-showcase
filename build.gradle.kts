@@ -896,6 +896,16 @@ tasks.register("verifyDocumentedPins", VerifyDocumentedPinsTask::class.java) {
     resultFile.set(layout.buildDirectory.file("verification/documented-pins.txt"))
 }
 
+tasks.register("verifyCommandLifecycle", VerifyCommandLifecycleTask::class.java) {
+    group = "verification"
+    description = "Verifies every project-authored command's lifecycle declaration and the generated entries' mapping"
+
+    commands.from(fileTree(".opencode/commands") { include("*.md") })
+    agents.from(layout.projectDirectory.file("AGENTS.md"))
+    repoRoot.set(layout.projectDirectory)
+    outputs.upToDateWhen { false }
+}
+
 tasks.register("verifyDashboardJson", VerifyDashboardJsonTask::class.java) {
     group = "verification"
     description =
@@ -949,6 +959,7 @@ tasks.named("check") {
     dependsOn("verifyInfraImageVersions")
     dependsOn("verifyInstallCommands")
     dependsOn("verifyDocumentedPins")
+    dependsOn("verifyCommandLifecycle")
     dependsOn("verifyDashboardJson")
     dependsOn("verifyPrettierAlignment")
     dependsOn("workflowLint")

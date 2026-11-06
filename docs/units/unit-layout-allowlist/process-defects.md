@@ -32,7 +32,9 @@
   report stated `1`"; the rows themselves; the merged units' `findings/round-<N>.md` entry counts beside their rows; and
   the reviewer's definition, which asks how many findings "were a compliance miss of an existing rule".
 - **Consequence** — this unit's row is corrected to `1`. The merged units' values stay as recorded and are unverified,
-  not proven wrong; that correction is parked in `docs/ideas.md`.
+  not proven wrong; that correction was parked in `docs/ideas.md`, and `correct-merged-unit-records` — pending its own
+  merge — records the sixth-field correction as two dated notes and, separately, `assert-paketo-pin-coverage`'s
+  formatter incident as `#6`.
 - **Knowledge boundary** — observed: this session's ledger and the two merged units' rows, each against its round's
   finding-instance count; not checked: what compliance-miss figure each merged round would actually have carried, since
   no stored report preserves it.

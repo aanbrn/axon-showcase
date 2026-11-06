@@ -162,3 +162,21 @@
   again. The condition does not hold.
 - **What it is not** — a recommendation is not approval: the manual pass is still the owner's, and shipping still needs
   the separate delivery word.
+
+## Correction — the ledger's sixth field (2026-11-06)
+
+- **What the field means** — the review-round record's sixth field is the number of findings that missed an existing
+  rule — `AGENTS.md`, a subject pack, the specs, or the reviewer's definition — as `showcase/quality/commit-hygiene`'s
+  record-format requirement names it and `.opencode/agent/review-quick.md` defines it.
+- **What the rows carry** — every row of `rounds.tsv` carries, in that field, the number of finding instances its
+  `findings/round-<N>.md` holds, which is consistent with the field having been written from the finding count, and
+  `unit-layout-allowlist`'s process defect `#2` records that method error, found when a later unit compared its own row
+  against the reviewer's line.
+- **What the true values are** — unestablished. The reviewer's per-round compliance figure was session-only — the stored
+  instances carry each finding's class, not the judgment that it missed a rule — so equality with the finding count does
+  not determine the right figure: every finding might have qualified as a compliance miss, and a clean round's zero is
+  correct either way. A summary derived from the field — `scripts/review-rounds.py` sums it — inherits that, so such a
+  digest is not a verified compliance figure.
+- **What this note does not do** — it does not rewrite the numbers. They stand as recorded; a later pass that judges
+  each finding against the rules in force at its round's date is a dated retrospective reclassification, not recovery of
+  the original figures.

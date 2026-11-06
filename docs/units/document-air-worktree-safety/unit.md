@@ -3,7 +3,7 @@
 Workspace:
 `unit=document-air-worktree-safety; path=/Users/afanasyev/Development/axon-showcase-document-air-worktree-safety; branch=document-air-worktree-safety; writer=ses_e500773ebffePTHtVKvbxnk063`
 
-State: implementation
+State: closed
 
 The unit's plan and tasks live in `openspec/changes/document-air-worktree-safety/`.
 

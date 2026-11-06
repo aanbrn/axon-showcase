@@ -55,14 +55,13 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   record cannot ride that unit's branch, which had already merged, so it needs its own docs change — parked; no change
   yet.
 
-- Extend the unit layout to a whole-directory allowlist. `reconcile-review-records` made the finding store hold review
-  rounds only, but a unit's own directory has already received an invented file at its root — `continuity-violation.md`,
-  recorded in `assert-paketo-pin-coverage`'s process-defect `#3` — which that store-only check cannot see. The follow-up
-  replaces the store predicate with one canonical layout predicate: a tracked path under `docs/units/<unit>/` must be
-  `unit.md`, `rounds.tsv`, `review-handover.md`, `process-defects.md`, or `findings/round-<N>.md`, rejected at any depth
-  and naming the unit and the path, with kinds validated but presence not required (19 of 274 units carry `unit.md`, 15
-  carry `review-handover.md`), and negative controls at the root and nested. A new legitimate record kind then requires
-  an explicit extension of the layout contract rather than an exception on the spot. — parked; no change yet.
+- Correct the merged units' review ledgers' sixth field. It is the compliance-miss count; in `reconcile-review-records`
+  and `assert-paketo-pin-coverage` every row's sixth field equals that round's finding-instance count, which is
+  consistent with the field having been written from the finding count. Equality does not show the values are wrong —
+  every finding might have qualified, and a clean round's zero is right — so they are unverified rather than mistaken.
+  Their reports exist only in sessions; the docs change either records the field as unestablished, or assesses each
+  finding against the rules in force at that round's date and labels the result a dated retrospective reclassification
+  rather than a recovery. Evidence is `unit-layout-allowlist`'s process-defect `#2`. — parked; no change yet.
 
 ## 2026-11-01
 

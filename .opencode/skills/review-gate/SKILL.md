@@ -138,8 +138,8 @@ its format.
        disagreement.
      - Point the hand-over and the checkpoint's prior-findings note at that file.
      - A pass that is not a review round — a consultation, or any other screen — records its findings in the unit's
-       `review-handover.md`, never in a round file or in another file under `findings/`; the store's requirement in
-       `showcase/quality/commit-hygiene` owns that scope, and the build fails on a file the store does not hold.
+       `review-handover.md`, **never** in a round file; the layout requirement in `showcase/quality/commit-hygiene` owns
+       which paths a unit's directory holds, and the build fails on any path it does not admit.
    - **IF a round's report has arrived, THEN immediately run both ledger checks — whether or not its row was appended,
      since a check keyed on the append cannot see an append that never happened:**
      `python3 scripts/commit-hygiene.py --unique-rounds --expect <unit>:<round>` and, as a separate invocation,

@@ -3870,6 +3870,7 @@ MODE_TEST_COVERAGE = {
     "--class-vocabulary": ("ClassVocabularyTests", "find_unknown_classes"),
     "--workspace-records": ("WorkspaceRecordTests", "check_workspace_records"),
     "--finding-instances": ("FindingInstancesTests", "check_finding_instances"),
+    "--unit-layout": ("UnitLayoutTests", "check_unit_layout"),
 }
 
 
@@ -4385,38 +4386,90 @@ class FindingInstancesTests(unittest.TestCase):
             self.assertEqual(commit_hygiene.main(["--finding-instances", "--repo", str(repo)]), 1)
         self.assertIn("finding instances", stderr.getvalue())
 
-    def test_a_file_the_store_does_not_hold_fails(self):
-        repo = self._repo(classes="-", instances="- none\n")
-        (repo / "docs" / "units" / "unit-a" / "findings" / "advisor-1.md").write_text(
-            "- [wording] docs/a.md:3 — a consultation's finding\n", encoding="utf-8"
+class UnitLayoutTests(unittest.TestCase):
+    """The paths a unit's directory admits, and the rejection of any other tracked path below it."""
+
+    def _repo(self, files=("rounds.tsv",)):
+        repo = make_repo(self)
+        directory = repo / "docs" / "units" / "unit-a"
+        directory.mkdir(parents=True)
+        for name in files:
+            target = directory / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("lane\n", encoding="utf-8")
+        subprocess.run(("git", "add", "-A"), cwd=repo, check=True)
+        return repo
+
+    def _mode(self, repo):
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--unit-layout", "--repo", str(repo)])
+        return code, stderr.getvalue()
+
+    def test_every_admitted_kind_passes(self):
+        repo = self._repo(
+            ("unit.md", "rounds.tsv", "review-handover.md", "process-defects.md", "findings/round-1.md")
         )
+
+        code, stderr = self._mode(repo)
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
+
+    def test_a_root_file_the_layout_does_not_admit_fails(self):
+        code, stderr = self._mode(self._repo(("rounds.tsv", "continuity-violation.md")))
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/units/unit-a/continuity-violation.md", stderr)
+        self.assertIn("not a path the unit layout admits", stderr)
+
+    def test_a_third_level_under_findings_fails(self):
+        code, stderr = self._mode(self._repo(("rounds.tsv", "findings/consultations/advisor-1.md")))
+
+        self.assertEqual(1, code)
+        self.assertIn("findings/consultations/advisor-1.md", stderr)
+
+    def test_a_round_shaped_path_at_another_location_fails(self):
+        code, stderr = self._mode(self._repo(("rounds.tsv", "other/round-1.md")))
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/units/unit-a/other/round-1.md", stderr)
+
+    def test_an_admitted_name_in_the_wrong_place_fails(self):
+        code, stderr = self._mode(self._repo(("rounds.tsv", "findings/unit.md")))
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/units/unit-a/findings/unit.md", stderr)
+
+    def test_a_file_outside_a_unit_directory_is_not_judged(self):
+        repo = self._repo(("rounds.tsv",))
+        (repo / "docs" / "units" / "README.md").write_text("lane\n", encoding="utf-8")
         subprocess.run(("git", "add", "-A"), cwd=repo, check=True)
 
-        stderr = io.StringIO()
-        with contextlib.redirect_stderr(stderr):
-            self.assertEqual(commit_hygiene.main(["--finding-instances", "--repo", str(repo)]), 1)
-        self.assertIn("advisor-1.md", stderr.getvalue())
-        self.assertIn("not a round's instances file", stderr.getvalue())
+        code, stderr = self._mode(repo)
 
-    def test_a_nested_file_the_store_does_not_hold_fails(self):
-        repo = self._repo(classes="-", instances="- none\n")
-        nested = repo / "docs" / "units" / "unit-a" / "findings" / "consultations" / "advisor-1.md"
-        nested.parent.mkdir(parents=True)
-        nested.write_text("- [wording] docs/a.md:3 — a consultation's finding\n", encoding="utf-8")
-        subprocess.run(("git", "add", "-A"), cwd=repo, check=True)
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
 
-        stderr = io.StringIO()
-        with contextlib.redirect_stderr(stderr):
-            self.assertEqual(commit_hygiene.main(["--finding-instances", "--repo", str(repo)]), 1)
-        self.assertIn("consultations/advisor-1.md", stderr.getvalue())
+    def test_the_mode_counts_each_offending_path(self):
+        repo = self._repo(("rounds.tsv", "continuity-violation.md", "findings/unit.md"))
 
-    def test_a_store_holding_only_rounds_passes(self):
-        repo = self._repo(classes="-", instances="- none\n")
+        self.assertEqual(2, commit_hygiene.check_unit_layout(repo))
 
-        stderr = io.StringIO()
-        with contextlib.redirect_stderr(stderr):
-            self.assertEqual(commit_hygiene.main(["--finding-instances", "--repo", str(repo)]), 0)
-        self.assertEqual("", stderr.getvalue())
+    def test_a_unit_holding_only_rounds_and_its_instances_passes(self):
+        code, stderr = self._mode(self._repo(("rounds.tsv", "findings/round-1.md", "findings/round-2.md")))
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
+
+    def test_an_untracked_file_passes(self):
+        repo = self._repo(("rounds.tsv",))
+        (repo / "docs" / "units" / "unit-a" / "scratch.md").write_text("lane\n", encoding="utf-8")
+
+        code, stderr = self._mode(repo)
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
 
 
 if __name__ == "__main__":

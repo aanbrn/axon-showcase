@@ -1,0 +1,3 @@
+- [missing-task] `air-exercise.md` — sat at a path `--unit-layout` does not admit; moved to `docs/decisions/`.
+- [claim-unreproducible] `design.md` — "source retained" held for run 1 only; the record carries run 2's source state.
+- [over-claim] `SKILL.md` — "not session-bound" stated ADR-0024 as fact; the sentence now opens with its finding.

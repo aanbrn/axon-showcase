@@ -343,6 +343,9 @@ change, so where a rule says "change", read "unit of work".
   whose ownership it cannot establish — works in a sibling worktree, `../axon-showcase-<unit>`, created and prepared by
   `./scripts/new-worktree.sh <unit>` (the wrapper resolves the primary from its own repository, never from the caller's
   cwd), and the session moves there (`session_move`) before the first write.
+- **Air-hosted unit sessions use Local mode in their assigned tree, not New Local Worktree.** Follow the
+  `setup-agent-tools` skill's Air section for session selection and for recovering an accidental worktree. captured:
+  document-air-worktree-safety
 - A unit that **continues** an existing branch or pull request — a cloud agent's `opencode/…` branch, a head pushed from
   elsewhere — takes a tree on that existing branch with `./scripts/new-worktree.sh --continue <branch>` (git's DWIM
   creates the local tracking branch when only `origin/<branch>` exists), never a new branch from `origin/main`, and

@@ -1,0 +1,1 @@
+- [contradiction] `docs/decisions/2026-11-06-air-worktree-exercise.md` — the intro said two clones; one clone, two runs.

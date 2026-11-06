@@ -50,19 +50,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   unaffected, since it deliberately documents only the GitHub and Playwright servers. Revisit after
   `assert-paketo-pin-coverage` ships, on the owner's instruction. — parked; no change yet.
 
-- Record `assert-paketo-pin-coverage`'s formatter incident as a process-defect record. During that unit's ship, its
-  record was edited and committed without re-running the formatter, and the pre-commit guard refused the commit. The
-  record cannot ride that unit's branch, which had already merged, so it needs its own docs change — parked; no change
-  yet.
-
-- Correct the merged units' review ledgers' sixth field. It is the compliance-miss count; in `reconcile-review-records`
-  and `assert-paketo-pin-coverage` every row's sixth field equals that round's finding-instance count, which is
-  consistent with the field having been written from the finding count. Equality does not show the values are wrong —
-  every finding might have qualified, and a clean round's zero is right — so they are unverified rather than mistaken.
-  Their reports exist only in sessions; the docs change either records the field as unestablished, or assesses each
-  finding against the rules in force at that round's date and labels the result a dated retrospective reclassification
-  rather than a recovery. Evidence is `unit-layout-allowlist`'s process-defect `#2`. — parked; no change yet.
-
 ## 2026-11-01
 
 - Gate a `Decision` line's link with a check — parked; no change yet. The generalization workflow requires `proposed`

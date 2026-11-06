@@ -81,7 +81,8 @@
 - **The revisions applied** — task 1.3 gains a dated correction in the round-13 section naming the old and new reason;
   task 3.2 adds its record beneath the file's "no process defect observed" statement instead of replacing it; the
   design's Risks bullet and a new Non-Goal state that the guard's staged selection is untouched, so the check is the
-  protection; `#6` leaves the change and is parked in `docs/ideas.md`.
+  protection; `#6` leaves the change and was parked in `docs/ideas.md`, and `correct-merged-unit-records` records it as
+  `assert-paketo-pin-coverage#6`.
 - **The follow-up** — "proceed to the owner's manual pass", with no confirmed problems remaining and the scope reopened
   only if implementation needs another record kind or guard behaviour.
 - **What it is not** — a recommendation, not approval: the manual pass is the owner's, and implementation and delivery
@@ -218,3 +219,21 @@
 - **Completed checks** — both fold commands re-run (0 each); `python3 scripts/test-commit-hygiene.py` exit 0;
   `spotlessApply`; `--finding-instances`, `--session-continuity`, `--unique-rounds`, `--review-ready` green.
 - **Known limitations** — written before this round's invocation.
+
+## Correction — the ledger's sixth field (2026-11-06)
+
+- **What the field means** — the review-round record's sixth field is the number of findings that missed an existing
+  rule — `AGENTS.md`, a subject pack, the specs, or the reviewer's definition — as `showcase/quality/commit-hygiene`'s
+  record-format requirement names it and `.opencode/agent/review-quick.md` defines it.
+- **What the rows carry** — every row of `rounds.tsv` carries, in that field, the number of finding instances its
+  `findings/round-<N>.md` holds, which is consistent with the field having been written from the finding count, and
+  `unit-layout-allowlist`'s process defect `#2` records that method error, found when a later unit compared its own row
+  against the reviewer's line.
+- **What the true values are** — unestablished. The reviewer's per-round compliance figure was session-only — the stored
+  instances carry each finding's class, not the judgment that it missed a rule — so equality with the finding count does
+  not determine the right figure: every finding might have qualified as a compliance miss, and a clean round's zero is
+  correct either way. A summary derived from the field — `scripts/review-rounds.py` sums it — inherits that, so such a
+  digest is not a verified compliance figure.
+- **What this note does not do** — it does not rewrite the numbers. They stand as recorded; a later pass that judges
+  each finding against the rules in force at its round's date is a dated retrospective reclassification, not recovery of
+  the original figures.

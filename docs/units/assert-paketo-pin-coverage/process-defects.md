@@ -107,3 +107,20 @@
   it, and the ledger's round 9 is the re-run.
 - **Knowledge boundary** — observed: this one hand-over and the reviewer's response to it; not checked: whether earlier
   hand-overs in this unit or in earlier units named no pack and were accepted without one.
+
+### assert-paketo-pin-coverage#6 — A commit was attempted without re-running the formatter
+
+- **Recorded** — 2026-11-06, retrospectively, by the main agent while correcting this merged unit's records in
+  `correct-merged-unit-records`.
+- **Stage** — ship.
+- **Expected** — after the last edit to a Spotless-owned file, `spotlessApply` runs before the commit, since the
+  pre-commit guard judges the staged markdown.
+- **Observed** — `unit.md` was edited and staged for commit without re-running the formatter, and the guard refused that
+  attempt at `spotlessMarkdownCheck`, naming the file and its re-flowed `Next step` lines; the archive commit followed
+  only after `spotlessApply`.
+- **Evidence** — the guard's refusal, "The project's formatter check failed; run the formatter before committing", with
+  the file's diff shown, and the second attempt succeeding after the formatter ran.
+- **Consequence** — one commit attempt was refused and the archive commit was delayed; no content was lost, and the
+  archived record carries the formatted text.
+- **Knowledge boundary** — observed: the refusal and the corrected retry; not checked: whether an earlier commit of the
+  same unit also skipped the formatter, since only this one was refused.

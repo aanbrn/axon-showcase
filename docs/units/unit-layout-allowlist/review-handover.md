@@ -48,8 +48,8 @@
 - **Packs** — `gradle-build`, as round 1.
 - **Supplied artifacts** — round 3's three findings and their dispositions: the checkpoint is advanced when a row is
   appended and now names rounds 1–2 closed with round 3 in flight; the defect cites only what the repository shows (the
-  rows against their instance counts) and the parked idea carries the same figures and an executable remedy; the
-  dismissals reach the compound-name and table-row shapes.
+  rows against their instance counts), and the idea parked at the time carried the same figures and an executable remedy
+  — `correct-merged-unit-records` records that correction; the dismissals reach the compound-name and table-row shapes.
 - **Prior findings with their instances** — rounds 1–3 in `findings/`.
 - **Completed checks** — `openspec validate --all` 27; `spotlessApply`; `verifyIdeasSections`;
   `commit-hygiene --review-ready`.
@@ -95,8 +95,8 @@
   round-shaped path (`other/round-1.md`), so a predicate that rejected an admitted name cannot pass.
 - **Third correction, applied** — the historical field-6 claim exceeded the evidence. Process-defect `#2` now separates
   the admitted counting-method error from the unverified merged values, which equality with finding counts does not
-  prove wrong; the parked idea says the same, and that a later assessment is a dated retrospective reclassification, not
-  a recovery.
+  prove wrong; the idea parked at the time said the same, and that a later assessment is a dated retrospective
+  reclassification, not a recovery. `correct-merged-unit-records` records the correction.
 - **What it is not** — a recommendation, not approval; the manual pass is the owner's.
 
 ## Round 7 — proposal screen, after the consultation's three corrections

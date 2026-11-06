@@ -25,9 +25,9 @@
 - **Expected** — a definition would be verified to register before it shipped; the `build` gate's definition-inventory
   assertion is the check that implements that expectation.
 - **Observed** — `.opencode/skills/begin-unit/SKILL.md` was written without frontmatter, so the loader's resolved skill
-  inventory held 21 entries and the new skill was absent from it. The local `check`, `openspec validate --all`, and the
-  marker/table checks all passed; the defect surfaced only in the pull request's `build` job, at the step that probes
-  the OpenCode configuration, and required a fixup commit and a second run.
+  inventory omitted it while the probe's count of the tree's definition files read 21. The local `check`,
+  `openspec validate --all`, and the marker/table checks all passed; the defect surfaced only in the pull request's
+  `build` job, at the step that probes the OpenCode configuration, and required a fixup commit and a second run.
 - **Evidence** — the failed run `42250066417` reports `agents=11 commands=31 skills=21` and then
   `##[error]OpenCode definition skill '.opencode/skills/begin-unit' is absent from the resolved skill inventory`; the
   repository's own note says the gate probes that every agent/command/skill definition resolves with its metadata

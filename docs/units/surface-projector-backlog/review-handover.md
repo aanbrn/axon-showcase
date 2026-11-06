@@ -191,21 +191,37 @@
   `openspec validate --all` 27; `verifyDashboardJson`; `spotlessApply` after the last edit.
 - **Known limitations** — the deployed positive-backlog reading stands on the integration test (task 2.5); the
   multi-replica mixed-age view is unexercised.
+- **A dated correction, 2026-11-06** — round 12's ledger row in `rounds.tsv` was recorded as
+  `replaced`/`caller-restarted`, the marker for an unexplained restart of the quick reviewer. It now records
+  `replaced`/`definition-changed`, because that round's session ran `review-thorough`'s definition: a permitted
+  replacement rather than a restart, so the row no longer charges the unit with a violation it did not commit. Round
+  13's own row is unchanged.
 
 ## Control evidence — the deployed positive backlog (no review round)
 
 - **Unit, tree, branch, base** — unchanged; base `origin/main` `d8cf14ba`; every unit file staged.
 - **Packs** — `jvm-development`, `jvm-testing`, `deployment-operations`, `gradle-build`.
-- **Supplied artifacts** — the advisor's first implementation pass (`findings/advisor-1.md`): its two confirmed problems
-  and its hypothesis are applied, and its open question is settled by the owner-approved control. The sample panel's
-  wording now defines a healthy zero as resolved zero distances with zero unresolved partitions; its field override
-  matches query B by frame reference rather than a templated legend; task 2.5 records the positive backlog the control
-  produced through the exact panel expressions.
-- **Prior findings with their instances** — rounds 1–13 and the advisor's first pass, in `findings/`.
+- **Supplied artifacts** — the advisor's first implementation pass, whose findings are listed below: its two confirmed
+  problems and its hypothesis are applied, and its open question is settled by the owner-approved control. The sample
+  panel's wording now defines a healthy zero as resolved zero distances with zero unresolved partitions; its field
+  override matches query B by frame reference rather than a templated legend; task 2.5 records the positive backlog the
+  control produced through the exact panel expressions.
+- **Prior findings with their instances** — rounds 1–13 in `findings/`, and the advisor's first pass below.
 - **Completed checks** — `verifyDashboardJson` after the panel edits; `openspec validate --all` 27; the local stack
   restored (OS_URIS and the readiness path back to the chart's values, the backlog drained to zero, the pod ready).
 - **Known limitations** — the sample age reads 20–40 s at a scrape because the ServiceMonitor's scrape interval and the
   sampler's 15-second interval add up; the multi-replica mixed-age view remains unexercised.
+- **The pass's findings, entry by entry** — kept here because a pass that is not a review round has no instances file:
+  - [over-claim] `openspec/changes/surface-projector-backlog/tasks.md:95-107` — task 2.5 was marked complete while its
+    own text records that no positive deployed backlog was observed; the completion claim exceeded the agreed boundary.
+  - [wording] `helm/chart/src/main/helm/files/grafana-dashboards/axon-showcase.json:4081` — the sample panel's
+    description called "a fresh age with an empty backlog" a healthy zero, which a never-committed group also produces
+    with no numeric distance at all.
+  - [hypothesis] `helm/chart/src/main/helm/files/grafana-dashboards/axon-showcase.json:4105-4107` — the field override
+    matched a literal `{{pod}} unresolved`, a templated legend whose resolved name provisioning cannot establish.
+  - [open question] — the deployed positive distance through the exact panel expression is still unobserved; settlement
+    needs an approved reversible control that holds consumption behind while the sampler keeps sampling.
+- **The second pass** — raised none.
 
 ## Round 14 — implementation screen, after the advisor's agreement and the control
 
@@ -217,8 +233,8 @@
   the owner-approved control (readiness probe pinned to liveness, `OS_URIS` pointed at a dead endpoint, five showcases
   created, `2`/`1`/`NaN` observed through the panel expressions across four cycles, `failed_total = 0`), and its
   restoration; task 4.6 records the advisor's two rounds, the second closing in explicit agreement.
-- **Prior findings with their instances** — rounds 1–13 and the advisor's first pass, in `findings/`; the second pass
-  closed in agreement and its outcome is recorded on task 4.6.
+- **Prior findings with their instances** — rounds 1–13 and the advisor's first pass in the Control evidence section;
+  the second pass closed in agreement and its outcome is recorded on task 4.6.
 - **Completed checks** — `verifyDashboardJson`; `openspec validate --all` 27; `:showcase-projection-service:check` green
   before these edits (the panel and task text are outside its compile path, and `verifyDashboardJson` re-ran); the local
   stack restored and drained; `spotlessApply` after the last edit.
@@ -230,9 +246,9 @@
 - **Unit, tree, branch, base** — unchanged; base `origin/main` `d8cf14ba`; every unit file staged.
 - **Packs** — `jvm-development`, `jvm-testing`, `deployment-operations`, `gradle-build`.
 - **Supplied artifacts** — round 14's fixes: task 2.5's four readings are separate list items under the expressions that
-  produced them; `findings/advisor-2.md` records the advisor's clean second pass, and the Round 14 section names the
-  first pass in `findings/` and the second on task 4.6.
-- **Prior findings with their instances** — rounds 1–14 and the advisor's two passes, in `findings/`.
+  produced them; the Control evidence section records the advisor's clean second pass, and the Round 14 section names
+  the first pass there and the second on task 4.6.
+- **Prior findings with their instances** — rounds 1–14 and the advisor's two passes in the Control evidence section.
 - **Completed checks** — `spotlessCheck`; `verifyDashboardJson`; `openspec validate --all` 27;
   `commit-hygiene --review-ready`; the local stack restored and drained.
 - **Known limitations** — the sample age reads 20–40 s at a scrape because the ServiceMonitor interval and the sampler's
@@ -252,7 +268,7 @@
   helper; and the unit test's bounded wait carries `@SuppressWarnings("BusyWait")`, since it is the deliberate window
   that proves a stopped sampler attempts nothing. A re-run over the same eight files reports no findings and no failed
   tools, with the suppression entries probed rather than assumed.
-- **Prior findings with their instances** — rounds 1–15 and the advisor's two passes, in `findings/`.
+- **Prior findings with their instances** — rounds 1–15 and the advisor's two passes in the Control evidence section.
 - **Completed checks** — `:showcase-projection-service:check` green with integration tests and the coverage gate (1 m 14
   s); `spotlessCheck`; `openspec validate --all` 27.
 - **Known limitations** — the sample age reads 20–40 s at a scrape; the multi-replica mixed-age view is unexercised.
@@ -265,7 +281,7 @@
   states what the two probes established — the inspection reports nothing without the entry (so the refactor cleared
   it), and the `FutureReturnValueIgnored` entry is still needed (the compile warns without it). The final annotation is
   `@SuppressWarnings("FutureReturnValueIgnored")`.
-- **Prior findings with their instances** — rounds 1–16 and the advisor's two passes, in `findings/`.
+- **Prior findings with their instances** — rounds 1–16 and the advisor's two passes in the Control evidence section.
 - **Completed checks** — the IDE inspection re-run over the eight files with the entry removed (no findings, no failed
   tools); `:showcase-projection-service:check` green; `spotlessCheck`; `openspec validate --all` 27.
 - **Known limitations** — the sample age reads 20–40 s at a scrape; the multi-replica mixed-age view is unexercised.

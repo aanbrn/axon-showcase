@@ -68,11 +68,41 @@
   — not when all four artifacts differ), the `gradle-wrapper-upgrade` skill is recorded as _not assessed_ rather than as
   rejected for an unverified failure path, the rollback contract names its boundary and the snapshot it prints, and the
   gate's verdict is described as pin-configuration validation.
-- **Prior findings with their instances** — rounds 1–3 and the advisor's pass, in `findings/`.
+- **The pass's findings, entry by entry** — kept here because a pass that is not a review round has no instances file:
+  - [contradiction] `openspec/changes/pin-wrapper-distribution-checksum/tasks.md` — the command's prose becomes
+    incompatible with the pin, so the command's update must ship with it.
+  - [contradiction] `openspec/changes/pin-wrapper-distribution-checksum/tasks.md` — the completion criterion treated a
+    properties-only diff as incomplete, though the generated jar is byte-identical when the running and target versions
+    match.
+  - [over-claim] `openspec/changes/pin-wrapper-distribution-checksum/design.md:54` — the design asserted what Gradle's
+    `gradle-wrapper-upgrade` skill cannot control without having inspected any released definition of it.
+  - [missing-task] `openspec/changes/pin-wrapper-distribution-checksum/design.md:50` — the rollback promise said "any
+    failure" while the risks section acknowledged concurrency; the boundary and the retained recovery material were
+    unspecified.
+  - [coherence] `openspec/changes/pin-wrapper-distribution-checksum/design.md:73` — the tool resolved "latest stable"
+    itself while the command also selected a candidate, leaving two sources with no precedence.
+- **Prior findings with their instances** — rounds 1–3 in `findings/`, and the advisor's proposal pass above.
 - **Completed checks** — `openspec validate pin-wrapper-distribution-checksum --strict` passes; `verifyTableRows`
   passes; `spotlessApply` has run; `commit-hygiene --review-ready` passes.
 - **Known limitations** — the tool's restore paths are verified by fixtures and one live rehearsal; the gate asserts the
   pin's configuration, not that its value names the archive.
+
+## Reconstructed record — the advisor's implementation pass (no review round)
+
+- **Provenance** — written on 2026-11-06, when `reconcile-review-records` folded the pass's `findings/advisor-2.md` into
+  this hand-over. The pass itself ran during the implementation stage, after the command and the tool existed, and had
+  no round of its own; its place in the round sequence is not asserted here.
+- **The pass's findings, entry by entry**, because a pass that is not a review round has no instances file:
+  - [over-claim] `.opencode/commands/gradle-update.md:41-43` — the command promised a restore on a nonzero exit, while
+    `restore()` can itself fail; the three outcomes (restored, incomplete, untouched) had to be reported as themselves.
+  - [claim-unreproducible] `scripts/update-gradle-wrapper.py:23-24` — the tool's own exit-status docstring still said
+    the four files "are restored", contradicting the incomplete outcome.
+  - [claim-unreproducible] `.opencode/commands/gradle-update.md:43-44` — the command listed a killed process among the
+    cases where "the report says it is incomplete", though a killed process writes no final report.
+  - [over-claim] `openspec/changes/pin-wrapper-distribution-checksum/design.md:122` — the design described the pinned
+    archive's acceptance as CI's, where no accepting run had been observed.
+- **Not a review round** — the section stands in place of an instances file for this pass; the rounds' own findings stay
+  in `findings/`, and the proposal pass's entries are in the round-4 section.
 
 ## Round 5 — proposal screen, after round 4's four findings
 
@@ -83,7 +113,7 @@
   says "bytes and executable modes" in the proposal, the decision and the consequence; the pre-write note no longer
   states a row count; and the Goal justifies the gate by what it alone catches (a hand edit, or a pin never added)
   instead of borrowing Gradle's own refusal at bump time.
-- **Prior findings with their instances** — rounds 1–4 and the advisor's pass, in `findings/`.
+- **Prior findings with their instances** — rounds 1–4 and the advisor's pass in the advisor sections above.
 - **Completed checks** — `openspec validate pin-wrapper-distribution-checksum --strict` passes; `verifyTableRows`
   passes; `spotlessApply` has run; `commit-hygiene --review-ready` passes.
 - **Known limitations** — the tool's restore paths are verified by fixtures and one live rehearsal; the gate validates
@@ -102,7 +132,7 @@
   round trip leaving only the checksum line added against `HEAD`; the refusal probe (a zeroed checksum against a tiny
   local archive under an empty `GRADLE_USER_HOME`) reporting "Verification of Gradle distribution failed!"; `check`
   green with the three tasks; `openspec validate --all` 27.
-- **Prior findings with their instances** — rounds 1–5 and the advisor's pass, in `findings/`.
+- **Prior findings with their instances** — rounds 1–5 and the advisor's pass in the advisor sections above.
 - **Completed checks** — `check -PskipITs -Pcoverage.gate.enabled=false` green (1 m 19 s); `spotlessCheck`,
   `verifyTableRows`, `verifyIdeasSections` green.
 - **Known limitations** — task 3.3 (the capability Purpose) lands in the archive commit; the accepting half of the
@@ -120,7 +150,7 @@
   restore drops the mode; the byte-identical-jar claim has a claims row sourced to the round trip; the check accepts
   upper- and lower-case hex, matching the requirement's wording; task 4.2 is ticked; the nine over-long Python lines are
   wrapped.
-- **Prior findings with their instances** — rounds 1–6 and the advisor's pass, in `findings/`.
+- **Prior findings with their instances** — rounds 1–6 and the advisor's pass in the advisor sections above.
 - **Completed checks** — the two suites (10 and 8 cases) green; `check -PskipITs -Pcoverage.gate.enabled=false` green (1
   m 29 s) with the three wrapper tasks; `spotlessCheck`, `verifyTableRows`, `verifyIdeasSections` green.
 - **Known limitations** — task 3.3 (the capability Purpose) lands in the archive commit; the accepting half of the
@@ -137,7 +167,7 @@
   bytes return and the printed snapshot directory survives (disabling the `BaseException` handler fails it); a case with
   no `--checksum-url` patches `urlopen` and asserts the production URL is the `-all.zip.sha256` one (mutating the
   constant fails it); and an uppercase-checksum case pinning the widened acceptance (reverting the pattern fails it).
-- **Prior findings with their instances** — rounds 1–7 and the advisor's pass, in `findings/`.
+- **Prior findings with their instances** — rounds 1–7 and the advisor's pass in the advisor sections above.
 - **Completed checks** — the suites at 12 and 9 cases; `check -PskipITs -Pcoverage.gate.enabled=false` green (1 m 12 s);
   `spotlessCheck`, `verifyTableRows`, `verifyIdeasSections`; every new Python line within 120 characters.
 - **Known limitations** — task 3.3 (the capability Purpose) lands in the archive commit; the accepting half of the
@@ -150,7 +180,7 @@
 - **Supplied artifacts** — round 8's fixes: both Done notes state the arms their suites decide instead of a tally, which
   had drifted 8→9 and 7→12 across the last two rounds; and the unused `import os` and the two dead `REPO` constants are
   deleted, so nothing in the suites is unread.
-- **Prior findings with their instances** — rounds 1–8 and the advisor's pass, in `findings/`.
+- **Prior findings with their instances** — rounds 1–8 and the advisor's pass in the advisor sections above.
 - **Completed checks** — the suites at 12 and 9 cases green; `check -PskipITs -Pcoverage.gate.enabled=false` green (1 m
   25 s) with the three wrapper tasks; `spotlessCheck`, `verifyTableRows`, `verifyIdeasSections` green.
 - **Known limitations** — task 3.3 (the capability Purpose) lands in the archive commit; the accepting half of the
@@ -164,8 +194,8 @@
   pending-decision line is gone, leaving the manual pass as the one outstanding decision; and the tool removes its
   snapshot on each handled-failure return, since the restore has already run there, keeping the directory only where the
   restore could not finish (the interruption path).
-- **Prior findings with their instances** — rounds 1–10 (round 10 being the deep pass) and the advisor's pass, in
-  `findings/`.
+- **Prior findings with their instances** — rounds 1–10 (round 10 being the deep pass) and the advisor's pass in the
+  advisor sections above.
 - **Completed checks** — the suites at 12 and 9 cases; `check -PskipITs -Pcoverage.gate.enabled=false` green; the deep
   pass's re-checks of the transaction, the gate, the delta and the prose all sound.
 - **Known limitations** — task 3.3 (the capability Purpose) lands in the archive commit; the accepting half of the
@@ -178,8 +208,8 @@
 - **Supplied artifacts** — round 11's fixes: the unit record's Next step is the owner's manual pass, its Change set
   names the four scripts it stages, and the routing command's inline code span is on one source line with no whitespace
   run.
-- **Prior findings with their instances** — rounds 1–11 (round 10 being the deep pass) and the advisor's pass, in
-  `findings/`.
+- **Prior findings with their instances** — rounds 1–11 (round 10 being the deep pass) and the advisor's pass in the
+  advisor sections above.
 - **Completed checks** — the suites at 12 and 9 cases; `check -PskipITs -Pcoverage.gate.enabled=false` green; the deep
   pass's substance verified in rounds 10–11.
 - **Known limitations** — task 3.3 (the capability Purpose) lands in the archive commit; the accepting half of the
@@ -192,8 +222,8 @@
 - **Supplied artifacts** — round 12's fix: the recorded routing command runs as written again (the script is not
   executable, so `python3` is part of the command), and the Done note names the tool and the outcome without a
   line-broken code span.
-- **Prior findings with their instances** — rounds 1–12 (round 10 being the deep pass) and the advisor's pass, in
-  `findings/`.
+- **Prior findings with their instances** — rounds 1–12 (round 10 being the deep pass) and the advisor's pass in the
+  advisor sections above.
 - **Completed checks** — the suites at 12 and 9 cases; `check -PskipITs -Pcoverage.gate.enabled=false` green (1 m 20 s);
   the deep pass's substance verified in rounds 10–11.
 - **Known limitations** — task 3.3 (the capability Purpose) lands in the archive commit; the accepting half of the
@@ -208,8 +238,8 @@
   was touched." and the command names each cause; the interruption test is named for what it asserts; the duplicated
   cold-cache sentence is gone; and a capture-failure case asserts no snapshot announcement and no leftover directory —
   the last with a control that fails when the announcement moves back above the capture.
-- **Prior findings with their instances** — rounds 1–14 (round 10 being the deep pass) and the two advisor passes, in
-  `findings/`.
+- **Prior findings with their instances** — rounds 1–14 (round 10 being the deep pass) and the two advisor passes in the
+  advisor sections above.
 - **Completed checks** — the suites at 14 and 9 cases; `check -PskipITs -Pcoverage.gate.enabled=false` green (1 m 14 s);
   `spotlessCheck`, `verifyTableRows`, `verifyIdeasSections`; every edited line within 120 characters.
 - **Known limitations** — task 3.3 (the capability Purpose) lands in the archive commit; acceptance of the pinned 9.8.2
@@ -222,8 +252,8 @@
 - **Supplied artifacts** — round 15's fixes, applied at the lines the findings named: the Consequences bullet states the
   three-branch outcome instead of "leaves the four files as it found them", and task 2.3's Done note points at the
   suite's own enumeration rather than freezing a list that had drifted twice.
-- **Prior findings with their instances** — rounds 1–15 (round 10 being the deep pass) and the two advisor passes, in
-  `findings/`.
+- **Prior findings with their instances** — rounds 1–15 (round 10 being the deep pass) and the two advisor passes in the
+  advisor sections above.
 - **Completed checks** — the suites at 14 and 9 cases; `check -PskipITs -Pcoverage.gate.enabled=false` green;
   `spotlessCheck`, `verifyTableRows`, `verifyIdeasSections`.
 - **Known limitations** — task 3.3 (the capability Purpose) lands in the archive commit; acceptance of the pinned 9.8.2
@@ -237,8 +267,8 @@
   outcome model branch by branch; it points at the risk section's outcomes — restored, an incomplete restore whose
   snapshot holds the bytes, or a killed process whose snapshot is its only report — so the summary and the model cannot
   drift apart again.
-- **Prior findings with their instances** — rounds 1–16 (round 10 being the deep pass) and the two advisor passes, in
-  `findings/`.
+- **Prior findings with their instances** — rounds 1–16 (round 10 being the deep pass) and the two advisor passes in the
+  advisor sections above.
 - **Completed checks** — the suites at 14 and 9 cases; `check -PskipITs -Pcoverage.gate.enabled=false` green;
   `spotlessCheck`, `verifyTableRows`, `verifyIdeasSections`.
 - **Known limitations** — task 3.3 (the capability Purpose) lands in the archive commit; acceptance of the pinned 9.8.2

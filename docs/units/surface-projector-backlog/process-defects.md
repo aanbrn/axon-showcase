@@ -46,3 +46,20 @@
   then re-checked, so no product defect escaped, but five rounds were spent on it.
 - **Knowledge boundary** — observed: the five findings and the sections' headings; not checked: why the write was
   skipped — the capture is the record's, the cause analysis is the generalization's.
+
+### surface-projector-backlog#4 — An advisor pass's findings were recorded outside the unit's layout
+
+- **Recorded** — 2026-11-06, retroactively, by the main agent while reconciling the unit records in
+  `reconcile-review-records`.
+- **Stage** — implementation.
+- **Expected** — the unit's directory holds `unit.md`, `rounds.tsv`, `findings/round-<N>.md`, `process-defects.md`, and
+  `review-handover.md`; a pass that is not a review round records its findings in the hand-over, which already carries a
+  section for it.
+- **Observed** — the advisor's two implementation passes were written to `findings/advisor-1.md` and
+  `findings/advisor-2.md`, while the hand-over's "Control evidence" section carried the same passes' outcomes.
+- **Evidence** — the two files' paths and their `[over-claim]`, `[wording]`, `[hypothesis]` and `[open question]`
+  entries, beside `review-handover.md`'s "Control evidence — the deployed positive backlog (no review round)" section.
+- **Consequence** — the findings' instances lived outside the regulated set for the life of the merged unit; they now
+  sit in that hand-over section, and the files are deleted.
+- **Knowledge boundary** — observed: the two files and the section summarizing the same passes; not checked: what the
+  invocation's instructions said about where the findings should go.

@@ -58,6 +58,9 @@
 - **Consequence** — in this unit the violation record became `process-defects.md#2` and the advisor findings moved into
   the hand-over's advisor section; both files were deleted. The two merged units still carry their advisor files, so
   their correction is a separate docs change rather than this one's.
+- **Correction, 2026-11-06** — the observation above says the two merged units carry five `advisor-*.md` files between
+  them; they carry four. The count was reconciled in `reconcile-review-records`, which folds those files into the two
+  hand-overs; the observation itself stands as recorded.
 - **Knowledge boundary** — observed: the invented paths and their content; not checked: whether any other unit outside
   these three carries a file outside the layout, since the search covered `docs/units` once.
 

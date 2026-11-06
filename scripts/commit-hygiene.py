@@ -22,8 +22,8 @@ carries table rows whose cell count matches their delimiter row's; `--ideas-sect
 `docs/ideas.md` carries an entry, failing when the file itself is missing — a judgment the guard applies to a staged
 copy through the same reporter; `--workspace-records` verifies every unit record at `docs/units/<unit>/unit.md`, each
 live change's reference to it, and each archive in scope — judged by its inline record or by its reference according to
-its date, apart from one it acknowledges by name — the guard applies the same judgment to a staged copy and adds the tree
-and branch the record names; and
+its date, apart from one it acknowledges by name — the guard applies the same judgment to a staged copy and adds
+the tree and branch the record names; and
 `--class-vocabulary` verifies every class in a review-round row dated after the
 digest script's canonical boundary is one the reviewer's definition names, reading both rather than restating either,
 and exempting only a label a class-acknowledgement comment names on that row.
@@ -102,8 +102,8 @@ RECORD_FIELD_RE = re.compile(r"^[A-Za-z][A-Za-z ]*:")
 WORKSPACE_RECORD_ARCHIVE_SINCE = "2026-11-02"
 ACKNOWLEDGED_RECORDLESS_ARCHIVES: dict[str, str] = {}
 # A unit's own record: its workspace, state, and pause checkpoint (ADR-0029). `UNIT_RECORD_SINCE` is the boundary from
-# which an archive is judged by its reference to that record instead of the fields inside its `tasks.md`; a boundary-dated
-# archive that landed before the record is acknowledged by name and keeps its inline record.
+# which an archive is judged by its reference to that record instead of the fields inside its `tasks.md`; a
+# boundary-dated archive that landed before the record is acknowledged by name and keeps its inline record.
 UNIT_RECORD_DIR = "docs/units"
 UNIT_RECORD_BASENAME = "unit.md"
 # Each unit's review-round rows live beside its record, in the same directory.
@@ -1897,6 +1897,21 @@ def index_text(repo: Path, path: str) -> str:
         raise ValueError("cannot read the index copy of {0}".format(path))
 
 
+def store_stray_files(repo: Path) -> list[str]:
+    """Every tracked file under a unit's findings directory that is not a round's instances file."""
+    prefix = UNIT_RECORD_DIR + "/"
+    strays: list[str] = []
+    for path in git_output(repo, "ls-files", "-z", "--", UNIT_RECORD_DIR).split("\0"):
+        if not path.startswith(prefix):
+            continue
+        parts = path[len(prefix):].split("/")
+        if len(parts) >= 3 and parts[1] == FINDING_INSTANCES_DIR:
+            canonical = len(parts) == 3 and re.fullmatch(r"round-\d+\.md", parts[2])
+            if not canonical:
+                strays.append(path)
+    return strays
+
+
 def check_finding_instances(repo: Path) -> int:
     """Name each finding-instances violation; return their count."""
     try:
@@ -1904,6 +1919,10 @@ def check_finding_instances(repo: Path) -> int:
     except ValueError as failure:
         print("Review-round finding instances: {0}".format(failure), file=sys.stderr)
         return 1
+    problems += [
+        "{0} is not a round's instances file, and the store holds review rounds only".format(stray)
+        for stray in store_stray_files(repo)
+    ]
     for problem in problems:
         print("Review-round finding instances: {0}".format(problem), file=sys.stderr)
     return len(problems)
@@ -1957,8 +1976,8 @@ def archive_record_contract(directory: str) -> str:
 
     One predicate serves both entry points, so the build check and the guard cannot disagree about which archive they
     judge. An archive dated before the gate's introduction, and one the gate acknowledges as record-less, is exempt; an
-    archive dated on or after the record boundary is judged by its reference, apart from a boundary-dated one that landed
-    before the change, which keeps its inline record. A name that carries no date is no archived change.
+    archive dated on or after the record boundary is judged by its reference, apart from a boundary-dated one
+    that landed before the change, which keeps its inline record. A name that carries no date is no archived change.
     """
     match = ARCHIVED_CHANGE_RE.match(directory)
     if match is None:
@@ -2024,9 +2043,10 @@ def check_staged_workspace_records(repo: Path, paths: Sequence[str]) -> int:
     A staged unit record is judged against the tree, branch, and unit it names. A staged `tasks.md` is judged by its
     reference when the unit record exists, and by the fields it carries otherwise, so a unit in flight keeps committing.
     An archive dated before the boundary, or one the acknowledgement names, is outside the same scope the build check
-    applies, so an edit to history is not re-judged. A record a merge brings unchanged is exempt, since merged content is
-    not the committing unit's own. The branch comparison is skipped on a detached head, which is git's answer rather than
-    a failed read; an unreadable top level or branch raises, which `main` reports as the check having failed.
+    applies, so an edit to history is not re-judged. A record a merge brings unchanged is exempt, since merged
+    content is not the committing unit's own. The branch comparison is skipped on a detached head, which is git's
+    answer rather than a failed read; an unreadable top level or branch raises, which `main` reports as the check
+    having failed.
     """
     staged = [
         path
@@ -2168,9 +2188,9 @@ def workspace_record_paths(repo: Path) -> list[tuple[str, str]]:
 def find_invalid_workspace_records(repo: Path) -> list[tuple[str, str]]:
     """The (path, defect) of each `tasks.md` the workspace-record verification rejects.
 
-    A change whose unit record exists is judged by its reference to that record; one without a record is still judged by
-    the fields it carries, so a unit in flight before the move keeps committing. An archive is judged by the contract its
-    date selects, and a reference contract requires the record it names to be present.
+    A change whose unit record exists is judged by its reference to that record; one without a record is still
+    judged by the fields it carries, so a unit in flight before the move keeps committing. An archive is judged by the
+    contract its date selects, and a reference contract requires the record it names to be present.
     """
     offenders: list[tuple[str, str]] = []
     for path, name in workspace_record_paths(repo):

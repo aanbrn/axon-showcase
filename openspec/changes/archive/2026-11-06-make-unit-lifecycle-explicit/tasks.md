@@ -22,7 +22,7 @@ The unit's workspace record is `docs/units/make-unit-lifecycle-explicit/unit.md`
 - [x] 2.2 Apply the `agent-skills` delta's added requirements and its two modified ones — **Done** when
       `openspec validate make-unit-lifecycle-explicit` accepts the delta, each added requirement states one behaviour,
       and `design.md`'s amended-clause trace quotes every changed clause beside its replacement.
-- [ ] 2.4 Refresh the `showcase/quality/agent-skills` Purpose at archive to name the Begin procedure and the lifecycle
+- [x] 2.4 Refresh the `showcase/quality/agent-skills` Purpose at archive to name the Begin procedure and the lifecycle
       model among the project-authored guidance it provides — **Done** in the archive commit, since a delta cannot carry
       a Purpose.
 - [x] 2.3 Replace `AGENTS.md`'s lifecycle section with the published model: the seven stages, their transitions and
@@ -72,7 +72,7 @@ The unit's workspace record is `docs/units/make-unit-lifecycle-explicit/unit.md`
       task and a deliberately undeclared command makes a real `./gradlew check` run fail (a dry run executes nothing).
 - [x] 5.4 Apply the `commit-hygiene` delta's verification requirements — **Done** when `openspec validate` accepts them
       and the check's claim matches what it proves.
-- [ ] 5.5 Refresh the `showcase/quality/commit-hygiene` Purpose at archive to name the command-lifecycle projection
+- [x] 5.5 Refresh the `showcase/quality/commit-hygiene` Purpose at archive to name the command-lifecycle projection
       among the checks it owns — **Done** in the archive commit, since a delta cannot carry a Purpose.
 
 ## 6. Cleanup and verification
@@ -115,5 +115,5 @@ The unit's workspace record is `docs/units/make-unit-lifecycle-explicit/unit.md`
 - [x] 6.10 Run the gates over the finished tree — `./gradlew spotlessApply`, then
       `./gradlew check -PskipITs -Pcoverage.gate.enabled=false`, and `openspec validate --all` — **Done** when each
       command exits zero on the final edit.
-- [ ] 6.11 Ask the owner for the manual review pass over the finished unit and end the turn there — **Done** when the
+- [x] 6.11 Ask the owner for the manual review pass over the finished unit and end the turn there — **Done** when the
       owner replies.

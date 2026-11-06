@@ -565,8 +565,9 @@ tell it to set up the tooling (or run `/setup-agent-tools`). It detects what you
 and installs the `gh-mcp` extension, handing back only what it can't do for you — like `gh auth login`, or installing
 `gh` itself. Prefer this over wiring them by hand, which is fiddly and easy to get wrong.
 
-The one that matters is **GitHub** (the agent reads PRs, issues, and CI checks); **Playwright** is already configured in
-the project, so there's nothing to set up.
+The one to set up first is **GitHub** (the agent reads PRs, issues, and CI checks); **Playwright** is already configured
+in the project, so there's nothing to set up. **IntelliJ IDEA's built-in MCP server** is optional: it lets the agent
+work through your running IDE, and `/setup-agent-tools` helps you connect it.
 
 For manual setup, the auth-bound server (GitHub) goes under the **flat** `mcp` map of your **global** config
 (`~/.config/opencode/opencode.jsonc`), not the project config — a project entry can't use your credentials, and the flat
@@ -578,6 +579,9 @@ map (not the `mcp.servers` nesting) is what both OpenCode lines load: the 1.x ag
 - **GitHub** — read PRs, issues, and CI checks. Run `gh auth login` (the server reuses your `gh` credentials), install
   the `gh-mcp` extension (`gh extension install shuymn/gh-mcp`), then add it to that map:
   `"github": { "type": "local", "command": ["gh", "mcp"] }`.
+- **IntelliJ IDEA's built-in MCP server** (optional, IDEA only) — gives the agent your IDE's code intelligence:
+  inspections, refactoring, formatting, builds, run configurations, and its debugger. It ships with the IDE and needs no
+  separate install; ask `/setup-agent-tools` to connect it.
 
 MCP config is read at startup, so restart OpenCode after adding one.
 
@@ -605,7 +609,7 @@ is handed to the next unit and never removed.
 | `/opsx-sync`                  | Syncs a change's delta spec to the main spec — internal to `/opsx-archive`, not run standalone                                                                                                    |
 | `/opsx-update`                | Revises a change's planning artifacts                                                                                                                                                             |
 | `/opsx-explore`               | Explores an idea before proposing it                                                                                                                                                              |
-| `/setup-agent-tools`          | Sets up the tooling MCP servers (GitHub core, plus optional extras)                                                                                                                               |
+| `/setup-agent-tools`          | Sets up the GitHub MCP, and offers the optional connection to IntelliJ IDEA's built-in MCP server                                                                                                 |
 | `/reconnect-mcp`              | Reports every MCP server's status, or reconnects one named server or the whole failed set, verifying each reached `connected` — without restarting OpenCode                                       |
 | `/setup-idea`                 | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier + Python analysis)                                                                                         |
 | `/new-worktree`               | Creates a unit's sibling worktree and prepares it for IntelliJ in one operation, reporting whether it is ready                                                                                    |

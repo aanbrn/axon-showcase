@@ -27,28 +27,11 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
 
 ## 2026-11-06
 
-- Replace Steroid with IDEA's built-in MCP Server, and optionally run OpenCode as an ACP agent inside JetBrains Air.
-  Steroid 0.102.0 (`com.jonnyzzz.mcp-steroid`) is broken on IDEA 2026.3 —
-  `NoClassDefFoundError: com/fasterxml/jackson/databind/ObjectMapper` in `McpScriptContextImpl.<init>`, even for
-  `println(project.name)`. Its descriptor declares only `com.intellij.modules.platform` and bundles no Jackson jar,
-  while 2026.3 keeps that class in the separate module `lib/intellij.libraries.jackson.databind.jar`, so it is an
-  upstream defect and not a local setting. The bundled server (`com.intellij.mcpServer`, 263.7307.200) was already
-  enabled and listening: an `initialize` against `http://127.0.0.1:64342/stream` returns `IntelliJ IDEA MCP Server`
-  2026.3 at protocol `2025-06-18`, `tools/list` returns 66 tools, and the same port serves `/sse`. It covers what this
-  repository uses an IDE for — `lint_files` and `get_file_problems` (inspections), `rename_refactoring`,
-  `reformat_file`, `optimize_imports`, `analyze_calls`, `build_project`, run configurations, `execute_terminal_command`,
-  sixteen debugger tools, coverage, profiler, VCS, `apply_patch` — and `run_ide_script` reproduces
-  `steroid_execute_code` (Kotlin in the IDE process, full classpath, `project` bound) behind Brave Mode plus a
-  per-script confirmation. Wiring the OpenCode client is one entry in the global flat `mcp` map —
-  `"intellij": {"type": "remote", "url": "http://127.0.0.1:64342/stream"}` — the same transport shape the `amplicode`
-  entry already uses; running OpenCode inside Air instead is one entry in `~/.jetbrains/acp.json`
-  (`"OpenCode": {"command": "/opt/homebrew/bin/opencode", "args": ["acp"], "use_idea_mcp": true, "use_custom_mcp": true}`),
-  since Air is bundled in 2026.3 as `air-plugin` and `use_idea_mcp` injects the IDE server. Steroid then stays warranted
-  only for headless remote-development backends (`devrig backend`) and screenshot or UI-input work. The change would
-  touch `AGENTS.md`'s two Steroid rules (the IDE-inspections bullet with `runInspectionsDirectly`, and the tooling-setup
-  bullet), `.opencode/skills/setup-agent-tools/SKILL.md`, and `.opencode/commands/setup-agent-tools.md`; the README is
-  unaffected, since it deliberately documents only the GitHub and Playwright servers. Revisit after
-  `assert-paketo-pin-coverage` ships, on the owner's instruction. — parked; no change yet.
+- Report the MCP Steroid defect for IDEA 2026.3 upstream once the project publishes a venue. The reproduction is
+  `NoClassDefFoundError: com/fasterxml/jackson/databind/ObjectMapper` in `McpScriptContextImpl.<init>` from any
+  `steroid_execute_code` call; `jonnyzzz/mcp-steroid` has issues and discussions disabled and `devrig.dev` lists no
+  contact channel, so there is nowhere to file it today. Re-check both surfaces (and the JetBrains Marketplace plugin
+  page) before the next attempt, and cite the report from the setup skill's fallback section. — parked; no change yet.
 
 ## 2026-11-01
 

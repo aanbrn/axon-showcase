@@ -1,0 +1,9 @@
+2026-11-06	assert-paketo-pin-coverage	1	claim-unreproducible,coherence,impact-omission,missing-task	-	5	ses_e524554effferoHuFiPtKVF9bG	created	-
+2026-11-06	assert-paketo-pin-coverage	2	coherence,claim-unreproducible	coherence,claim-unreproducible	2	ses_e524554effferoHuFiPtKVF9bG	continued	-
+2026-11-06	assert-paketo-pin-coverage	3	-	-	0	ses_e524554effferoHuFiPtKVF9bG	continued	-
+2026-11-06	assert-paketo-pin-coverage	4	coherence,claim-unreproducible,test-control,wording,docs-residue	coherence,claim-unreproducible	6	ses_e5210efbbffehS6A5RNDi6vDrd	replaced	caller-restarted
+2026-11-06	assert-paketo-pin-coverage	5	dropped-content,coherence,claim-unreproducible	coherence,claim-unreproducible	3	ses_e5210efbbffehS6A5RNDi6vDrd	continued	-
+2026-11-06	assert-paketo-pin-coverage	6	coherence	coherence	1	ses_e5210efbbffehS6A5RNDi6vDrd	continued	-
+2026-11-06	assert-paketo-pin-coverage	7	-	-	0	ses_e5210efbbffehS6A5RNDi6vDrd	continued	-
+2026-11-06	assert-paketo-pin-coverage	8	-	-	0	ses_e513433d6ffePRVYkn6MBukAeC	replaced	definition-changed
+2026-11-06	assert-paketo-pin-coverage	9	-	-	0	ses_e5114c1fcffe4nsH8EFN2JYdsK	replaced	definition-changed

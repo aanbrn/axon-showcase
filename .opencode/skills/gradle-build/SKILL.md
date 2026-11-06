@@ -43,7 +43,9 @@ spec's; this pack carries the operational rules a change needs, not a second cop
   applies directly too — the root's `jacoco` included: set its `toolVersion` from the catalog, because an omitted one is
   not unpinned but whatever the Gradle distribution bundles, older than the catalog's pin here, so one build ran two
   JaCoCo versions the scan reported separately. Grep each script that applies the plugin for a `toolVersion` assignment
-  rather than trusting the plugin's version. captured: address-snyk-advisories-2026-11-01
+  rather than trusting the plugin's version. A catalog `paketo-*` pin and the `buildpackChecks` entry that tracks it
+  move together: `verifyDocumentedPins` fails on a pin with no entry, and on an entry naming a pin the catalog does not
+  hold. captured: address-snyk-advisories-2026-11-01
 - **A `build-logic` convention plugin's effect is verified through a consuming module, not unit-tested.** `build-logic`
   has no `gradleTestKit()`, so its `src/test` holds unit tests of plain helper objects (`Versions`, the `*Rules`
   classes) and a plugin's Gradle DSL — e.g. `spring-boot-conventions`' `springBoot { buildInfo { … } }` — cannot be

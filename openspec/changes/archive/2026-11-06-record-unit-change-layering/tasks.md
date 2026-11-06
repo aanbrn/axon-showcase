@@ -48,7 +48,7 @@ The unit's workspace record is `docs/units/record-unit-change-layering/unit.md`.
 - [x] 2.8 Run the gates over the finished tree — `./gradlew spotlessApply`, then
       `./gradlew spotlessCheck verifyWorkspaceRecords verifyUnitLayout verifyUniqueReviewRounds verifyFindingInstances`
       and `openspec validate --all` — **Done** when each command exits zero on the final edit.
-- [ ] 2.9 Ask the owner for the manual review pass over the finished unit and end the turn there — **Done** when the
+- [x] 2.9 Ask the owner for the manual review pass over the finished unit and end the turn there — **Done** when the
       owner replies.
 
 ## Claims

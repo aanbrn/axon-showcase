@@ -1,0 +1,2 @@
+- [missing-task] `docs/decisions/2026-11-06-air-worktree-exercise.md` — the record had no reopening condition; added.
+- [claim-unreproducible] `docs/decisions/2026-11-06-air-worktree-exercise.md` — 81 bytes lacked its arithmetic.

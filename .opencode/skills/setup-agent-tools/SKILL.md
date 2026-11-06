@@ -118,6 +118,34 @@ user before reading or editing files outside this repo.
    - Hand back only what you could not do for the reader (an interactive login, a GUI confirmation, the IDE's own
      install dialog), naming the surface that reads each file.
 
+## Running a unit session in Air
+
+The tested combination is IDEA 2026.3 with its bundled Air; another release can rename the mode or move it. Air's
+session dialog offers a worktree mode beside its local one, and that mode creates its own branch and a worktree under
+`~/.air/worktrees/temporary/`. In the two recorded disposable-clone runs on IDEA 2026.3, Air created clean checkouts at
+the source commit and the source retained all staged, unstaged, and untracked markers
+(`docs/decisions/2026-11-06-air-worktree-exercise.md`), despite the creation dialog's copy promise — so a unit session
+started there works outside the tree the unit record names and without the unit's uncommitted work.
+
+Before a unit session starts:
+
+- choose **Local** in the unit's assigned tree;
+- verify the session's absolute path and branch against `docs/units/<unit>/unit.md` before the first write;
+- reach for another tree only through `./scripts/new-worktree.sh`;
+- keep Air's automatic worktree cleanup disabled — it can remove a worktree holding uncommitted changes.
+
+If **New Local Worktree** was selected by accident:
+
+1. stop the session's work;
+2. change nothing — no commit, push, reset, or deletion of either tree or Air's branch;
+3. find both trees in `git worktree list`;
+4. preserve what is unique in each, staged and untracked files and local commits included;
+5. present the differences and a recovery proposal to the owner;
+6. stop for their decision, and never add a claim or rewrite the unit record to make the stray tree pass the guard.
+
+ADR-0024 records that the v2 surface offers no session-bound write control, leaves v1 unverified, and records the
+property as not ensured — so the pre-commit guard, the branch ruleset, and the review stop remain the boundary.
+
 ## Notes
 
 - Prefer editing the flat `mcp` map directly. `opencode mcp add` also works, but it defaults to the **project** config —

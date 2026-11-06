@@ -124,8 +124,9 @@ configuration and the subagent definitions reference it rather than restating it
 
 ## OpenSpec Workflow Agreement
 
-These rules govern every unit of work that will become a pull request: an OpenSpec change, a docs refresh, a standalone
-fix, or a dependency bump. Where a rule says "change", read "unit of work".
+A unit is this process's base unit of work: one branch, intended for one pull request. An OpenSpec change is one form it
+takes, and every other form this section names is equally a unit. The rules govern a unit whether or not it carries a
+change, so where a rule says "change", read "unit of work".
 
 ### Invariants
 

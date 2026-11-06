@@ -57,3 +57,20 @@ Alternatives considered and rejected:
 - `tasks.md` no longer carries unit state, so a reader of the plan does not see stale pause fields beside the tasks.
 - `docs/units/` grows by one directory per unit and is never pruned; the `closed` state is what keeps the growth
   harmless, and a directory with one file is a shape a later per-unit artifact can join.
+
+## Amendment — 2026-11-06
+
+This amendment records the layering the Decision implements and the alternative it declines. It moves no record, adds no
+field, and changes no check.
+
+A unit is the unit of work; an OpenSpec change is one form it may take. The Context's "the record cannot outlive the
+change directory" is superseded by the Decision: the record lives at a fixed path outside the change and stays there
+when the change is archived, and what that sentence names is the address a record kept among the change's files would
+lose, not the record's survival, which the Decision provides. The layering is why the unit's records live outside the
+change: the `unit.md` record exists before the unit's first content write (it is written when the workspace is
+established) and persists through archive and merge, while the sibling process-defect record is appended to after merge.
+
+**Considered and declined: every unit is an OpenSpec change** — using `skip_specs` wherever no capability delta is owed,
+with the record carried inside the change directory. It co-locates the files without removing the responsibilities: the
+unit outlives its archive, so post-merge recording would write into the archive, and a paused unit's state would sit in
+an artifact the workflow relocates.

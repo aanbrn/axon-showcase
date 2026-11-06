@@ -3971,7 +3971,11 @@ class UnitRecordTests(unittest.TestCase):
 
     def test_an_archive_after_the_record_boundary_requires_a_reference(self):
         repo = self._repo()
-        path = self._archive(repo, "2026-11-04-archived-unit", "# Tasks\n\nWorkspace: unit=archived-unit; path=/x; branch=y; writer=ses_abc123\n")
+        path = self._archive(
+            repo,
+            "2026-11-04-archived-unit",
+            "# Tasks\n\nWorkspace: unit=archived-unit; path=/x; branch=y; writer=ses_abc123\n",
+        )
 
         code, stderr = self._check(repo)
 
@@ -4380,6 +4384,39 @@ class FindingInstancesTests(unittest.TestCase):
         with contextlib.redirect_stderr(stderr):
             self.assertEqual(commit_hygiene.main(["--finding-instances", "--repo", str(repo)]), 1)
         self.assertIn("finding instances", stderr.getvalue())
+
+    def test_a_file_the_store_does_not_hold_fails(self):
+        repo = self._repo(classes="-", instances="- none\n")
+        (repo / "docs" / "units" / "unit-a" / "findings" / "advisor-1.md").write_text(
+            "- [wording] docs/a.md:3 — a consultation's finding\n", encoding="utf-8"
+        )
+        subprocess.run(("git", "add", "-A"), cwd=repo, check=True)
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(commit_hygiene.main(["--finding-instances", "--repo", str(repo)]), 1)
+        self.assertIn("advisor-1.md", stderr.getvalue())
+        self.assertIn("not a round's instances file", stderr.getvalue())
+
+    def test_a_nested_file_the_store_does_not_hold_fails(self):
+        repo = self._repo(classes="-", instances="- none\n")
+        nested = repo / "docs" / "units" / "unit-a" / "findings" / "consultations" / "advisor-1.md"
+        nested.parent.mkdir(parents=True)
+        nested.write_text("- [wording] docs/a.md:3 — a consultation's finding\n", encoding="utf-8")
+        subprocess.run(("git", "add", "-A"), cwd=repo, check=True)
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(commit_hygiene.main(["--finding-instances", "--repo", str(repo)]), 1)
+        self.assertIn("consultations/advisor-1.md", stderr.getvalue())
+
+    def test_a_store_holding_only_rounds_passes(self):
+        repo = self._repo(classes="-", instances="- none\n")
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(commit_hygiene.main(["--finding-instances", "--repo", str(repo)]), 0)
+        self.assertEqual("", stderr.getvalue())
 
 
 if __name__ == "__main__":

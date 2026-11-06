@@ -27,20 +27,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
 
 ## 2026-11-06
 
-- Reconcile the review-record artifacts with the unit layout — parked; no change yet. Two leftovers of inventing records
-  outside `docs/units/<unit>/`'s regulated set. First, the five `findings/advisor-<n>.md` files in the merged units
-  `surface-projector-backlog` and `pin-wrapper-distribution-checksum` belong in their `review-handover.md` sections,
-  with the same class recorded in each unit's `process-defects.md`; deleting them is a docs change, since their content
-  is already summarized in the hand-overs. Second, the `commit-hygiene` requirement that owns `findings/round-<N>.md`
-  states only the mechanism: it should also say why a per-round file earns its place beside the now-permanent hand-over
-  — the build gate cross-checks each round against its file, and the hand-over is written before a round runs while its
-  findings arrive after — because the reason recorded when the store was introduced (the hand-over left with the
-  archive) stopped being true an hour later, when #833 moved the hand-over into the unit directory. A third leftover
-  belongs to the same sweep: the merged unit `surface-projector-backlog` records its deep-review round (12) as
-  `replaced`/`caller-restarted`, where the honest reason is `definition-changed` — the deep pass runs
-  `review-thorough`'s definition, not the quick reviewer's — and that row therefore reads as a restart violation it was
-  not.
-
 - Replace Steroid with IDEA's built-in MCP Server, and optionally run OpenCode as an ACP agent inside JetBrains Air.
   Steroid 0.102.0 (`com.jonnyzzz.mcp-steroid`) is broken on IDEA 2026.3 —
   `NoClassDefFoundError: com/fasterxml/jackson/databind/ObjectMapper` in `McpScriptContextImpl.<init>`, even for
@@ -63,6 +49,20 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   bullet), `.opencode/skills/setup-agent-tools/SKILL.md`, and `.opencode/commands/setup-agent-tools.md`; the README is
   unaffected, since it deliberately documents only the GitHub and Playwright servers. Revisit after
   `assert-paketo-pin-coverage` ships, on the owner's instruction. — parked; no change yet.
+
+- Record `assert-paketo-pin-coverage`'s formatter incident as a process-defect record. During that unit's ship, its
+  record was edited and committed without re-running the formatter, and the pre-commit guard refused the commit. The
+  record cannot ride that unit's branch, which had already merged, so it needs its own docs change — parked; no change
+  yet.
+
+- Extend the unit layout to a whole-directory allowlist. `reconcile-review-records` made the finding store hold review
+  rounds only, but a unit's own directory has already received an invented file at its root — `continuity-violation.md`,
+  recorded in `assert-paketo-pin-coverage`'s process-defect `#3` — which that store-only check cannot see. The follow-up
+  replaces the store predicate with one canonical layout predicate: a tracked path under `docs/units/<unit>/` must be
+  `unit.md`, `rounds.tsv`, `review-handover.md`, `process-defects.md`, or `findings/round-<N>.md`, rejected at any depth
+  and naming the unit and the path, with kinds validated but presence not required (19 of 274 units carry `unit.md`, 15
+  carry `review-handover.md`), and negative controls at the root and nested. A new legitimate record kind then requires
+  an explicit extension of the layout contract rather than an exception on the spot. — parked; no change yet.
 
 ## 2026-11-01
 

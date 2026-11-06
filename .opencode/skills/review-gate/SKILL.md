@@ -137,6 +137,9 @@ its format.
      - The entries' classes must equal the row's `classes raised` field, since `verifyFindingInstances` fails a
        disagreement.
      - Point the hand-over and the checkpoint's prior-findings note at that file.
+     - A pass that is not a review round — a consultation, or any other screen — records its findings in the unit's
+       `review-handover.md`, never in a round file or in another file under `findings/`; the store's requirement in
+       `showcase/quality/commit-hygiene` owns that scope, and the build fails on a file the store does not hold.
    - **IF a round's report has arrived, THEN immediately run both ledger checks — whether or not its row was appended,
      since a check keyed on the append cannot see an append that never happened:**
      `python3 scripts/commit-hygiene.py --unique-rounds --expect <unit>:<round>` and, as a separate invocation,

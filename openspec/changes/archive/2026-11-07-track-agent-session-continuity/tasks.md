@@ -159,8 +159,8 @@
 
 ## 6. Archive
 
-- [ ] 6.1 Refresh the `showcase/quality/commit-hygiene` Purpose in the archive commit — it enumerates the verification
+- [x] 6.1 Refresh the `showcase/quality/commit-hygiene` Purpose in the archive commit — it enumerates the verification
       subjects and now gains the agent-session record — record the deferral here, and tick this task in the archived
-      `tasks.md`.
-- [ ] 6.2 Run `openspec archive track-agent-session-continuity --yes` and stage both the change-dir move and the
-      `openspec/specs/**` sync.
+      `tasks.md`. **Done** — the Purpose names the agent-session register's continuity and hand-over links.
+- [x] 6.2 Run `openspec archive track-agent-session-continuity --yes` and stage both the change-dir move and the
+      `openspec/specs/**` sync. **Done** — archived as `2026-11-07-track-agent-session-continuity`; both sides are staged with this commit.

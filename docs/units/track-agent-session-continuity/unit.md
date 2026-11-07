@@ -3,7 +3,7 @@
 Workspace:
 `unit=track-agent-session-continuity; path=/Users/afanasyev/Development/axon-showcase; branch=track-agent-session-continuity; writer=ses_e4add21daffe0vW0OISMmtQS3i`
 
-State: active
+State: closed
 
 A change unit: its planning artifacts live under `openspec/changes/track-agent-session-continuity/`.
 
@@ -34,3 +34,11 @@ The owner authorized this bounded probe in the request that began the unit.
 
 Consequence: a unit paused and resumed in a new main session cannot continue its recorded child sessions, while resuming
 the same main session keeps them. The design records the forced replacement and offers the surviving route.
+
+## Completion
+
+Shipped as pull request #862: the register, the checker mode and its `check` member, the staged guard, the layout
+admission, `parent-session-changed` on both records, the pause/resume rule, the four documents, the README and the
+`AGENTS.md` exception. Seventeen quick rounds closed clean; the routed deep review found a blocking checker gap and
+three smaller items, all fixed and verified by its second pass; the readiness consultation's corrections are applied.
+The change is archived as `openspec/changes/archive/2026-11-07-track-agent-session-continuity/`.

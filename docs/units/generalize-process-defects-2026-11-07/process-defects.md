@@ -31,3 +31,18 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Consequence** — one review round and one formatter run; nothing was committed, and the claim was corrected.
 - **Knowledge boundary** — observed the append order and the failing re-run. Did not check whether rounds 1–5 shared it;
   each of their sections was followed by a `spotlessApply` before its check, so only this one is evidenced.
+
+### generalize-process-defects-2026-11-07#3 — The `proposed` Decision lines were merged without their pull-request link
+
+- **Recorded** — 2026-11-07, by the shipping session, while settling the unit.
+- **Stage** — ship.
+- **Expected** — the command's step 7 records a `proposed` line with a link, and the prior generalization unit's
+  practice adds the pull request's link to those lines before the merge.
+- **Observed** — the five `proposed` lines were committed and merged on #859 without a link, and this unit record's
+  "Applied" section claimed the link was added before the merge.
+- **Evidence** — `git show 9b9d7906:docs/units/assert-paketo-pin-coverage/process-defects.md` reads
+  `proposed: applied as P1 …`; the record's "Applied" sentence; #859's merged diff.
+- **Consequence** — `main` carried the non-conforming lines between the merge and the follow-up docs unit
+  `link-generalization-decision-records`, which adds the link and corrects the sentence.
+- **Knowledge boundary** — observed the merged lines and the sentence. Did not check whether a gate validates those
+  lines; `docs/ideas.md` 2026-11-01 records that none does.

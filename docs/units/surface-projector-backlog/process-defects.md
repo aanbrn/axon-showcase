@@ -32,8 +32,9 @@
   added edge confirmed as the rule's prescribed shape rather than a new decision.
 - **Knowledge boundary** — observed: the missing pack in the hand-over and the stopped review; not checked: whether the
   dependency choice itself was wrong, since the pack's rule agrees with it.
-- **Decision** — proposed: applied as P1 in `AGENTS.md`'s subject-pack section — the caller checks a change's planned or
-  actual edited paths for a subject its decisions did not name.
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/859 — applied as P1 in `AGENTS.md`'s
+  subject-pack section — the caller checks a change's planned or actual edited paths for a subject its decisions did not
+  name.
 
 ### surface-projector-backlog#3 — The review hand-over section was written after the invocation, not before
 

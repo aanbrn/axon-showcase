@@ -37,5 +37,6 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   verdict task).
 - **Knowledge boundary** — observed this unit's classification and the stop. Did not check whether earlier units that
   edited build scripts carried the pack.
-- **Decision** — proposed: applied as P1 in `AGENTS.md`'s subject-pack section — the caller checks a change's planned or
-  actual edited paths for a subject its decisions did not name.
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/859 — applied as P1 in `AGENTS.md`'s
+  subject-pack section — the caller checks a change's planned or actual edited paths for a subject its decisions did not
+  name.

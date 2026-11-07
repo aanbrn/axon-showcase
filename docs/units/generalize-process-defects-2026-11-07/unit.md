@@ -153,3 +153,10 @@ delta that created the table and those outcomes, not one for the derivation.
 
 `openspec validate --all`, `./gradlew spotlessApply` and `check`, the 120-character scan over the changed set,
 `verifyCapturedMarkers`, and the review gate's closing round.
+
+## Correction — the five proposed lines' pull-request link (2026-11-07)
+
+The "Applied" section records that the five `proposed` lines "gain this unit's pull-request link before the merge". They
+were merged without it: #859 carried `proposed: applied as P1 …`. The follow-up docs unit
+`link-generalization-decision-records` added `https://github.com/aanbrn/axon-showcase/pull/859` to the five lines and
+records the miss as this unit's process-defect `#3`. The sentence above stands as shipped.

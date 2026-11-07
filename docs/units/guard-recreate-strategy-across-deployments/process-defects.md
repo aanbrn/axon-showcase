@@ -19,8 +19,9 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   change's subject (a chart, a CLI guard) and missed the build surface the change also edits.
 - **Knowledge boundary** — observed this unit's stop and the earlier unit's record. Did not check whether other units in
   the session edited `build.gradle.kts` without the pack.
-- **Decision** — proposed: applied as P1 in `AGENTS.md`'s subject-pack section — the caller checks a change's planned or
-  actual edited paths for a subject its decisions did not name.
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/859 — applied as P1 in `AGENTS.md`'s
+  subject-pack section — the caller checks a change's planned or actual edited paths for a subject its decisions did not
+  name.
 
 ### guard-recreate-strategy-across-deployments#2 — An edit script reported success while one of its replacements did not apply
 

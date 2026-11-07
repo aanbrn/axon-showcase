@@ -115,8 +115,9 @@
   it, and the ledger's round 9 is the re-run.
 - **Knowledge boundary** — observed: this one hand-over and the reviewer's response to it; not checked: whether earlier
   hand-overs in this unit or in earlier units named no pack and were accepted without one.
-- **Decision** — proposed: applied as P1 in `AGENTS.md`'s subject-pack section — the caller checks a change's planned or
-  actual edited paths for a subject its decisions did not name.
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/859 — applied as P1 in `AGENTS.md`'s
+  subject-pack section — the caller checks a change's planned or actual edited paths for a subject its decisions did not
+  name.
 
 ### assert-paketo-pin-coverage#6 — A commit was attempted without re-running the formatter
 

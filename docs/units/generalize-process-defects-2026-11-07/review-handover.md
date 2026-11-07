@@ -235,3 +235,12 @@ One section per quick-review invocation, recorded before the caller waits on it.
 - **Known limitations** — the five `proposed` lines carry the applied site, not a pull-request link, which lands before
   the merge; R1 is parked, not implemented; this unit's `process-defects.md#1` and `#2` stay undecided for a later pass.
 - **Deadline** — none fixed: this record exists so a stall is recoverable from it.
+
+## Correction — the five proposed lines' link and the undecided records (2026-11-07)
+
+The delivery rounds' Known-limitations entries (rounds 6–10) say the five `proposed` lines' pull-request link "lands
+before the merge", and name this unit's `process-defects.md#1` and `#2` as the undecided records; the earlier rounds'
+entries concern other limitations. Both statements were falsified: #859 merged without the link, and the follow-up docs
+unit `link-generalization-decision-records` added `https://github.com/aanbrn/axon-showcase/pull/859` to the five lines
+and appended process-defect `#3`, which stays undecided with `#1` and `#2`. The sections above stand as written,
+corrected here.

@@ -16,8 +16,9 @@
 - **Knowledge boundary** — observed: this session's ledger, and the merged rows against their instance counts; not
   checked: what each merged round's compliance-miss figure was. A later finding-by-finding assessment would be a dated
   retrospective reclassification, not recovery of the original figures.
-- **Decision** — proposed: applied as P1 in `AGENTS.md`'s subject-pack section — the caller checks a change's planned or
-  actual edited paths for a subject its decisions did not name.
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/859 — applied as P1 in `AGENTS.md`'s
+  subject-pack section — the caller checks a change's planned or actual edited paths for a subject its decisions did not
+  name.
 
 ### unit-layout-allowlist#2 — The ledger's sixth field was written as the finding count
 

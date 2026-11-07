@@ -21,3 +21,5 @@ proposal loop, not a process defect.
   section, the implementation pass in its own "no review round" section, and the files are deleted.
 - **Knowledge boundary** — observed: the two files and the hand-over's references to them; not checked: what the
   invocation's instructions said about where the findings should go.
+- **Decision** — no-change: already covered by `showcase/quality/commit-hygiene`'s unit-layout requirement and the
+  `verifyUnitLayout` gate that refuses an unadmitted path.

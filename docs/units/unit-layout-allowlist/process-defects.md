@@ -16,6 +16,8 @@
 - **Knowledge boundary** — observed: this session's ledger, and the merged rows against their instance counts; not
   checked: what each merged round's compliance-miss figure was. A later finding-by-finding assessment would be a dated
   retrospective reclassification, not recovery of the original figures.
+- **Decision** — proposed: applied as P1 in `AGENTS.md`'s subject-pack section — the caller checks a change's planned or
+  actual edited paths for a subject its decisions did not name.
 
 ### unit-layout-allowlist#2 — The ledger's sixth field was written as the finding count
 
@@ -38,3 +40,5 @@
 - **Knowledge boundary** — observed: this session's ledger and the two merged units' rows, each against its round's
   finding-instance count; not checked: what compliance-miss figure each merged round would actually have carried, since
   no stored report preserves it.
+- **Decision** — no-change: already covered by `review-quick.md`, which defines the compliance-miss count the reviewer's
+  report line carries.

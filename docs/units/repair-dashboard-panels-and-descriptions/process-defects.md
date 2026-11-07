@@ -16,6 +16,8 @@
   the decision did not); both are now aligned, and no implementation was affected.
 - **Knowledge boundary** — observed: the missing text and the script's success output; not checked: whether other
   unasserted replacements in the same edit chain silently no-opped beyond the ones later found by review.
+- **Decision** — no-change: already covered by `AGENTS.md`'s edit-verification gotcha — never trust a scripted edit's
+  own report; assert the anchor's occurrence count and read the result back.
 
 ### repair-dashboard-panels-and-descriptions#2 — A 120-character check that could never report a violation
 
@@ -33,3 +35,5 @@
   uses the documented recipe.
 - **Knowledge boundary** — observed: the vacuous command, its empty output, and the thirteen lines; not checked: how
   many earlier units' 120-character claims rested on the same form.
+- **Decision** — no-change: already covered by `check-and-test-authoring`'s "A verification step must discriminate the
+  edit from its absence" and `AGENTS.md`'s documented 120-character recipe.

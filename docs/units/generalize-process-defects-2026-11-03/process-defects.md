@@ -18,6 +18,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   narrowed P1 and P3 to `already covered` and revised P4 and P6.
 - **Knowledge boundary** — observed the proposal, the consultation's finding, and the archived text. Did not check
   whether the lesson-capture pass read that design before proposing; its report does not say.
+- **Decision** — no-change: already covered by `AGENTS.md`'s "Interrogate the premise" rule — read the archive, ADR,
+  parked idea, and existing owners before designing.
 
 ### generalize-process-defects-2026-11-03#2 — The first consultation hand-off omitted the record map it was deciding on
 
@@ -35,6 +37,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   from already-parked to covered, `persist-review-round-findings#1`'s site).
 - **Knowledge boundary** — observed both reports and the map. Did not check whether the advisor would have found the
   same two rows from the first hand-off alone.
+- **Decision** — no-change: already covered by `.opencode/agent/technical-advisor.md`'s handoff field list (relevant
+  findings, their dispositions, unresolved disagreements); the command's steps 3–5 produce that map.
 
 ### generalize-process-defects-2026-11-03#3 — A `captured:` marker landed mid-bullet
 
@@ -51,6 +55,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Consequence** — one corrective edit before any formatter or guard run; nothing was staged in the broken state.
 - **Knowledge boundary** — observed the diff. Did not run `verifyCapturedMarkers` against the broken state to see
   whether it would have refused it.
+- **Decision** — no-change: already covered by the pre-commit guard's `captured:` marker placement check, which refuses
+  a marker that does not end its rule block.
 
 ### generalize-process-defects-2026-11-03#4 — A record was parked against the wrong defect
 
@@ -67,6 +73,7 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   `record-markdown-lint-decision#3` and `record-ast-grep-skill-usage#2` remain correctly parked.
 - **Knowledge boundary** — observed the record, the entry, and the correction. Did not check the corpus for other rows
   whose subject merely shares an artifact with a parked entry, beyond the row the advisor named.
+- **Decision** — no-change: one occurrence, corrected in the same pass; below the promotion gate.
 
 ### generalize-process-defects-2026-11-03#5 — A findings entry's location carried a space
 
@@ -80,6 +87,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Consequence** — one failed `check` run, corrected before any commit.
 - **Knowledge boundary** — observed the failure and the pattern. Did not check whether another unit's instances file
   names a free-text location that passes only because it happens to contain no space.
+- **Decision** — no-change: the gate's field-shape validation requires the entry's location as one token, which the
+  record's space-carrying location failed.
 
 ### generalize-process-defects-2026-11-03#6 — A round's hand-over was not recorded before its invocation
 
@@ -96,6 +105,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   lost, because the round answered.
 - **Knowledge boundary** — observed the missing section and the finding. Did not check whether an earlier invocation in
   this unit ran without its section, beyond the fact that rounds 1–5 each had one written before its own.
+- **Decision** — no-change: already covered by `review-gate` §2's preflight, which records the invocation's hand-over
+  before the caller waits; the pre-invocation check is parked in `docs/ideas.md` 2026-11-07.
 
 ### generalize-process-defects-2026-11-03#7 — An unescaped pipe in the PR body's claims table split a cell
 
@@ -111,6 +122,7 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   the table re-checked for cell counts.
 - **Knowledge boundary** — observed the row and the corrected table. Did not check whether any other unit's draft body
   carries the same defect, which no gate reads by construction.
+- **Decision** — no-change: already covered by `AGENTS.md`'s Formatting convention — escape a table cell's pipe as `\|`.
 
 ### generalize-process-defects-2026-11-03#8 — A claims row credited a command that cannot observe its second half
 
@@ -127,6 +139,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Consequence** — the row is now two rows, each naming its own command, before the draft is published.
 - **Knowledge boundary** — observed the CI step and the probe's output. Did not check whether any other row pairs two
   claims under one command, beyond re-reading this table.
+- **Decision** — no-change: already covered by `review-gate` §1 — split a claim whose quantifier spans more than one
+  part, each half naming its own command.
 
 ### generalize-process-defects-2026-11-03#9 — The pull-request link sweep reached other units' records
 
@@ -144,3 +158,5 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   docs unit, because this unit's files were already committed when the defect surfaced.
 - **Knowledge boundary** — observed the two counts, the commit's file list, and the merged state. Did not check whether
   other units' `proposed` lines were meant to carry links and never received them.
+- **Decision** — no-change: already covered by `AGENTS.md`'s programmatic-edit rule — scope a substring sweep to the
+  block that owns the value and assert its intended match count.

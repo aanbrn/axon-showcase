@@ -19,6 +19,8 @@
 - **Knowledge boundary** — observed: the truncated command, the row it produced, and the finding. Assumed: that the
   slice, not a stale file, produced the omission. Not checked: whether any other row in this unit's table rests on a
   similarly sliced read.
+- **Decision** — no-change: already covered by `AGENTS.md`'s evidence rule — cite a command's complete output, never a
+  `head`/`tail` slice or a grep filter.
 
 ### adopt-builtin-ide-mcp-server#2 — a green formatter check recorded before the file's last edit
 
@@ -38,6 +40,8 @@
 - **Knowledge boundary** — observed: the appended section, the recorded line, and the failing re-run. Assumed: nothing
   about other units' records. Not checked: whether any earlier "passes" line in this unit's records was likewise written
   before a later edit.
+- **Decision** — no-change: already covered by `AGENTS.md`'s Formatting convention — run `spotlessApply` after the final
+  write, and treat the tick claiming a gate as the edit that falsifies it.
 
 ### adopt-builtin-ide-mcp-server#3 — an anchored edit dropped the section heading it replaced
 
@@ -56,6 +60,8 @@
 - **Knowledge boundary** — observed: the edit's anchor, the resulting heading list, and the repair. Assumed: that no
   other section in this file lost a heading the same way. Not checked: whether the same anchored-insertion pattern was
   used elsewhere in this unit's artifacts.
+- **Decision** — no-change: already covered by `AGENTS.md`'s programmatic-edit rule — verify at the granularity edited
+  (the heading list for a section move) and re-emit a heading an anchor spans.
 
 ### adopt-builtin-ide-mcp-server#4 — the same anchored-insertion defect recurred, and the heading check now gates it
 
@@ -75,3 +81,5 @@
 - **Knowledge boundary** — observed: both anchors, both heading lists, the duplicate bodies, and the reconstruction.
   Assumed: that the reconstruction preserved each block's text unchanged. Not checked: whether the same anchor shape is
   used in other files this unit edits.
+- **Decision** — no-change: already covered by `AGENTS.md`'s programmatic-edit rule — verify at the granularity edited
+  (the heading list for a section move) and re-emit a heading an anchor spans.

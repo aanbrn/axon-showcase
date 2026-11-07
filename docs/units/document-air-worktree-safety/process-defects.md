@@ -11,6 +11,8 @@
 - **Consequence**: one turn lost; no damage beyond the rework.
 - **Knowledge boundary**: observed that the replace no-opped; did not re-measure whether every other scripted edit in
   the unit had matched.
+- **Decision** — no-change: already covered by `AGENTS.md`'s edit-verification gotcha — never trust a scripted edit's
+  own report; assert the anchor's occurrence count and read the result back.
 
 ### document-air-worktree-safety#2 — the exercise record sat at a path the unit layout does not admit
 
@@ -24,6 +26,8 @@
   reference was repointed.
 - **Knowledge boundary**: observed the gate's refusal and the move; did not check whether another admitted kind would
   have been the better home.
+- **Decision** — no-change: already covered by `showcase/quality/commit-hygiene`'s unit-layout requirement and the
+  `verifyUnitLayout` gate that refuses an unadmitted path.
 
 ### document-air-worktree-safety#3 — a hand-over edit wrote a literal `\n`
 
@@ -36,6 +40,8 @@
   nothing.
 - **Consequence**: two small repairs; no gate reads that file for shape.
 - **Knowledge boundary**: observed the literal and its removal; did not inspect other files written the same way.
+- **Decision** — no-change: below the promotion gate — one incident and two repairs; the programmatic-edit gotcha's
+  verify-the-result rule already rejects the shape.
 
 ### document-air-worktree-safety#4 — a findings instance file was wrapped, breaking its one-line shape
 
@@ -48,3 +54,5 @@
   one line each, passed.
 - **Consequence**: one rework; the class list and count in `rounds.tsv` were unaffected.
 - **Knowledge boundary**: observed the wrap and the fix; did not enumerate every other findings file for the same shape.
+- **Decision** — no-change: the requirement now states an entry MAY be wrapped and the checker joins a continuation
+  line, so the record's wrapping incident no longer reproduces.

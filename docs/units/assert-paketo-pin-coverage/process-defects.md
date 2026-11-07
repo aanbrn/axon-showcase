@@ -18,6 +18,8 @@
   restored bullet is byte-identical to `HEAD` once the two intended sentences are removed.
 - **Knowledge boundary** — observed: the deleted text and the passing gates; not checked: whether any other file I
   edited in this unit lost text the same way, since only this bullet's diff was compared against its base.
+- **Decision** — no-change: already covered by `AGENTS.md`'s span-edit rule — a replacement preserves every valid
+  obligation, verified by sweeping the removed text's distinctive tokens.
 
 ### assert-paketo-pin-coverage#2 — The reviewer session was replaced without an evidenced recovery case
 
@@ -41,6 +43,8 @@
 - **Knowledge boundary** — observed: the session change, its recorded reason, and the absent recovery case; not checked:
   whether the replacement session's screens differed from what the original would have produced, since it cannot be
   replayed.
+- **Decision** — no-change: already covered by `review-gate` §2's preflight — a replacement session only on an evidenced
+  recovery case; the owner resolved both occurrences.
 
 ### assert-paketo-pin-coverage#3 — Two records were created outside the unit's regulated layout
 
@@ -63,6 +67,8 @@
   hand-overs; the observation itself stands as recorded.
 - **Knowledge boundary** — observed: the invented paths and their content; not checked: whether any other unit outside
   these three carries a file outside the layout, since the search covered `docs/units` once.
+- **Decision** — no-change: already covered by `showcase/quality/commit-hygiene`'s unit-layout requirement and the
+  `verifyUnitLayout` gate that refuses an unadmitted path.
 
 ### assert-paketo-pin-coverage#4 — The agent deviated from the regulated process on its own initiative
 
@@ -89,6 +95,8 @@
 - **Knowledge boundary** — observed: the three deviations and what surfaced each; not checked: whether the same class
   occurred earlier in this session's units beyond the advisor files the parked entry names, since no sweep has been run
   for it.
+- **Decision** — no-change: already covered by its three components' rules — the `commit-hygiene` unit-layout
+  requirement, `review-gate` §2's reviewer-session rule, and the span-edit rule.
 
 ### assert-paketo-pin-coverage#5 — The reviewer hand-over omitted the applicable pack
 
@@ -107,6 +115,8 @@
   it, and the ledger's round 9 is the re-run.
 - **Knowledge boundary** — observed: this one hand-over and the reviewer's response to it; not checked: whether earlier
   hand-overs in this unit or in earlier units named no pack and were accepted without one.
+- **Decision** — proposed: applied as P1 in `AGENTS.md`'s subject-pack section — the caller checks a change's planned or
+  actual edited paths for a subject its decisions did not name.
 
 ### assert-paketo-pin-coverage#6 — A commit was attempted without re-running the formatter
 
@@ -124,3 +134,5 @@
   archived record carries the formatted text.
 - **Knowledge boundary** — observed: the refusal and the corrected retry; not checked: whether an earlier commit of the
   same unit also skipped the formatter, since only this one was refused.
+- **Decision** — no-change: already covered by `AGENTS.md`'s Formatting convention — run `spotlessApply` after the final
+  write, and treat the tick claiming a gate as the edit that falsifies it.

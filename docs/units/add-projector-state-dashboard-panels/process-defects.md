@@ -14,6 +14,8 @@
   defect never reached a review round.
 - **Knowledge boundary** — observed: the validation warning and the missing heading; inferred: none; not checked:
   whether the same anchor pattern appears in this unit's other artifacts.
+- **Decision** — no-change: already covered by `AGENTS.md`'s programmatic-edit rule — verify at the granularity edited
+  (the heading list for a section move) and re-emit a heading an anchor spans.
 
 ### add-projector-state-dashboard-panels#2 — A control loop restored a mutated file with `git checkout --`, discarding the uncommitted implementation
 
@@ -31,6 +33,8 @@
   its own copy before mutating; no other file was touched by the loop.
 - **Knowledge boundary** — observed: the checkout, the identical counts and the missing rules; not checked: whether a
   file outside `build-logic` lost an edit in the same loop.
+- **Decision** — no-change: already covered by `AGENTS.md`'s `git reset --hard` gotcha (`git checkout --` restores the
+  index copy and discards uncommitted work) and `check-and-test-authoring`'s restore-from-snapshot bullet.
 
 ### add-projector-state-dashboard-panels#3 — A credential-shaped curl command in a planning artifact failed the CI secret scan
 
@@ -48,3 +52,5 @@
 - **Knowledge boundary** — observed: the CI failure, the local reproduction, the rule id, and a whole-tree scan after
   the fix that reports no finding; not checked: whether any artifact carries a credential shape the configured rule set
   does not match.
+- **Decision** — no-change: below the promotion gate — one CI cycle, and the `build` job's gitleaks scan is the
+  automatable enforcement that caught it.

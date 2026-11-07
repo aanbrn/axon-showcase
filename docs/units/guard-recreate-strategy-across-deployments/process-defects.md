@@ -19,6 +19,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   change's subject (a chart, a CLI guard) and missed the build surface the change also edits.
 - **Knowledge boundary** — observed this unit's stop and the earlier unit's record. Did not check whether other units in
   the session edited `build.gradle.kts` without the pack.
+- **Decision** — proposed: applied as P1 in `AGENTS.md`'s subject-pack section — the caller checks a change's planned or
+  actual edited paths for a subject its decisions did not name.
 
 ### guard-recreate-strategy-across-deployments#2 — An edit script reported success while one of its replacements did not apply
 
@@ -33,6 +35,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Consequence** — one extra proposal round; the anchor was re-applied with the edit tool and read back.
 - **Knowledge boundary** — observed this unit's script and its output. Did not check whether earlier scripted edits in
   the session had a silent no-op that a later read did not catch.
+- **Decision** — no-change: already covered by `AGENTS.md`'s edit-verification gotcha — never trust a scripted edit's
+  own report; assert the anchor's occurrence count and read the result back.
 
 ### guard-recreate-strategy-across-deployments#3 — A claims row's command could not produce its own result
 
@@ -47,6 +51,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Consequence** — three rounds on one row; the fact itself was true throughout, and only the evidence lagged.
 - **Knowledge boundary** — observed this row's rounds. Did not audit the other rows of this change's table for a source
   that prints a different shape from its result.
+- **Decision** — no-change: already covered by `review-gate` §1 — a row's source must be able to produce the result it
+  states.
 
 ### guard-recreate-strategy-across-deployments#4 — A reported replacement did not land, and the hand-over repeated the claim
 
@@ -63,3 +69,5 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   was then removed deliberately.
 - **Knowledge boundary** — observed this unit's scripts and hand-overs. Did not check whether the same missed-anchor
   pattern affected the design's two other qualifications of the same sentence.
+- **Decision** — no-change: already covered by `AGENTS.md`'s edit-verification gotcha — never trust a scripted edit's
+  own report; assert the anchor's occurrence count and read the result back.

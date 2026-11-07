@@ -48,6 +48,11 @@ what the change will decide, not by whether it touches a file yet.
 - Load every pack whose row matches the task; a JVM change that writes production code and tests loads both
   `jvm-development` and `jvm-testing`. A test run is `jvm-testing`'s; a build question it raises — a missing image, a
   suite misconfiguration — loads `gradle-build` when that decision is reached.
+- **Check a change's planned or actual edited paths for a subject the decisions did not name, before its first governed
+  decision.** Paths are evidence for the table's decision triggers, not triggers by themselves: an edit to a build
+  script, convention plugin, or version catalog often carries a `gradle-build` decision, while a formatter-only change
+  to one carries none. captured: assert-paketo-pin-coverage captured: guard-recreate-strategy-across-deployments
+  captured: reject-ignored-openspec-delta-sections captured: surface-projector-backlog captured: unit-layout-allowlist
 - IF no row matches, THEN load none.
 - Before your first edit, state one `Packs:` line naming every pack you loaded in full, or `Packs: none` with the
   reason. The line reports the classification; it does not prove the content was loaded.

@@ -16,3 +16,5 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   the merged unit is `#6`, so this is its recurrence one unit later.
 - **Knowledge boundary** — observed this unit's own sequence. Did not check whether the preflight step reaches a caller
   at every round, rather than only as the skill's opening rule.
+- **Decision** — no-change: already covered by `review-gate` §2's preflight, which records the invocation's hand-over
+  before the caller waits; the pre-invocation check is parked in `docs/ideas.md` 2026-11-07.

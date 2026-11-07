@@ -16,6 +16,8 @@
   from the reports, and the checkpoint's "Findings no record holds" field was false until then.
 - **Knowledge boundary** — observed: the missing files and the finding that named them; not checked: whether the same
   omission happened in the previous unit before its round 5 caught a related one.
+- **Decision** — no-change: already covered by `review-gate` §2 — the row, instances, and hand-over are written when the
+  report arrives; the process-defect record's rules are `AGENTS.md`'s "Workflow: Record process defects".
 
 ### reconcile-review-records#2 — A review round was started in a new session without an evidenced recovery case
 
@@ -34,6 +36,8 @@
   findings stand and the next round continues round 2's session.
 - **Knowledge boundary** — observed: the two identifiers and the absence of an evidenced case; not checked: whether the
   round would have continued round 1's session had its identifier been supplied.
+- **Decision** — no-change: already covered by `review-gate` §2's preflight — a replacement session only on an evidenced
+  recovery case; the owner resolved both occurrences.
 
 ### reconcile-review-records#3 — Files were edited after staging, and the staged set went stale
 
@@ -50,3 +54,4 @@
   and the hand-over's round-5 section records that the index is re-staged.
 - **Knowledge boundary** — observed: the stale index, the untracked file and the failed check; not checked: whether an
   earlier round in this unit also read a stale index without reporting it.
+- **Decision** — no-change: already covered by `review-gate` §2 step 3's mid-loop re-stage and §5's readiness check.

@@ -14,6 +14,8 @@
   the cost of a broker call per case.
 - **Knowledge boundary** — observed: the two failures and their repair; not checked: whether the order that produced
   them is stable, since the cases' independence no longer depends on it.
+- **Decision** — no-change: below the promotion gate — one occurrence, caught by the case's first full run and repaired;
+  no existing rule covers it.
 
 ### surface-projector-backlog#2 — A build-file edit was made without loading `gradle-build`
 
@@ -30,6 +32,8 @@
   added edge confirmed as the rule's prescribed shape rather than a new decision.
 - **Knowledge boundary** — observed: the missing pack in the hand-over and the stopped review; not checked: whether the
   dependency choice itself was wrong, since the pack's rule agrees with it.
+- **Decision** — proposed: applied as P1 in `AGENTS.md`'s subject-pack section — the caller checks a change's planned or
+  actual edited paths for a subject its decisions did not name.
 
 ### surface-projector-backlog#3 — The review hand-over section was written after the invocation, not before
 
@@ -46,6 +50,8 @@
   then re-checked, so no product defect escaped, but five rounds were spent on it.
 - **Knowledge boundary** — observed: the five findings and the sections' headings; not checked: why the write was
   skipped — the capture is the record's, the cause analysis is the generalization's.
+- **Decision** — no-change: already covered by `review-gate` §2's preflight, which records the invocation's hand-over
+  before the caller waits; the pre-invocation check is parked in `docs/ideas.md` 2026-11-07.
 
 ### surface-projector-backlog#4 — An advisor pass's findings were recorded outside the unit's layout
 
@@ -63,3 +69,5 @@
   sit in that hand-over section, and the files are deleted.
 - **Knowledge boundary** — observed: the two files and the section summarizing the same passes; not checked: what the
   invocation's instructions said about where the findings should go.
+- **Decision** — no-change: already covered by `showcase/quality/commit-hygiene`'s unit-layout requirement and the
+  `verifyUnitLayout` gate that refuses an unadmitted path.

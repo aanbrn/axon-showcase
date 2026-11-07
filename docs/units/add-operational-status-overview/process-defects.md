@@ -17,3 +17,5 @@
   empty state's red base colour).
 - **Knowledge boundary** — observed: the subagent's report and the main agent's successful read; not checked: whether
   the `vision` subagent can read a file path directly, since its brief supplied URLs only.
+- **Decision** — no-change: addressed by the archived change `2026-11-05-fix-vision-image-loading`, whose four-step
+  acquisition procedure in `.opencode/agent/vision.md` names the screenshot tool.

@@ -3864,6 +3864,7 @@ MODE_TEST_COVERAGE = {
     "--unique-rounds": ("UniqueReviewRoundTests", "check_unique_review_rounds"),
     "--unique-change-names": ("UniqueChangeNameTests", "find_duplicate_change_names"),
     "--session-continuity": ("SessionContinuityTests", "find_session_continuity_violations"),
+    "--agent-sessions": ("AgentSessionTests", "find_agent_session_violations"),
     "--large-files": ("LargeFileTests", "find_oversized_files"),
     "--table-rows": ("TableRowTests", "check_table_rows"),
     "--ideas-sections": ("IdeaSectionTests", "find_empty_idea_sections"),
@@ -4408,7 +4409,14 @@ class UnitLayoutTests(unittest.TestCase):
 
     def test_every_admitted_kind_passes(self):
         repo = self._repo(
-            ("unit.md", "rounds.tsv", "review-handover.md", "process-defects.md", "findings/round-1.md")
+            (
+                "unit.md",
+                "rounds.tsv",
+                "review-handover.md",
+                "process-defects.md",
+                "sessions.tsv",
+                "findings/round-1.md",
+            )
         )
 
         code, stderr = self._mode(repo)
@@ -4470,6 +4478,487 @@ class UnitLayoutTests(unittest.TestCase):
 
         self.assertEqual(0, code)
         self.assertEqual("", stderr)
+
+
+SESSION_FIELDS = (
+    "date",
+    "unit",
+    "main",
+    "agent",
+    "scope",
+    "opinion",
+    "pass",
+    "requested",
+    "returned",
+    "transition",
+    "reason",
+    "slug",
+    "outcome",
+)
+
+
+def session_row(**overrides: str) -> str:
+    """One thirteen-field agent-session row, defaulted to a first deep-review pass."""
+    fields = {
+        "date": "2026-11-07",
+        "unit": "unit-a",
+        "main": "ses_main",
+        "agent": "review-thorough",
+        "scope": "unit-a",
+        "opinion": "-",
+        "pass": "1",
+        "requested": "-",
+        "returned": "ses_child1",
+        "transition": CREATED,
+        "reason": "-",
+        "slug": "deep-1",
+        "outcome": "report",
+    }
+    fields.update(overrides)
+    if "pass_number" in fields:
+        fields["pass"] = fields.pop("pass_number")
+    return "\t".join(fields[key] for key in SESSION_FIELDS)
+
+
+HANDOVER = "# Review hand-over — unit-a\n\n## `deep-1` — deep review, pass 1\n"
+
+
+class AgentSessionTests(unittest.TestCase):
+    """The `--agent-sessions` rules: the register's field, identity, continuity, and link checks."""
+
+    def violations(self, *rows: str, handover: str = HANDOVER) -> list[str]:
+        return commit_hygiene.find_agent_session_violations(
+            {"unit-a": "\n".join(rows) + "\n"}, {"unit-a": handover}
+        )
+
+    def test_a_first_created_row_passes(self):
+        self.assertEqual([], self.violations(session_row()))
+
+    def test_a_continued_row_passes(self):
+        self.assertEqual(
+            [],
+            self.violations(
+                session_row(),
+                session_row(pass_number="2", requested="ses_child1", returned="ses_child1", transition=CONTINUED),
+            ),
+        )
+
+    def test_a_parent_session_replacement_passes_from_another_main_session(self):
+        self.assertEqual(
+            [],
+            self.violations(
+                session_row(),
+                session_row(
+                    main="ses_other",
+                    pass_number="2",
+                    returned="ses_child2",
+                    transition=REPLACED,
+                    reason="parent-session-changed",
+                ),
+            ),
+        )
+
+    def test_a_stalled_row_does_not_advance_the_session(self):
+        self.assertEqual(
+            [],
+            self.violations(
+                session_row(),
+                session_row(pass_number="2", returned="-", transition="-", outcome="stalled"),
+                session_row(pass_number="3", requested="ses_child1", returned="ses_child1", transition=CONTINUED),
+            ),
+        )
+
+    def test_a_mismatch_row_passes_with_differing_identifiers(self):
+        self.assertEqual(
+            [],
+            self.violations(
+                session_row(),
+                session_row(
+                    pass_number="2", requested="ses_child1", returned="ses_child9", transition="-", outcome="mismatch"
+                ),
+            ),
+        )
+
+    def test_a_consultation_row_passes_with_a_primary_opinion(self):
+        self.assertEqual(
+            [],
+            self.violations(
+                session_row(
+                    agent="technical-advisor",
+                    scope="readiness",
+                    opinion="primary",
+                    returned="ses_advisor",
+                )
+            ),
+        )
+
+    def test_a_wrong_field_count_fails(self):
+        self.assertIn("12 field(s)", self.violations(session_row()[: -len("\treport")])[0])
+
+    def test_a_row_filed_under_another_unit_fails(self):
+        self.assertIn("does not name 'unit-a'", self.violations(session_row(unit="unit-b"))[0])
+
+    def test_the_quick_reviewer_is_not_a_registered_agent(self):
+        self.assertIn("is not one of", self.violations(session_row(agent="review-quick"))[0])
+
+    def test_an_empty_scope_fails(self):
+        self.assertIn("scope is empty", self.violations(session_row(scope="-"))[0])
+
+    def test_an_opinion_on_a_reviewer_row_fails(self):
+        self.assertIn("not '-'", self.violations(session_row(opinion="primary"))[0])
+
+    def test_a_consultation_opinion_must_be_primary_or_independent(self):
+        self.assertIn(
+            "not one of primary, independent",
+            self.violations(session_row(agent="technical-advisor", opinion="-"))[0],
+        )
+
+    def test_a_pass_gap_fails(self):
+        self.assertIn("not the key's next pass", self.violations(session_row(), session_row(pass_number="3"))[0])
+
+    def test_an_unresolved_row_carrying_a_transition_fails(self):
+        self.assertIn(
+            "it reports nothing",
+            self.violations(session_row(outcome="stalled", returned="-", transition=CREATED))[0],
+        )
+
+    def test_a_mismatch_whose_identifiers_agree_fails(self):
+        self.assertIn(
+            "identifiers agree",
+            self.violations(
+                session_row(),
+                session_row(
+                    pass_number="2",
+                    requested="ses_child1",
+                    returned="ses_child1",
+                    transition="-",
+                    outcome="mismatch",
+                ),
+            )[0],
+        )
+
+    def test_a_mismatch_without_a_requested_identifier_fails(self):
+        self.assertIn(
+            "needs both identifiers",
+            self.violations(session_row(outcome="mismatch", transition="-", returned="ses_child2"))[0],
+        )
+
+    def test_a_created_row_after_a_resolved_session_fails(self):
+        self.assertIn(
+            "created row follows",
+            self.violations(session_row(), session_row(pass_number="2", returned="ses_child2", transition=CREATED))[0],
+        )
+
+    def test_a_created_row_naming_a_requested_identifier_fails(self):
+        self.assertIn("created row carries requested", self.violations(session_row(requested="ses_child1"))[0])
+
+    def test_a_continued_row_without_its_requested_identifier_fails(self):
+        self.assertIn(
+            "must request and return",
+            self.violations(session_row(), session_row(pass_number="2", transition=CONTINUED))[0],
+        )
+
+    def test_a_continuation_from_another_main_session_fails(self):
+        self.assertIn(
+            "cannot cross a main session",
+            self.violations(
+                session_row(),
+                session_row(
+                    main="ses_other",
+                    pass_number="2",
+                    requested="ses_child1",
+                    returned="ses_child1",
+                    transition=CONTINUED,
+                ),
+            )[0],
+        )
+
+    def test_a_replacement_without_a_reason_fails(self):
+        self.assertIn(
+            "not one of",
+            self.violations(session_row(), session_row(pass_number="2", returned="ses_child2", transition=REPLACED))[0],
+        )
+
+    def test_a_parent_session_replacement_from_the_same_main_session_fails(self):
+        self.assertIn(
+            "same main session",
+            self.violations(
+                session_row(),
+                session_row(
+                    pass_number="2",
+                    returned="ses_child2",
+                    transition=REPLACED,
+                    reason="parent-session-changed",
+                ),
+            )[0],
+        )
+
+    def test_a_replaced_row_returning_the_replaced_identifier_fails(self):
+        self.assertIn(
+            "returns the identifier it replaces",
+            self.violations(
+                session_row(),
+                session_row(pass_number="2", returned="ses_child1", transition=REPLACED, reason="expired"),
+            )[0],
+        )
+
+    def test_a_replaced_row_naming_a_requested_identifier_fails(self):
+        self.assertIn(
+            "requests",
+            self.violations(
+                session_row(),
+                session_row(
+                    pass_number="2",
+                    requested="ses_child1",
+                    returned="ses_child2",
+                    transition=REPLACED,
+                    reason="expired",
+                ),
+            )[0],
+        )
+
+    def test_a_report_row_without_a_returned_identifier_fails(self):
+        self.assertIn("no returned identifier", self.violations(session_row(returned="-"))[0])
+
+    def test_a_missing_hand_over_section_fails(self):
+        self.assertIn("has no matching section", self.violations(session_row(slug="deep-9"))[0])
+
+    def test_a_stalled_row_carrying_a_returned_identifier_fails(self):
+        self.assertIn(
+            "it reports nothing",
+            self.violations(session_row(outcome="stalled", transition="-", returned="ses_child9"))[0],
+        )
+
+    def test_a_mismatch_without_a_returned_identifier_fails(self):
+        self.assertIn(
+            "needs both identifiers",
+            self.violations(session_row(outcome="mismatch", transition="-", requested="ses_child1", returned="-"))[0],
+        )
+
+    def test_a_reason_on_a_created_row_fails(self):
+        self.assertIn("created row carries requested", self.violations(session_row(reason="expired"))[0])
+
+    def test_a_reason_on_a_continued_row_fails(self):
+        self.assertIn(
+            "carries reason",
+            self.violations(
+                session_row(),
+                session_row(
+                    pass_number="2",
+                    requested="ses_child1",
+                    returned="ses_child1",
+                    transition=CONTINUED,
+                    reason="expired",
+                ),
+            )[0],
+        )
+
+    def test_a_reviewer_scope_other_than_the_unit_fails(self):
+        self.assertIn("is not the unit", self.violations(session_row(scope="other-unit"))[0])
+
+    def test_a_consultation_scope_that_is_not_a_slug_fails(self):
+        self.assertIn(
+            "is not a kebab-case slug",
+            self.violations(session_row(agent="technical-advisor", scope="Readiness", opinion="primary"))[0],
+        )
+
+    def test_a_mismatch_row_carrying_a_transition_fails(self):
+        self.assertIn(
+            "records no session",
+            self.violations(
+                session_row(
+                    outcome="mismatch",
+                    transition=CREATED,
+                    requested="ses_child1",
+                    returned="ses_child9",
+                )
+            )[0],
+        )
+
+    def test_a_mismatch_row_carrying_a_reason_fails(self):
+        self.assertIn(
+            "records no session",
+            self.violations(
+                session_row(
+                    outcome="mismatch",
+                    transition="-",
+                    reason="expired",
+                    requested="ses_child1",
+                    returned="ses_child9",
+                )
+            )[0],
+        )
+
+    def test_a_malformed_date_fails(self):
+        self.assertIn("is not YYYY-MM-DD", self.violations(session_row(date="07-11-2026"))[0])
+
+    def test_an_empty_main_session_fails(self):
+        self.assertIn("main session is empty", self.violations(session_row(main="-"))[0])
+
+    def test_a_non_numeric_pass_fails(self):
+        self.assertIn("not a positive number", self.violations(session_row(pass_number="one"))[0])
+
+    def test_a_zero_pass_fails(self):
+        self.assertIn("not a positive number", self.violations(session_row(pass_number="0"))[0])
+
+    def test_an_unknown_outcome_fails(self):
+        self.assertIn("not one of report", self.violations(session_row(outcome="done"))[0])
+
+    def test_a_stalled_row_carrying_a_reason_fails(self):
+        self.assertIn(
+            "it reports nothing",
+            self.violations(session_row(outcome="stalled", transition="-", returned="-", reason="expired"))[0],
+        )
+
+    def test_a_report_row_with_an_invalid_transition_fails(self):
+        self.assertIn(
+            "not one of created, continued, replaced",
+            self.violations(session_row(transition="-"))[0],
+        )
+
+    def test_a_continued_row_returning_another_identifier_fails(self):
+        self.assertIn(
+            "must request and return",
+            self.violations(
+                session_row(),
+                session_row(
+                    pass_number="2",
+                    requested="ses_child1",
+                    returned="ses_child9",
+                    transition=CONTINUED,
+                ),
+            )[0],
+        )
+
+    def test_a_first_continued_row_fails(self):
+        self.assertIn(
+            "no session to continue",
+            self.violations(
+                session_row(requested="ses_child1", returned="ses_child1", transition=CONTINUED)
+            )[0],
+        )
+
+    def test_a_first_replaced_row_fails(self):
+        self.assertIn(
+            "no session to replace",
+            self.violations(
+                session_row(returned="ses_child2", transition=REPLACED, reason="expired")
+            )[0],
+        )
+
+    def test_a_removed_committed_row_is_reported(self):
+        committed = session_row() + "\n" + session_row(pass_number="2")
+        self.assertIn("is removed", commit_hygiene.find_session_record_rewrites(committed, session_row())[0])
+
+    def test_a_rewritten_committed_row_is_reported(self):
+        committed = session_row() + "\n"
+        staged = session_row(main="ses_other") + "\n"
+        self.assertIn("is rewritten", commit_hygiene.find_session_record_rewrites(committed, staged)[0])
+
+    def test_an_appended_row_is_not_reported(self):
+        committed = session_row() + "\n"
+        staged = committed + session_row(pass_number="2", returned="ses_child2", transition=REPLACED, reason="expired")
+        self.assertEqual([], commit_hygiene.find_session_record_rewrites(committed, staged + "\n"))
+
+    def test_a_removed_register_is_reported(self):
+        self.assertIn("is removed", commit_hygiene.find_session_record_rewrites(session_row(), None)[0])
+
+
+def register_repo(test: unittest.TestCase, row: str | None = None) -> Path:
+    """A repository whose committed unit directory carries a hand-over and, when given, one register row."""
+    repo = make_repo(test)
+    unit = repo / "docs" / "units" / "unit-a"
+    unit.mkdir(parents=True)
+    (unit / "review-handover.md").write_text("# Review hand-over\n\n## `deep-1` — pass 1\n", encoding="utf-8")
+    if row is not None:
+        (unit / "sessions.tsv").write_text(row + "\n", encoding="utf-8")
+    subprocess.run(("git", "add", "docs/units/unit-a"), cwd=repo, check=True)
+    subprocess.run(("git", "commit", "-qm", "register"), cwd=repo, check=True)
+    return repo
+
+
+def stage_register(repo: Path, text: str) -> None:
+    """Write the register's staged content and stage it."""
+    (repo / "docs" / "units" / "unit-a" / "sessions.tsv").write_text(text, encoding="utf-8")
+    subprocess.run(("git", "add", "docs/units/unit-a/sessions.tsv"), cwd=repo, check=True)
+
+
+class AgentSessionStagedTests(unittest.TestCase):
+    """The pre-commit guard's judgment over a staged agent-session register."""
+
+    def _run(self, repo: Path) -> tuple[int, str]:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.check_staged(repo, ["true"])
+        return code, stderr.getvalue()
+
+    def test_a_valid_appended_row_passes(self):
+        repo = register_repo(self, session_row())
+        stage_register(
+            repo,
+            session_row()
+            + "\n"
+            + session_row(
+                pass_number="2", requested="ses_child1", returned="ses_child1", transition=CONTINUED
+            )
+            + "\n",
+        )
+
+        code, stderr = self._run(repo)
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
+
+    def test_a_staged_violation_refuses_the_commit(self):
+        repo = register_repo(self, session_row())
+        stage_register(repo, session_row() + "\n" + session_row(pass_number="2") + "\n")
+
+        code, stderr = self._run(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("Agent-session continuity", stderr)
+
+    def test_a_removed_row_refuses_the_commit(self):
+        repo = register_repo(self, session_row())
+        stage_register(repo, "")
+
+        code, stderr = self._run(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("is removed", stderr)
+
+    def test_a_rewritten_row_refuses_the_commit(self):
+        repo = register_repo(self, session_row())
+        stage_register(repo, session_row(main="ses_other") + "\n")
+
+        code, stderr = self._run(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("is rewritten", stderr)
+
+    def test_a_removed_register_refuses_the_commit(self):
+        repo = register_repo(self, session_row())
+        subprocess.run(("git", "rm", "-q", "docs/units/unit-a/sessions.tsv"), cwd=repo, check=True)
+
+        code, stderr = self._run(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("the committed register is removed", stderr)
+
+    def test_the_staged_copy_is_judged_not_the_working_tree(self):
+        repo = register_repo(self, session_row())
+        stage_register(repo, session_row() + "\n" + session_row(pass_number="2") + "\n")
+        (repo / "docs" / "units" / "unit-a" / "sessions.tsv").write_text(
+            session_row() + "\n"
+            + session_row(pass_number="2", requested="ses_child1", returned="ses_child1", transition=CONTINUED)
+            + "\n",
+            encoding="utf-8",
+        )
+
+        code, stderr = self._run(repo)
+
+        self.assertNotEqual(0, code)
+        self.assertIn("Agent-session continuity", stderr)
 
 
 if __name__ == "__main__":

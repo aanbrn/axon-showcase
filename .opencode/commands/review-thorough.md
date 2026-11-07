@@ -20,8 +20,11 @@ does not route, and it is never a substitute for a `REQUIRED` outcome.
 1. Determine the change to review: use the argument after `/review-thorough` as the change name if provided (e.g.
    `/review-thorough add-actionlint-gate`), otherwise use the current active change, or the most recent uncommitted work
    if none is active.
-2. Create or reuse the change's dedicated `review-thorough` session: create one on the first pass, and on a follow-up
-   pass continue the same session by passing its recorded session id — a different change starts a fresh one.
+2. Resolve the pass's session from the unit's agent-session register (`docs/units/<unit>/sessions.tsv`) and write its
+   hand-over section before the invocation: a first pass records `created`, a follow-up continues the recorded
+   identifier, and a replacement carries an evidenced reason the record format names, with the owner's approval where it
+   is discretionary. Compare the identifier the invocation returns with the recorded one; a difference is a continuity
+   failure. Append the pass's row when its outcome is known. A different unit starts a fresh key.
 3. Gather the change identity, its planning artifacts (proposal, design, tasks, delta specs), the current diff, the
    prior findings with their statuses, the current pass, the known limitations, whether this pass is the initial review
    or a fix verification, and the applicable subject packs classified from the change's decisions and claims rather than

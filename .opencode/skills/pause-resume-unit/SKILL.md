@@ -42,7 +42,9 @@ pause, and it blocks the automatic choice until the unit mints its record.
 3. Fill the field set below.
 4. Read the record back and fix what it does not say.
 5. End the turn with the pause reported: name the saved `Resume checkpoint`, the unit, and the tree, state the next
-   step, and tell the owner to continue in a new session with `/resume-unit <unit>`.
+   step, and state that continuing this main session by its identifier keeps the unit's recorded agent sessions while a
+   new session records each one's `parent-session-changed` replacement; name the `/resume-unit <unit>` entry beside that
+   choice.
 
 **The field set**
 
@@ -57,6 +59,7 @@ pause, and it blocks the automatic choice until the unit mints its record.
 | Pending decision            | What the unit waits for the owner to decide, if anything                                                                                                                                                                                                                     |
 | Findings no record holds    | The prior review round's finding instances (`file:line` and its claim), at `docs/units/<unit>/findings/round-<N>.md`; a round predating that store is read from the checkpoint or the hand-over, and a unit holding neither is unrecovered context rather than a clean round |
 | Operations in flight        | Each operation still running or stopped unseen, with its identifier, where its result would land, and that its outcome is unknown                                                                                                                                            |
+| Agent sessions              | The agent-session register rows the next step continues, by agent, scope, and opinion — a selection, since the register stays authoritative for the identifier                                                                                                               |
 
 **Decision points**
 
@@ -112,15 +115,21 @@ pause, and it blocks the automatic choice until the unit mints its record.
    remove the fields from `tasks.md` leaving the reference, and verify both sides with no second live record. A resume
    that stops before the handover migrates nothing.
 7. Reclassify the resumed work's decisions and state the `Packs:` line, per `AGENTS.md`'s subject-pack table.
-8. Read the records the stage needs: the review rounds in the review ledger the bindings declare, the change dir's
-   artifacts, and the finding instances the checkpoint preserves from the prior round's report.
+8. Read the records the stage needs: the review rounds in the review ledger the bindings declare, the agent-session
+   register's rows the checkpoint names, the change dir's artifacts, and the finding instances the checkpoint preserves
+   from the prior round's report.
 9. For each operation the record lists as in flight — or one the live state shows as interrupted — establish its outcome
    before relying on it or re-running it.
-10. Restore what the unit was waiting on: a decision the owner has not answered stays open, and an answer the request
+10. Continue the recorded sessions only when the stage's next step warrants the invocation, and only from the main
+    session that recorded each row: equal, continue it by the recorded identifier and verify the identifier the
+    invocation returns; different, start the replacement from the recorded hand-over and record its
+    `parent-session-changed` row when the outcome is known, without attempting the refused continuation. An unresolved
+    operation's outcome is established before any invocation, and a consultation still needs the owner's authorization.
+11. Restore what the unit was waiting on: a decision the owner has not answered stays open, and an answer the request
     carries is applied rather than asked for again.
-11. Set the record's `State:` line to `active` only at the point the work continues, after the verification and the
+12. Set the record's `State:` line to `active` only at the point the work continues, after the verification and the
     handover; the checkpoint is frozen there as the pause's snapshot, and a later pause replaces it.
-12. Continue at the recorded next step, or end the turn with the question the unit is waiting on.
+13. Continue at the recorded next step, or end the turn with the question the unit is waiting on.
 
 **Decision points**
 
@@ -134,7 +143,9 @@ pause, and it blocks the automatic choice until the unit mints its record.
   hands over.
 - The name establishes the unit to continue; it establishes neither the writer handover nor an answer to a pending
   decision.
-- No replacement reviewer session is started because of a pause; the review gate's own recovery cases govern that.
+- A pause alone starts no replacement session; a resumed unit in a new main session records the forced
+  `parent-session-changed` replacement, as the agent-session requirement states, and a session's own recovery case
+  governs any other replacement.
 - A resume does not lift an approval its continuation request does not answer.
 - A bare resume request is neither a writer confirmation nor an answer to a pending decision.
 - A closed record with no tree assigning it is not reopened.

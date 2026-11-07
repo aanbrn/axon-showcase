@@ -464,11 +464,13 @@ whether it consumed included usage or additional credits. See
   later, from that session or a new one: the named unit is resolved across the repository's worktrees, and a bare
   invocation finds the paused units itself, continuing the only one and offering you the choice when there are several.
   Either way it verifies the recorded and live state, hands the writer role over, and restores whatever the unit was
-  waiting on.
+  waiting on. Continuing the same main session keeps the unit's recorded reviewer and consultation sessions; a new
+  session records each one's `parent-session-changed` replacement and restarts it from the recorded hand-over.
 - **Code review**: every unit is auto-reviewed after its proposal and after its implementation; the quick-review loop is
   a bounded screen that repeats until it finds nothing new. After implementation one routing decision selects a deep
   `review-thorough` pass — required, recommended for an explicit resolution, or not needed — and a manual
-  `/review-thorough` run is always available.
+  `/review-thorough` run is always available. Each deep pass and unit-bound consultation is recorded in the unit's
+  agent-session register and reused across passes, with its hand-over written before the call.
 - **Recording, then generalizing**: every unit records the process defects it observes in
   `docs/units/<unit>/process-defects.md` as it works, and `/flag-process-defect` adds one you report only after the
   agent verifies the episode, rather than taking the report on trust; `/generalize-process-defects` later turns those
@@ -913,11 +915,12 @@ archived change, a unit record or a `tasks.md` reference that is missing or malf
 ideas file, a change directory that is not the commit's own, and the rest of the set its own header and `AGENTS.md`'s
 staging gotcha enumerate. Several of its checks have build-side counterparts in `./gradlew check` — `spotlessCheck` for
 the formatter, `verifyCapturedMarkers`, `verifyConflictMarkers`, `verifyTrackedIgnoredFiles` for the force-staged
-artifact, `verifyIdeasSections` for the ideas sections, `verifyWorkspaceRecords` for the workspace record, and the
-review-round ledger's tasks — so they hold even without the hook. The rest read the commit's own boundary — the index
-diverging from a later edit, an unpaired archive move, an unticked archived task, a foreign change directory, and an
-ideas file removed from the index while the working-tree copy remains — which no build task sees. Install it once per
-clone (see [Get the Sources](#get-the-sources)); bypass a deliberate exception with `git commit --no-verify`.
+artifact, `verifyIdeasSections` for the ideas sections, `verifyWorkspaceRecords` for the workspace record,
+`verifyAgentSessionContinuity` for the agent-session register, and the review-round ledger's tasks — so they hold even
+without the hook. The rest read the commit's own boundary — the index diverging from a later edit, an unpaired archive
+move, an unticked archived task, a foreign change directory, and an ideas file removed from the index while the
+working-tree copy remains — which no build task sees. Install it once per clone (see
+[Get the Sources](#get-the-sources)); bypass a deliberate exception with `git commit --no-verify`.
 
 ### Dependency Updates and Security
 

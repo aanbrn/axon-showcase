@@ -34,7 +34,7 @@ HUNK_HEADER = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@")
 NEW_FILE = re.compile(r"^\+\+\+ b/(.+)$")
 CODE_SPAN = re.compile(r"`([^`]*)`")
 # A unit's review-round record is tab-separated data, not prose: its date, round, and count columns are not claims.
-DATA_RECORD = re.compile(r"^docs/units/[^/]+/rounds\.tsv$")
+DATA_RECORD = re.compile(r"^docs/units/[^/]+/(rounds|sessions)\.tsv$")
 
 PATH_EXTENSION = re.compile(
     r"\.(md|kts|py|sh|ya?ml|json|toml|xml|txt|java|kt|ts|tsx|js|jsx|properties|conf|gradle)$",

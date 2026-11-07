@@ -1608,7 +1608,9 @@ review gate's routing SHALL remain unchanged.
 
 An independent consultation SHALL run in a fresh child session. A follow-up about the same decision MAY continue the
 existing advisor session. When the session identifier is unavailable, the caller SHALL start a fresh consultation and
-say that it is fresh.
+say that it is fresh. A consultation bound to a unit SHALL resolve its session from the unit's agent-session record,
+keyed by the decision and the opinion, and SHALL record each invocation there as the recording requirement states. A
+second opinion the owner requests SHALL be its own conversation, not a replacement of the first.
 
 #### Scenario: An independent consultation uses a fresh child session
 
@@ -1619,6 +1621,17 @@ say that it is fresh.
 
 - **WHEN** a follow-up concerns the same decision and the session identifier is available
 - **THEN** the consultation continues the existing advisor session
+
+#### Scenario: A second opinion is its own conversation
+
+- **WHEN** the owner asks for an independent second opinion on the same decision
+- **THEN** the opinion runs in a new conversation, recorded as `created` with its own opinion, and the first opinion's
+  session is not replaced
+
+#### Scenario: A unit-bound consultation resolves its recorded session
+
+- **WHEN** a consultation belongs to a unit and the unit's record carries a session for that decision and opinion
+- **THEN** the consultation continues that session, and its invocation is recorded in the unit's agent-session record
 
 #### Scenario: A lost identifier starts a fresh consultation
 
@@ -1861,7 +1874,7 @@ reviewer's report or a pause checkpoint. A round recorded before the store exist
 the hand-over, and a unit holding neither SHALL be read as unrecovered context rather than as a round that raised
 nothing.
 
-A replacement reviewer session SHALL be started only after one of the recovery cases the review gate's rule names is
+A replacement reviewer session SHALL be started only after one of the recovery cases this requirement names is
 evidenced; an independent screen is not a recovery case, and a session change without an evidenced case is recorded as a
 continuity violation rather than as a permitted replacement.
 
@@ -1893,9 +1906,10 @@ continuity violation rather than as a permitted replacement.
 - **WHEN** a reviewer invocation has not responded by the deadline the caller's policy supplies
 - **THEN** the caller records the failure as `stopped-responding`, naming the stalled session's identifier and its
   replacement's, and creates the replacement session only after that record
-- **AND** the only cases that justify a replacement are: the prior session expired, the reviewer's definition changed
-  after that session began, or the reviewer stopped responding mid-round (the loop has observed a session stall with no
-  reply, which no wait resolves)
+- **AND** the only cases that justify a replacement are: a session that expired, a reviewer's definition that changed
+  after the session began, a reviewer that stopped responding mid-round (the loop has observed a session stall with no
+  reply, which no wait resolves), or a reviewer session the unit's new main session cannot continue; a recorded
+  `caller-restarted` is a violation, never a justification
 - **AND** the handover it gives the replacement is the record it wrote **before** waiting, at
   `docs/units/<unit>/review-handover.md` in the section for that invocation — the unit's identity, its base and current
   revisions, the unit's assigned working tree and branch, the supplied artifacts, the scope, the prior findings with
@@ -2230,8 +2244,10 @@ The agent SHALL write the unit's `Resume checkpoint` — the fields the skill na
 A pause SHALL alter no delivery state: nothing is committed, stashed, pushed, archived, or merged for it, and the tree
 stays assigned to the unit.
 
-The pause report SHALL name the saved `Resume checkpoint`, the unit, and the tree, and SHALL tell the owner to continue
-in a new session with `/resume-unit <unit>`.
+The pause report SHALL name the saved `Resume checkpoint`, the unit, and the tree, and SHALL state that continuing the
+main session by its identifier keeps the unit's recorded agent sessions, while continuing in a new session records each
+one's `parent-session-changed` replacement and restarts it from the recorded hand-over. It SHALL name the
+`/resume-unit <unit>` entry beside that choice.
 
 A session limitation the agent could not measure SHALL be described as an assessment rather than as an exhausted context
 window or provider quota.
@@ -2257,8 +2273,14 @@ window or provider quota.
 #### Scenario: The pause report names the way to continue
 
 - **WHEN** an agent reports a pause it recorded
-- **THEN** the report names the saved `Resume checkpoint`, the unit, and the tree, and tells the owner to continue in a
-  new session with `/resume-unit <unit>`
+- **THEN** the report names the saved `Resume checkpoint`, the unit, and the tree, and states the choice between
+  continuing the same main session and continuing in a new one, naming `/resume-unit <unit>`
+
+#### Scenario: The pause report states the session consequence
+
+- **WHEN** the paused unit holds recorded agent sessions
+- **THEN** the report states that continuing the main session by its identifier keeps them, and that a new session
+  records each one's `parent-session-changed` replacement
 
 #### Scenario: An unmeasured limitation is reported as an assessment
 
@@ -3218,3 +3240,124 @@ section that publishes the model.
 
 - **WHEN** a generated command serves a lifecycle stage
 - **THEN** its mapping lives in the lifecycle section and its generated definition is left unedited
+
+### Requirement: A unit's deep-review and consultation sessions are recorded and reused
+
+A unit's registered invocations — the deep review's, and a consultation the unit binds to itself — SHALL each resolve a
+session from the unit's agent-session record, continue it by its recorded identifier while the main session that
+recorded it runs, and replace it only on an evidenced reason. The registered agents are `review-thorough` and
+`technical-advisor`. The quick reviewer's session SHALL NOT be registered here: its continuity and its replacement
+reasons are the review-round record's.
+
+A forced replacement — an expired session, an unresponsive one, or a main session that cannot continue the child — SHALL
+be recorded with its reason and reported to the owner. A discretionary one — a definition that changed after the session
+began — SHALL have the owner's approval before the invocation, because the change makes the session's instructions
+stale. An independent screen is not a replacement cause, as the quick-loop requirement states. A stateless subagent
+SHALL NOT be registered: a fresh session is its correct behaviour, not a replacement.
+
+Each row SHALL be appended when its invocation's outcome is known, never before: the hand-over section is written before
+the invocation, the row after it.
+
+#### Scenario: A deep pass records its session on the first invocation
+
+- **WHEN** the routing decision selects a deep review for a unit with no recorded deep-review session
+- **THEN** the pass runs in a new session and its invocation is recorded with the `created` transition
+
+#### Scenario: A follow-up pass continues the recorded session
+
+- **WHEN** a later deep-review pass runs in the main session that recorded the earlier one
+- **THEN** it continues that session by its identifier, and the invocation is recorded with `continued`
+
+#### Scenario: A forced replacement is recorded and reported
+
+- **WHEN** a recorded session expired, stopped responding, or belongs to a main session that cannot continue it
+- **THEN** the replacement is recorded with that reason and reported to the owner, and it starts from the recorded
+  hand-over
+
+#### Scenario: A discretionary replacement needs the owner's approval
+
+- **WHEN** a replacement is wanted because the agent's definition changed after the session began
+- **THEN** the owner's approval is obtained before the replacement runs and recorded in the replacement's hand-over
+  section
+
+#### Scenario: A stateless subagent is not registered
+
+- **WHEN** an invocation runs a subagent whose calls carry no unit state — a diagram, a visual review, an exploration,
+  or an audit
+- **THEN** no agent-session row is written for it, because a fresh session is its intended behaviour
+
+### Requirement: A registered invocation's hand-over is written before it is awaited
+
+A registered invocation SHALL write its hand-over section at `docs/units/<unit>/review-handover.md` before the
+invocation is awaited, so a stall or a replacement costs a wait rather than the work the section holds. The section
+SHALL carry the fields the invocation's own command declares for its hand-over, plus the agent, the scope, the opinion,
+the expected session identifier, and — for a discretionary replacement — the owner's approval, and SHALL NOT restate
+those fields as a second list. Its heading SHALL begin with the slug the agent-session row records, so the row and the
+section resolve to each other.
+
+A registered invocation that ran before this requirement existed in the unit whose change introduced the mechanism SHALL
+have its section written from its reports, and the section SHALL state that it was written after the invocation. An
+earlier unit's invocations SHALL NOT be reconstructed: their context stays as unavailable as it is.
+
+#### Scenario: The section precedes the invocation
+
+- **WHEN** a registered invocation is about to run
+- **THEN** its hand-over section is written before it is awaited, and the row that records the invocation names that
+  section's slug
+
+#### Scenario: The section carries its command's fields
+
+- **WHEN** a deep-review pass or a consultation writes its hand-over
+- **THEN** the section carries the fields that command's own hand-over contract declares, so the fields are stated once
+  at their owner
+
+#### Scenario: An invocation that predates the mechanism is recorded
+
+- **WHEN** a registered invocation ran before this requirement existed in the unit whose change introduced the mechanism
+- **THEN** its section is written from its reports, and it states that it was written after the invocation
+- **AND** an earlier unit's invocations are not reconstructed
+
+#### Scenario: A replacement reads the section, not the transcript
+
+- **WHEN** a registered session is replaced
+- **THEN** the replacement's context is the recorded hand-over section, and the current state is reviewed independently
+
+### Requirement: A resumed unit continues its recorded sessions when its main session survives
+
+A unit resumed in the main session a recorded invocation names SHALL continue that session by its identifier, and SHALL
+verify the identifier the invocation returns against the recorded one. A unit resumed in another main session SHALL NOT
+attempt the continuation — the harness refuses a child of another session — and SHALL replace each session the resumed
+stage needs with `parent-session-changed`, starting the replacement from the recorded hand-over and recording its row
+when the outcome is known.
+
+The resume SHALL restore the session references and establish any unresolved invocation's outcome before it invokes an
+agent, and SHALL invoke one only when the stage's next step warrants it. A consultation SHALL still require the owner's
+authorization.
+
+#### Scenario: The same main session continues its sessions
+
+- **WHEN** the owner resumes the main session that recorded a unit's sessions
+- **THEN** the resume continues them by their identifiers, and a returned identifier that differs from the recorded one
+  is a continuity failure rather than a continuation
+
+#### Scenario: A different main session records the forced replacement
+
+- **WHEN** the owner resumes the unit in a main session other than the one a recorded invocation names
+- **THEN** the resume starts each needed session's replacement from the recorded hand-over without attempting the
+  refused continuation, and records its `parent-session-changed` row when the outcome is known
+
+#### Scenario: An unresolved invocation is established before it is relied on
+
+- **WHEN** the register carries a `stalled` or `failed` row for a needed session
+- **THEN** its outcome is established before anything relies on it, and it resolves no session
+
+#### Scenario: A resume invokes nothing speculatively
+
+- **WHEN** a unit is resumed
+- **THEN** no registered agent is invoked merely because its session is recorded, and an invocation happens only when
+  the stage's next step needs it
+
+#### Scenario: A consultation still needs its authorization
+
+- **WHEN** the resumed stage would consult the technical advisor
+- **THEN** the consultation still requires the owner's authorization, and the recorded session does not supply it

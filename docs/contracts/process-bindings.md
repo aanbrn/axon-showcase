@@ -24,48 +24,50 @@ analysis.
 | branch-refresh              | `AGENTS.md`, the "Refreshing a branch" bullet under "Workflow: Unit lifecycle" → "Failure handling"                                                                                                                                                           | the branch-refresh rule                                                                                |
 | spec-delta                  | `AGENTS.md`, the "Workflow: Author a spec delta and archive" heading                                                                                                                                                                                          | the spec-delta-and-archive workflow                                                                    |
 | prior-findings              | `docs/units/<unit>/findings/round-<N>.md`, or — for a round that predates the store — the `Resume checkpoint`'s "Findings no record holds" field or the review hand-over, at `docs/units/<unit>/review-handover.md` or in the change directory or its archive | the review-gate handover rule, and the store's format (`showcase/quality/commit-hygiene`)              |
+| agent-session-record        | `docs/units/<unit>/sessions.tsv`                                                                                                                                                                                                                              | the record's format (`showcase/quality/commit-hygiene`, "The agent-session record is stated once")     |
 
 ## The consumer trace
 
 An adopting component resolves the roles it uses here. A component that does not adopt them is named below with its
 reason, so the set is explicit rather than inferred.
 
-| Component                                          | Roles it uses                                                                             |
-| -------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `.opencode/agent/experience-analyzer.md`           | review-ledger, process-defect-records                                                     |
-| `.opencode/agent/lesson-capture.md`                | review-ledger, change-artifacts, process-defect-records                                   |
-| `.opencode/agent/review-quick.md`                  | review-ledger, process-defect-records                                                     |
-| `.opencode/commands/apply-audit-reductions.md`     | lifecycle, extraction-procedure                                                           |
-| `.opencode/commands/begin-unit.md`                 | lifecycle, workspace-record                                                               |
-| `.opencode/commands/audit-agents.md`               | lifecycle, spec-delta                                                                     |
-| `.opencode/commands/audit-architecture.md`         | lifecycle, spec-delta                                                                     |
-| `.opencode/commands/audit-readme.md`               | lifecycle                                                                                 |
-| `.opencode/commands/audit-specs.md`                | lifecycle, spec-delta                                                                     |
-| `.opencode/commands/diagram.md`                    | lifecycle, review-gate                                                                    |
-| `.opencode/commands/flag-process-defect.md`        | lifecycle, review-gate, process-defect-records                                            |
-| `.opencode/commands/generalize-process-defects.md` | lifecycle, process-defect-records, generalization-dispositions                            |
-| `.opencode/commands/gradle-update.md`              | lifecycle, review-gate                                                                    |
-| `.opencode/commands/ideas.md`                      | lifecycle, review-gate                                                                    |
-| `.opencode/commands/opsx-tool-update.md`           | lifecycle, review-gate                                                                    |
-| `.opencode/commands/pause-unit.md`                 | lifecycle, review-gate                                                                    |
-| `.opencode/commands/resume-unit.md`                | lifecycle, review-gate                                                                    |
-| `.opencode/commands/retrospective.md`              | lifecycle, review-gate, process-defect-records                                            |
-| `.opencode/commands/review-thorough.md`            | review-ledger                                                                             |
-| `.opencode/commands/sync-branch.md`                | lifecycle, review-gate, branch-refresh                                                    |
-| `.opencode/skills/begin-unit/SKILL.md`             | lifecycle, workspace-record                                                               |
-| `.opencode/skills/pause-resume-unit/SKILL.md`      | lifecycle, review-gate, review-ledger, workspace-record, change-artifacts, prior-findings |
-| `.opencode/skills/review-gate/SKILL.md`            | review-ledger, prior-findings                                                             |
+| Component                                          | Roles it uses                                                                                                   |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `.opencode/agent/experience-analyzer.md`           | review-ledger, process-defect-records                                                                           |
+| `.opencode/agent/lesson-capture.md`                | review-ledger, change-artifacts, process-defect-records                                                         |
+| `.opencode/agent/review-quick.md`                  | review-ledger, process-defect-records                                                                           |
+| `.opencode/commands/apply-audit-reductions.md`     | lifecycle, extraction-procedure                                                                                 |
+| `.opencode/commands/begin-unit.md`                 | lifecycle, workspace-record                                                                                     |
+| `.opencode/commands/consult.md`                    | agent-session-record                                                                                            |
+| `.opencode/commands/audit-agents.md`               | lifecycle, spec-delta                                                                                           |
+| `.opencode/commands/audit-architecture.md`         | lifecycle, spec-delta                                                                                           |
+| `.opencode/commands/audit-readme.md`               | lifecycle                                                                                                       |
+| `.opencode/commands/audit-specs.md`                | lifecycle, spec-delta                                                                                           |
+| `.opencode/commands/diagram.md`                    | lifecycle, review-gate                                                                                          |
+| `.opencode/commands/flag-process-defect.md`        | lifecycle, review-gate, process-defect-records                                                                  |
+| `.opencode/commands/generalize-process-defects.md` | lifecycle, process-defect-records, generalization-dispositions                                                  |
+| `.opencode/commands/gradle-update.md`              | lifecycle, review-gate                                                                                          |
+| `.opencode/commands/ideas.md`                      | lifecycle, review-gate                                                                                          |
+| `.opencode/commands/opsx-tool-update.md`           | lifecycle, review-gate                                                                                          |
+| `.opencode/commands/pause-unit.md`                 | lifecycle, review-gate                                                                                          |
+| `.opencode/commands/resume-unit.md`                | lifecycle, review-gate                                                                                          |
+| `.opencode/commands/retrospective.md`              | lifecycle, review-gate, process-defect-records                                                                  |
+| `.opencode/commands/review-thorough.md`            | review-ledger, agent-session-record                                                                             |
+| `.opencode/commands/sync-branch.md`                | lifecycle, review-gate, branch-refresh                                                                          |
+| `.opencode/skills/begin-unit/SKILL.md`             | lifecycle, workspace-record                                                                                     |
+| `.opencode/skills/pause-resume-unit/SKILL.md`      | lifecycle, review-gate, review-ledger, agent-session-record, workspace-record, change-artifacts, prior-findings |
+| `.opencode/skills/review-gate/SKILL.md`            | review-ledger, agent-session-record, prior-findings                                                             |
 
 The non-adopters, by class:
 
 - the target's own governance and its spec corpus — `AGENTS.md` and `openspec/specs/` state the values rather than
   consuming them;
 - this declaration itself, whose role table carries the values;
-- the tooling that embeds a value — `scripts/commit-hygiene.py` embeds the round-record directory in its checks,
-  `scripts/review-rounds.py` and `scripts/review-routing.py` default to it and accept `--record` and `--ledger`,
-  `scripts/experience-analysis.sh` embeds the process-defect records directory in its git log filters, and the build
-  declares the scripts as inputs. A target that moves the ledger or the records directory edits the tooling, so those
-  values are the tooling's rather than a role;
+- the tooling that embeds a value — `scripts/commit-hygiene.py` embeds the round-record and agent-session-record
+  directories in its checks, `scripts/review-rounds.py` and `scripts/review-routing.py` default to it and accept
+  `--record` and `--ledger`, `scripts/experience-analysis.sh` embeds the process-defect records directory in its git log
+  filters, and the build declares the scripts as inputs. A target that moves the ledger or the records directory edits
+  the tooling, so those values are the tooling's rather than a role;
 - the dated and normative records that quote the values as they were when the record was written —
   `docs/units/*/process-defects.md`, `docs/decisions/`, `docs/retrospectives/`, `docs/audits/`, `docs/adr/`, and
   `docs/ideas.md`;

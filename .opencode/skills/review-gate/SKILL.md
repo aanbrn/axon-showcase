@@ -114,7 +114,15 @@ its format.
    - A hand-over recorded before that location existed is read where it was recorded, in the change directory or its
      archive.
    - The unit's missing file is not evidence that no earlier invocation happened.
-   - The deep review's hand-over stays `/review-thorough`'s.
+   - **Every registered invocation runs the same preflight.** For `review-thorough`, and for a consultation the unit
+     binds to itself, resolve the invocation's row in the unit's agent-session register
+     (`docs/units/<unit>/sessions.tsv`) before the call: a `created` row when the key has no session, a continuation of
+     the recorded identifier when it has one, or a replacement only on an evidenced reason. Write its hand-over section
+     before the call, carrying the fields the invocation's own command declares (`/review-thorough`'s or `/consult`'s)
+     and the section's slug, then pass the recorded identifier, compare the identifier the invocation returns, and
+     append the row when the outcome is known — never before. The register's fields, its continuity rule, and its
+     replacement reasons are `showcase/quality/commit-hygiene`'s and `showcase/quality/agent-skills`'s, not restated
+     here.
    - A reviewer invocation cannot be cancelled and reports nothing while it runs, so a stall is recovered from that
      record rather than from the stalled session. The rule, its recovery cases, the record's contract, the deadline's
      source, and the hand-over's fields are `showcase/quality/agent-skills`'s and the review ledger's, not restated

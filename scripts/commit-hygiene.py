@@ -16,7 +16,8 @@ name, which is the directory's own name with one leading `YYYY-MM-DD-` segment r
 pair it acknowledges; `--unique-rounds` verifies each unit's review-round record carries at most one row per round, that
 each unit's rounds are contiguous from 1, that a round named with `--expect` is recorded, and that a unit
 named with `--expect-clean` closes on a round carrying no finding class (both need that mode); `--session-continuity`
-verifies each record's reviewer-session fields record each round's session and its transition; `--large-files`
+verifies each record's reviewer-session fields record each round's session and its transition; `--agent-sessions`
+verifies each unit's agent-session register — its fields, per-key continuity, and hand-over links; `--large-files`
 verifies no tracked file exceeds the configured size limit; `--table-rows` verifies each markdown file it is given
 carries table rows whose cell count matches their delimiter row's; `--ideas-sections` verifies every dated section of
 `docs/ideas.md` carries an entry, failing when the file itself is missing — a judgment the guard applies to a staged
@@ -162,13 +163,25 @@ SESSION_REPLACED = "replaced"
 SESSION_TRANSITIONS = (SESSION_CREATED, SESSION_CONTINUED, SESSION_REPLACED)
 
 # The reasons a replacement may carry: the review loop's recovery cases, plus `caller-restarted`, which records
-# a continuity violation already committed rather than a recovery case.
+# a continuity violation already committed rather than a recovery case. `parent-session-changed` records a session a
+# resumed unit's new main session cannot continue.
 SESSION_REPLACEMENT_REASONS = (
     "expired",
     "definition-changed",
     "stopped-responding",
+    "parent-session-changed",
     "caller-restarted",
 )
+
+# A unit's agent-session register: one row per registered invocation beside its record. The fields are the date, the
+# unit, the invoking main session, the agent, the scope, the opinion, the pass, the requested identifier, the returned
+# identifier, the transition, the reason, the hand-over slug, and the outcome.
+AGENT_SESSION_RECORD_BASENAME = "sessions.tsv"
+AGENT_SESSION_ROW_FIELDS = 13
+REGISTERED_AGENTS = ("review-thorough", "technical-advisor")
+AGENT_SESSION_OPINIONS = ("primary", "independent")
+AGENT_SESSION_OUTCOMES = ("report", "stalled", "failed", "mismatch")
+HANDOVER_BASENAME = "review-handover.md"
 
 # A gap's acknowledgement exempts the named (unit, round) pair only; a misfiled deep pass uses the same form and
 # names its destination, without a data row.
@@ -1062,6 +1075,42 @@ def check_staged(repo: Path, formatter: list[str]) -> int:
                 failures += 1
                 print("Review-round finding instances: {0}".format(problem), file=sys.stderr)
 
+    session_paths = {
+        path.split("/")[-2]: path
+        for path in paths
+        if re.fullmatch(UNIT_RECORD_DIR + r"/[^/]+/" + AGENT_SESSION_RECORD_BASENAME, path)
+    }
+    removed_sessions: set[str] = set()
+    session_status = git_output(
+        repo, "diff", "--cached", "--name-status", "-z", "--diff-filter=DR", "--", UNIT_RECORD_DIR
+    )
+    session_tokens = [token for token in session_status.split("\0") if token]
+    index = 0
+    while index < len(session_tokens):
+        code = session_tokens[index]
+        source = session_tokens[index + 1] if index + 1 < len(session_tokens) else ""
+        index += 3 if code.startswith(("R", "C")) else 2
+        if source.endswith("/" + AGENT_SESSION_RECORD_BASENAME):
+            removed_sessions.add(source.split("/")[-2])
+    if session_paths or removed_sessions:
+        staged_sessions = {unit: staged_file_text(repo, path) for unit, path in sorted(session_paths.items())}
+        handovers = {unit: staged_or_tree_text(repo, handover_label(unit)) for unit in staged_sessions}
+        failures += check_agent_sessions(repo, records=staged_sessions, handovers=handovers)
+        affected_sessions = sorted(set(staged_sessions) | removed_sessions)
+        before_sessions = (
+            predecessor_records(repo, affected_sessions, basename=AGENT_SESSION_RECORD_BASENAME) or {}
+        )
+        effective_sessions = dict(before_sessions)
+        effective_sessions.update(staged_sessions)
+        for unit in removed_sessions:
+            effective_sessions.pop(unit, None)
+        for unit in affected_sessions:
+            for problem in find_session_record_rewrites(before_sessions.get(unit), effective_sessions.get(unit)):
+                failures += 1
+                print(
+                    "Agent-session register: {0}: {1}".format(agent_session_label(unit), problem), file=sys.stderr
+                )
+
     failures += check_staged_idea_sections(repo, paths)
 
     failures += check_staged_workspace_records(repo, paths)
@@ -1680,8 +1729,10 @@ def find_session_continuity_violations(
     return violations
 
 
-def predecessor_records(repo: Path, units: Sequence[str] | None = None) -> dict[str, str] | None:
-    """`HEAD`'s round records for `units` (all records when None), keyed by unit, or None when HEAD is absent.
+def predecessor_records(
+    repo: Path, units: Sequence[str] | None = None, basename: str = ROUND_RECORD_BASENAME
+) -> dict[str, str] | None:
+    """`HEAD`'s records of `basename` for `units` (all when None), keyed by unit, or None when HEAD is absent.
 
     An unborn HEAD is legitimate (a first commit); a failed inspection is a read failure that raises, so an unreadable
     predecessor is never mistaken for an absent one. A caller naming units reads only those blobs, so a check of a few
@@ -1695,7 +1746,7 @@ def predecessor_records(repo: Path, units: Sequence[str] | None = None) -> dict[
     wanted = set(units) if units is not None else None
     records: dict[str, str] = {}
     for path in listing.stdout.split("\0"):
-        if not path.endswith("/" + ROUND_RECORD_BASENAME):
+        if not path.endswith("/" + basename):
             continue
         unit = path.split("/")[-2]
         if wanted is not None and unit not in wanted:
@@ -1746,6 +1797,256 @@ def check_session_continuity(repo: Path, records: Mapping[str, str] | None = Non
     for violation in violations:
         print("Review-round session continuity: {0}".format(violation), file=sys.stderr)
     return len(violations)
+
+
+def agent_session_record_paths(repo: Path) -> dict[str, Path]:
+    """Each unit's agent-session register path, keyed by the unit whose directory holds it."""
+    root = repo / UNIT_RECORD_DIR
+    if not root.is_dir():
+        return {}
+    return {path.parent.name: path for path in sorted(root.glob("*/" + AGENT_SESSION_RECORD_BASENAME))}
+
+
+def agent_session_label(unit: str) -> str:
+    """The repository path the messages name for a unit's agent-session register."""
+    return UNIT_RECORD_DIR + "/" + unit + "/" + AGENT_SESSION_RECORD_BASENAME
+
+
+def handover_label(unit: str) -> str:
+    """The repository path the messages name for a unit's hand-over file."""
+    return UNIT_RECORD_DIR + "/" + unit + "/" + HANDOVER_BASENAME
+
+
+def handover_slugs(text: str) -> set[str]:
+    """The hand-over sections' slugs, read from the backticked token that begins each second-level heading."""
+    slugs: set[str] = set()
+    for line in text.splitlines():
+        if not line.startswith("## "):
+            continue
+        match = re.match(r"^## `([^`]+)`", line)
+        if match:
+            slugs.add(match.group(1))
+    return slugs
+
+
+def find_agent_session_violations(
+    records: Mapping[str, str], handovers: Mapping[str, str] | None = None
+) -> list[str]:
+    """Each agent-session register's violations, naming the unit and the row.
+
+    The rules are the record format's and its continuity requirement's: a thirteen-field row naming its directory's
+    unit and a registered agent; the outcome and transition shapes; the per-key pass; the requested/returned identity
+    each transition establishes; the parentage a `parent-session-changed` replacement claims; and the hand-over slug
+    resolving to a section. The verification validates the recorded fields only; it does not attest a stated cause.
+    """
+    violations: list[str] = []
+    for unit, source in sorted(records.items()):
+        label = agent_session_label(unit)
+        resolved_slugs = handover_slugs((handovers or {}).get(unit, ""))
+        last_resolved: dict[tuple[str, str, str, str], tuple[str, str]] = {}
+        passes: dict[tuple[str, str, str, str], int] = {}
+        for number, line in enumerate(source.splitlines(), start=1):
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            fields = line.split("\t")
+            if len(fields) != AGENT_SESSION_ROW_FIELDS:
+                violations.append(
+                    "{0}:{1}: a row carries {2} field(s), not {3}".format(
+                        label, number, len(fields), AGENT_SESSION_ROW_FIELDS
+                    )
+                )
+                continue
+            (
+                date_text,
+                row_unit,
+                main,
+                agent,
+                scope,
+                opinion,
+                pass_text,
+                requested,
+                returned,
+                transition,
+                reason,
+                slug,
+                outcome,
+            ) = fields
+            where = "{0}:{1}".format(label, number)
+            if ledger_date(date_text) is None:
+                violations.append("{0}: the date '{1}' is not YYYY-MM-DD".format(where, date_text))
+            if row_unit != unit:
+                violations.append("{0}: the unit column '{1}' does not name '{2}'".format(where, row_unit, unit))
+            if agent not in REGISTERED_AGENTS:
+                violations.append(
+                    "{0}: the agent '{1}' is not one of {2}".format(where, agent, ", ".join(REGISTERED_AGENTS))
+                )
+                continue
+            if not scope.strip() or scope.strip() == "-":
+                violations.append("{0}: the scope is empty".format(where))
+            elif agent == "review-thorough" and scope != unit:
+                violations.append("{0}: a reviewer's scope '{1}' is not the unit".format(where, scope))
+            elif agent == "technical-advisor" and not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", scope):
+                violations.append("{0}: a consultation's scope '{1}' is not a kebab-case slug".format(where, scope))
+            expected_opinion = "-" if agent != "technical-advisor" else None
+            if expected_opinion == "-" and opinion != "-":
+                violations.append("{0}: a {1} row carries opinion '{2}', not '-'".format(where, agent, opinion))
+            if expected_opinion is None and opinion not in AGENT_SESSION_OPINIONS:
+                violations.append(
+                    "{0}: a consultation row carries opinion '{1}', not one of {2}".format(
+                        where, opinion, ", ".join(AGENT_SESSION_OPINIONS)
+                    )
+                )
+            if not main.strip() or main.strip() == "-":
+                violations.append("{0}: the main session is empty".format(where))
+            if not pass_text.isdigit() or int(pass_text) < 1:
+                violations.append("{0}: the pass '{1}' is not a positive number".format(where, pass_text))
+                continue
+            key = (agent, scope, opinion, unit)
+            expected_pass = passes.get(key, 0) + 1
+            if int(pass_text) != expected_pass:
+                violations.append(
+                    "{0}: pass {1} is not the key's next pass, {2}".format(where, pass_text, expected_pass)
+                )
+            passes[key] = expected_pass
+            if slug not in resolved_slugs:
+                violations.append(
+                    "{0}: the hand-over slug '{1}' has no matching section in {2}".format(
+                        where, slug, handover_label(unit)
+                    )
+                )
+            if outcome not in AGENT_SESSION_OUTCOMES:
+                violations.append(
+                    "{0}: the outcome '{1}' is not one of {2}".format(
+                        where, outcome, ", ".join(AGENT_SESSION_OUTCOMES)
+                    )
+                )
+                continue
+            previous = last_resolved.get(key)
+            if outcome in ("stalled", "failed"):
+                if transition != "-" or reason != "-" or returned != "-":
+                    violations.append(
+                        "{0}: a {1} row carries transition '{2}', reason '{3}', returned '{4}': it reports "
+                        "nothing".format(where, outcome, transition, reason, returned
+                        )
+                    )
+                continue
+            if outcome == "mismatch":
+                if transition != "-" or reason != "-":
+                    violations.append(
+                        "{0}: a mismatch row carries transition '{1}' and reason '{2}': it records no session".format(
+                            where, transition, reason
+                        )
+                    )
+                if requested in ("", "-") or returned in ("", "-"):
+                    violations.append("{0}: a mismatch row needs both identifiers".format(where))
+                elif requested == returned:
+                    violations.append("{0}: a mismatch row's identifiers agree".format(where))
+                continue
+            if transition not in SESSION_TRANSITIONS:
+                violations.append(
+                    "{0}: the transition '{1}' is not one of {2}".format(
+                        where, transition, ", ".join(SESSION_TRANSITIONS)
+                    )
+                )
+                continue
+            if returned in ("", "-"):
+                violations.append("{0}: a report row carries no returned identifier".format(where))
+                continue
+            if transition == SESSION_CREATED:
+                if previous is not None:
+                    violations.append("{0}: a created row follows the key's resolved session".format(where))
+                if requested != "-" or reason != "-":
+                    violations.append(
+                        "{0}: a created row carries requested '{1}' and reason '{2}', not '-'".format(
+                            where, requested, reason
+                        )
+                    )
+            elif transition == SESSION_CONTINUED:
+                if previous is None:
+                    violations.append("{0}: a continued row has no session to continue".format(where))
+                else:
+                    session, previous_main = previous
+                    if requested != session or returned != session:
+                        violations.append(
+                            "{0}: a continued row must request and return '{1}'".format(where, session)
+                        )
+                    if main != previous_main:
+                        violations.append(
+                            "{0}: a continued row's main session differs from '{1}': a child cannot cross a main "
+                            "session".format(where, previous_main)
+                        )
+                    if reason != "-":
+                        violations.append("{0}: a continued row carries reason '{1}'".format(where, reason))
+            else:
+                if previous is None:
+                    violations.append("{0}: a replaced row has no session to replace".format(where))
+                elif returned == previous[0]:
+                    violations.append(
+                        "{0}: a replaced row returns the identifier it replaces".format(where)
+                    )
+                if requested != "-":
+                    violations.append("{0}: a replaced row requests '{1}', not '-'".format(where, requested))
+                if reason not in SESSION_REPLACEMENT_REASONS:
+                    violations.append(
+                        "{0}: the replacement reason '{1}' is not one of {2}".format(
+                            where, reason, ", ".join(SESSION_REPLACEMENT_REASONS)
+                        )
+                    )
+                elif reason == "parent-session-changed" and previous is not None and main == previous[1]:
+                    violations.append(
+                        "{0}: 'parent-session-changed' names the same main session as the replaced row".format(where)
+                    )
+            last_resolved[key] = (returned, main)
+    return violations
+
+
+def check_agent_sessions(
+    repo: Path,
+    records: Mapping[str, str] | None = None,
+    handovers: Mapping[str, str] | None = None,
+) -> int:
+    """Name each agent-session register's violations; return their count."""
+    if records is None:
+        try:
+            records = {
+                unit: path.read_text(encoding="utf-8") for unit, path in agent_session_record_paths(repo).items()
+            }
+        except (OSError, UnicodeDecodeError) as failure:
+            print("The agent-session registers cannot be read: {0}".format(failure), file=sys.stderr)
+            return 1
+    if handovers is None:
+        handovers = {}
+        for unit in records:
+            path = repo / UNIT_RECORD_DIR / unit / HANDOVER_BASENAME
+            try:
+                handovers[unit] = path.read_text(encoding="utf-8") if path.exists() else ""
+            except (OSError, UnicodeDecodeError):
+                handovers[unit] = ""
+    violations = find_agent_session_violations(records, handovers)
+    for violation in violations:
+        print("Agent-session continuity: {0}".format(violation), file=sys.stderr)
+    return len(violations)
+
+
+def find_session_record_rewrites(before: str | None, after: str | None) -> list[str]:
+    """The committed rows a register loses or rewrites, each named by its position.
+
+    The register is append-only, so the committed record's rows must be the staged record's prefix.
+    """
+    def rows(text: str | None) -> list[str]:
+        return [line for line in (text or "").splitlines() if line.strip() and not line.lstrip().startswith("#")]
+
+    if before is None:
+        return []
+    if after is None:
+        return ["the committed register is removed"]
+    old, new = rows(before), rows(after)
+    for position, row in enumerate(old, start=1):
+        if position > len(new):
+            return ["row {0} is removed: {1}".format(position, row)]
+        if new[position - 1] != row:
+            return ["row {0} is rewritten: {1}".format(position, row)]
+    return []
 
 
 # The per-round finding-instances store: one file per recorded round, beside the record.
@@ -1899,7 +2200,21 @@ def index_text(repo: Path, path: str) -> str:
         raise ValueError("cannot read the index copy of {0}".format(path))
 
 
-UNIT_LAYOUT_FILES = ("unit.md", "rounds.tsv", "review-handover.md", "process-defects.md")
+def staged_or_tree_text(repo: Path, path: str) -> str:
+    """`path`'s staged content when it is staged, otherwise its working-tree content, or an empty string."""
+    if git_output(repo, "ls-files", "--cached", "--", path).strip():
+        try:
+            return index_text(repo, path)
+        except ValueError:
+            return ""
+    candidate = repo / path
+    try:
+        return candidate.read_text(encoding="utf-8") if candidate.exists() else ""
+    except (OSError, UnicodeDecodeError):
+        return ""
+
+
+UNIT_LAYOUT_FILES = ("unit.md", "rounds.tsv", "review-handover.md", "process-defects.md", "sessions.tsv")
 
 
 def layout_stray_paths(repo: Path) -> list[str]:
@@ -1953,6 +2268,7 @@ MODE_FLAGS = (
     "--unique-rounds",
     "--unique-change-names",
     "--session-continuity",
+    "--agent-sessions",
     "--large-files",
     "--table-rows",
     "--ideas-sections",
@@ -2462,6 +2778,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--unique-rounds", action="store_true", help="check the review-round ledger carries one row per unit and round"
     )
     mode.add_argument(
+        "--agent-sessions",
+        action="store_true",
+        help="check each unit's agent-session register's format, continuity, and hand-over links",
+    )
+    mode.add_argument(
         "--unique-change-names",
         action="store_true",
         help="check no two archived changes carry the same name",
@@ -2556,6 +2877,8 @@ def dispatch(args: argparse.Namespace, repo: Path) -> int:
         return 1 if check_unique_change_names(repo) else 0
     if args.session_continuity:
         return 1 if check_session_continuity(repo) else 0
+    if args.agent_sessions:
+        return 1 if check_agent_sessions(repo) else 0
     if args.large_files:
         return 1 if check_large_files(repo) else 0
     if args.table_rows:

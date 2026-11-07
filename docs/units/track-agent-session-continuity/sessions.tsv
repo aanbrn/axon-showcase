@@ -1,0 +1,9 @@
+2026-11-07	track-agent-session-continuity	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	session-continuity-design	primary	1	-	ses_e4ad78a6fffe24kQF6NBeqrZfu	created	-	advisor-design-1	report
+2026-11-07	track-agent-session-continuity	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	session-continuity-design	primary	2	ses_e4ad78a6fffe24kQF6NBeqrZfu	ses_e4ad78a6fffe24kQF6NBeqrZfu	continued	-	advisor-design-2	report
+2026-11-07	track-agent-session-continuity	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	proposal-readiness	primary	1	-	ses_e4a7897a3ffenipFU8FRsRSfIN	created	-	advisor-proposal-1	report
+2026-11-07	track-agent-session-continuity	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	proposal-readiness	primary	2	ses_e4a7897a3ffenipFU8FRsRSfIN	ses_e4a7897a3ffenipFU8FRsRSfIN	continued	-	advisor-proposal-2	report
+2026-11-07	track-agent-session-continuity	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	unified-review-history	primary	1	-	ses_e4a5a8236ffeqAhdXnvVsIjLQg	created	-	advisor-history-1	report
+2026-11-07	track-agent-session-continuity	ses_e4add21daffe0vW0OISMmtQS3i	review-thorough	track-agent-session-continuity	-	1	-	ses_e4a11b76bffeK8g68xH0Z4LmUZ	created	-	deep-1	report
+2026-11-07	track-agent-session-continuity	ses_e4add21daffe0vW0OISMmtQS3i	review-thorough	track-agent-session-continuity	-	2	ses_e4a11b76bffeK8g68xH0Z4LmUZ	ses_e4a11b76bffeK8g68xH0Z4LmUZ	continued	-	deep-2	report
+2026-11-07	track-agent-session-continuity	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	implementation-readiness	primary	1	-	ses_e4999f8b1ffeMkFAMrhyVc517k	created	-	advisor-readiness-1	report
+2026-11-07	track-agent-session-continuity	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	implementation-readiness	primary	2	ses_e4999f8b1ffeMkFAMrhyVc517k	ses_e4999f8b1ffeMkFAMrhyVc517k	continued	-	advisor-readiness-2	report

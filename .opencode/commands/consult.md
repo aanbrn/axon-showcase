@@ -47,10 +47,19 @@ features; V1 does not enforce or interpret them, and this command adds no V1 fal
    references, and prior findings with their provenance and disposition are encouraged; name the source of each.
 
 4. Choose the session.
+   - A consultation the unit binds to itself resolves its session from the unit's agent-session register
+     (`docs/units/<unit>/sessions.tsv`), keyed by the decision and the opinion: a new decision records `created`, a
+     follow-up continues the recorded identifier, and a replacement carries an evidenced reason — with the owner's
+     approval where it is discretionary. Write its hand-over section before the invocation, carrying this command's
+     handoff fields and the section's slug, and append the row when the outcome is known.
    - A new decision uses a fresh child session: invoke `technical-advisor` without a `sessionID`.
    - A follow-up about the same decision MAY continue the advisor session by passing the `sessionID` the first
      invocation returned. A continued session keeps the workspace it was created in rather than following this session's
      directory.
+   - An independent second opinion the owner requests is its own conversation, recorded as `created` with the
+     `independent` opinion, never a replacement of the first.
+   - A consultation that starts no unit writes no register row and no hand-over section: it keeps the identifier in the
+     caller's session, and a fresh consultation states that it is fresh.
    - IF the identifier is unavailable or does not belong to this decision, THEN start a fresh consultation and say that
      it is fresh.
 5. Choose the effort.

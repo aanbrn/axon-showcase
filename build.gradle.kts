@@ -771,6 +771,15 @@ tasks.register<Exec>("verifyReviewSessionContinuity") {
     commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--session-continuity")
 }
 
+tasks.register<Exec>("verifyAgentSessionContinuity") {
+    group = "verification"
+    description = "Verifies each unit's agent-session register's format, continuity, and hand-over links"
+    inputs.file("scripts/commit-hygiene.py")
+    inputs.dir("docs/units")
+    outputs.upToDateWhen { false }
+    commandLine(pythonExecutable, "scripts/commit-hygiene.py", "--agent-sessions")
+}
+
 tasks.register<Exec>("verifyLargeFiles") {
     group = "verification"
     description = "Verifies no tracked file exceeds the configured size limit"
@@ -987,6 +996,7 @@ tasks.named("check") {
     dependsOn("verifyUniqueChangeNames")
     dependsOn("verifyUniqueReviewRounds")
     dependsOn("verifyReviewSessionContinuity")
+    dependsOn("verifyAgentSessionContinuity")
     dependsOn("verifyLargeFiles")
     dependsOn("verifyIdeasSections")
     dependsOn("verifyWorkspaceRecords")

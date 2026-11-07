@@ -48,6 +48,21 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   its value depends on the normal route running it before delegation. Owes a `MODIFIED` delta on
   `showcase/quality/commit-hygiene` and a control.
 
+- One continuous unit-scoped history of typed review and consultation events — parked; no change yet.
+  `track-agent-session-continuity` records the deep reviewer's and the unit-bound advisor's invocations in
+  `docs/units/<unit>/sessions.tsv`, while only the quick reviewer has a round sequence (`rounds.tsv`,
+  `findings/round-<N>.md`). The asymmetry is semantic rather than a ranking: a quick round is a convergence step, a deep
+  pass is a budgeted pass whose finding statuses already have one authoritative home on the change's review task, and a
+  consultation gates nothing. The target shape is one continuous event spine — a unit-wide event number, the agent, the
+  scope and opinion, the session identity and outcome, and a numbered result reference — with each agent keeping its own
+  report contract, so "stored the same way" means one retrieval pattern rather than identical reports. The gates stay
+  typed projections of that spine: `--expect-clean` reads the latest quick round, the routing floor's repeated-class
+  signal and the digest read quick rounds, and the deep-review budget counts full passes; a consultation still creates
+  no gate. Historical interleaving is not established, so a later change takes an explicit forward boundary and
+  preserves the old round identifiers rather than reconstructing a chronology. Revisit when, after this unit merges, the
+  first subsequent unit has recorded both a quick review and a deep pass or consultation, so the mixed history can be
+  examined before either schema is extended again.
+
 ## 2026-11-06
 
 - Report the MCP Steroid defect for IDEA 2026.3 upstream once the project publishes a venue. The reproduction is

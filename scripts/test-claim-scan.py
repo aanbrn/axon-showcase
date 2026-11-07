@@ -145,6 +145,20 @@ class FindClaimsTests(unittest.TestCase):
         self.assertNotIn("docs/units/u/rounds.tsv", {path for path, _, _, _ in claims})
         self.assertIn(("docs/units/u/unit.md", 1, "absolute", "only"), claims)
 
+    def test_an_agent_session_record_is_not_scanned(self):
+        diff = (
+            "diff --git a/docs/units/u/sessions.tsv b/docs/units/u/sessions.tsv\n"
+            "--- a/docs/units/u/sessions.tsv\n"
+            "+++ b/docs/units/u/sessions.tsv\n"
+            "@@ -1,1 +1,2 @@\n"
+            " 2026-11-07\tu\tses_a\treview-thorough\tu\t-\t1\t-\tses_b\tcreated\t-\tdeep-1\treport\n"
+            "+2026-11-07\tu\tses_a\treview-thorough\tu\t-\t2\t-\tses_c\treplaced\texpired\tdeep-2\treport\n"
+        )
+
+        claims = claim_scan.find_claims(diff)
+
+        self.assertNotIn("docs/units/u/sessions.tsv", {path for path, _, _, _ in claims})
+
 
 class ScanTests(unittest.TestCase):
     def test_scan_reads_the_diff_and_the_untracked_files(self):

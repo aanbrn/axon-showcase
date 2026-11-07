@@ -1,0 +1,5 @@
+- [claim-unreproducible] unit.md:24 — the Change set still stated "all five files"
+- [contradiction] process-defects.md:3 — the stated scope excluded record #5
+- [contradiction] unit.md:26 — the checkpoint still recorded the owner's decision as pending
+- [claim-unreproducible] record-upstream-helm-defects-body.md:35 — the count dismissal's reason did not match the scan
+- [wording] review-handover.md:64 — the Round 4 completed-checks bullet pointed below itself

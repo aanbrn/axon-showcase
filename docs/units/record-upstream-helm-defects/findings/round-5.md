@@ -1,0 +1,5 @@
+- [missing-task] rounds.tsv:1 — round 4's ledger row and finding instances were never recorded
+- [missing-task] review-handover.md:1 — this invocation had no Round 5 hand-over section
+- [single-sourcing] unit.md:9 — the per-source count "one" was duplicated across two documents
+- [claim-unreproducible] record-upstream-helm-defects-body.md:35 — the count dismissal's examples did not match the scan
+- [contradiction] unit.md:13 — "gathered elsewhere" excluded record #5

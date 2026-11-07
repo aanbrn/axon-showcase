@@ -1,0 +1,6 @@
+- [missing-task] unit.md:23 — the checkpoint's next step starts at the quick-review loop and names no pre-write pass
+- [docs-residue] docs/ideas.md:542 — the parked entry still records upstream #240 as unmerged
+- [over-claim] process-defects.md:67 — "by decision" asserts an intent no evidence field records
+- [incomplete-enumeration] unit.md:24 — the change set does not state what git status shows
+- [single-sourcing] unit.md:18 — the checkpoint copies the writer instead of pointing at the record
+- [claim-unreproducible] process-defects.md:47 — a session-only text is quoted rather than described

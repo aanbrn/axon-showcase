@@ -1,0 +1,2 @@
+- [missing-task] review-handover.md:106 — this invocation had no Round 8 hand-over section
+- [contradiction] record-upstream-helm-defects-body.md:3 — the Summary's scope excluded record #5

@@ -1,0 +1,9 @@
+- [claim-unreproducible] record-upstream-helm-defects-body.md:24 — the claims row's source hash did not exist
+- [claim-unreproducible] record-upstream-helm-defects-body.md:23 — the directory's file count did not reproduce
+- [incomplete-enumeration] unit.md:22 — the change set named two staged files and a working-tree label
+- [missing-task] unit.md:21 — the next step omitted the pre-write pass and the routing decision
+- [claim-missing] record-upstream-helm-defects-body.md:20 — no claims row sourced upstream #241
+- [contradiction] unit.md:10 — the artifact sentence named two files against the unit's docs/ideas.md edit
+- [over-claim] process-defects.md:72 — the knowledge boundary presupposed a decision
+- [claim-unreproducible] record-upstream-helm-defects-body.md:30 — the path dismissal's reason did not hold
+- [missing-task] review-handover.md:8 — a late-hand-over defect recorded outside process-defects.md

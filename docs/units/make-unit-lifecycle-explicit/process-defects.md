@@ -17,6 +17,8 @@
 - **Knowledge boundary** — observed: the edit order and the first round's findings. Not checked: whether loading the
   packs first would have produced the same decision shape, or whether a different wording would have avoided the
   findings.
+- **Decision** — no-change: already covered by the load-before-the-first-governed-decision rule and the `Packs:` line
+  rule.
 
 ### make-unit-lifecycle-explicit#2 — A new skill's definition was delivered unregistered, and only CI noticed
 
@@ -37,3 +39,5 @@
 - **Knowledge boundary** — observed: the failing step's log, the local green gates, and the workflow's step list. Not
   checked: whether adding the probe to `check` is feasible (it installs the v1 binary), and whether other definition
   kinds (agents, commands) fail the same way when unregistered.
+- **Decision** — no-change: already parked in `docs/ideas.md` 2026-11-07 — move the definition-inventory probe into
+  `check`.

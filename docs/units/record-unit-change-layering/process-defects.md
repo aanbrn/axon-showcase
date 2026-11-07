@@ -17,6 +17,8 @@
   file before round 2, so no residue reached the owner's pass.
 - **Knowledge boundary** — observed this unit's hand-over, the status output, and the finding; not checked whether
   earlier units' hand-overs carried the same defect, since only this unit's file was inspected.
+- **Decision** — no-change: already covered by `AGENTS.md`'s Formatting convention — run `spotlessApply` after the final
+  write, and treat the tick claiming a gate as the edit that falsifies it.
 
 ### record-unit-change-layering#2 — A duplicate requirement was proposed with the existing owners already in hand
 
@@ -36,3 +38,4 @@
 - **Knowledge boundary** — observed the grep, the proposal as first written, and the consultation's citations; not
   checked whether a stricter reading of the ownership model alone would have stopped the proposal before the
   consultation.
+- **Decision** — no-change: already covered by the premise rule and the ownership model (ADR-0025) the record cites.

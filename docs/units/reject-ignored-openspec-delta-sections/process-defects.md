@@ -17,6 +17,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Consequence** — two extra proposal rounds; the sweep was run once, at round 5, over the four artifacts.
 - **Knowledge boundary** — observed this unit's round sequence and the passages each finding named. Did not check
   whether the same patch-at-the-named-line pattern drove the repeated classes in the two units before this one.
+- **Decision** — no-change: already covered by `AGENTS.md`'s span-edit rule — a replacement preserves every valid
+  obligation, verified by sweeping the removed text's distinctive tokens.
 
 ### reject-ignored-openspec-delta-sections#2 — The build edit carried no `gradle-build` pack
 
@@ -35,3 +37,5 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   verdict task).
 - **Knowledge boundary** — observed this unit's classification and the stop. Did not check whether earlier units that
   edited build scripts carried the pack.
+- **Decision** — proposed: applied as P1 in `AGENTS.md`'s subject-pack section — the caller checks a change's planned or
+  actual edited paths for a subject its decisions did not name.

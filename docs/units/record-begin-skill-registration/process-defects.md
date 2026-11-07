@@ -16,3 +16,5 @@
   repair.
 - **Knowledge boundary** — observed: the round-1 report and the corrected text. Not checked: whether other units' first
   drafts broke the same rules without being reported.
+- **Decision** — no-change: already covered by `AGENTS.md`'s "Workflow: Record process defects" field and evidence
+  rules.

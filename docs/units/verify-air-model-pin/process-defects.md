@@ -12,6 +12,8 @@
 - **Consequence**: one review round; the check now compares against `HEAD` and is proved with a staged planted line.
 - **Knowledge boundary**: observed the empty diff on the staged set; did not audit the unit's other verification
   commands for the same shape beyond the ones a round named.
+- **Decision** — no-change: already covered by `check-and-test-authoring`'s "A verification step must discriminate the
+  edit from its absence": `git diff --` compares the index with the worktree and is empty for a staged new file.
 
 ### verify-air-model-pin#2 — a review-gate invocation that cannot run
 
@@ -25,6 +27,8 @@
 - **Consequence**: one review round; task 3.1 now lists three invocations that each run.
 - **Knowledge boundary**: observed the failing form and the fix; did not re-read every command in the change's artifacts
   for executability beyond the review's scope.
+- **Decision** — no-change: already covered by `review-gate` §1 — a prescribed command sequence is one fact, reproduced
+  whole in a scratch tree.
 
 ### verify-air-model-pin#3 — a round counter in the record's Stage that decayed
 
@@ -38,3 +42,4 @@
 - **Consequence**: two review rounds.
 - **Knowledge boundary**: observed the counter and its removal; did not check whether another checkpoint field carries a
   value that the loop moves.
+- **Decision** — no-change: already parked in `docs/ideas.md` 2026-10-27 — correct `pause-resume-unit`'s `Stage` field.

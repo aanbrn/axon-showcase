@@ -15,3 +15,5 @@
 - **Knowledge boundary** — observed: the staged entry, its size and its identity with the probe image; assumed: that the
   browser session wrote the root copy, since its output root is not recorded in this session; not checked: which tool
   call wrote it.
+- **Decision** — no-change: already covered by `AGENTS.md`'s `git add` gotcha and `review-gate` §5's explicit-add
+  remedy.

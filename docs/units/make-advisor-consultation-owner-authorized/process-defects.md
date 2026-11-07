@@ -18,3 +18,5 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   sites that let an agent consult on its own initiative.
 - **Knowledge boundary** — observed the parked text, the three sites, and the owner's correction. Did not check whether
   the same misdiagnosis shaped another entry in the file.
+- **Decision** — no-change: resolved by `make-advisor-consultation-owner-authorized`, which withdrew the parked entry
+  and corrected the three sites that let an agent consult on its own initiative.

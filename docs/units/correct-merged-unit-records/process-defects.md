@@ -21,6 +21,8 @@
   For the intervening period the other writer's tree was on a foreign branch with an empty claim.
 - **Knowledge boundary** — observed: the switch, the overwritten claim, the restore, and the restored state; not
   checked: what the other session did during that window, since its transcript is not this session's.
+- **Decision** — no-change: already covered by `AGENTS.md`'s Workspace rule and `begin-unit`'s occupancy-and-claim
+  procedure.
 
 ### correct-merged-unit-records#2 — A count of the unit's own review record froze twice, and its claim about the close
 
@@ -38,3 +40,5 @@
   ledger, and `--expect-clean` carries the close.
 - **Knowledge boundary** — observed: the three sites and their findings; not checked: whether the unit's record set is
   the only growing set it counts, since the sweep covered the hand-over, the body and the unit record only.
+- **Decision** — no-change: already covered by `review-gate` §1 — a record of the unit's own growing set points at the
+  ledger, never a frozen count.

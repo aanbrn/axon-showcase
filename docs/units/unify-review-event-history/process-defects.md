@@ -16,6 +16,8 @@
   consultation ran.
 - **Knowledge boundary** — observed from the unit's files and the conversation's invocation identifiers; whether the
   consultations would have been recorded had `/consult` rather than a direct delegation been used is not established.
+- **Decision** — no-change: the same rule as `track-agent-session-continuity#2`; the advisor's manual-reconciliation
+  idea is a hypothesis, not a promoted rule.
 
 ### unify-review-event-history#2 — A new helper shadowed an existing function of the same name
 
@@ -31,6 +33,7 @@
   `round_record_rounds` restored them (472 tests OK).
 - **Knowledge boundary** — observed from that run's traceback; whether the same name collision exists for other new
   helpers added in this unit was not checked beyond that run's passing result.
+- **Decision** — no-change: below the promotion gate — one incident, caught by the module's suite before any review.
 
 ### unify-review-event-history#3 — A batch edit script wrote its pre-edit copy and dropped an earlier edit
 
@@ -45,3 +48,5 @@
 - **Consequence** — that test errored once; re-applying the dropped edit alone restored it.
 - **Knowledge boundary** — observed in this unit's session; other scripts run in the same session were not re-read for
   the same shape.
+- **Decision** — no-change: covered by `AGENTS.md`'s edit-verification gotcha (a batching script is a third mode; write
+  each edit as it succeeds and verify the batch).

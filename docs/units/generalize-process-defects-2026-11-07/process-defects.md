@@ -16,6 +16,8 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   nothing was lost because the report was still in context.
 - **Knowledge boundary** — observed the write order and the report. Did not check whether the same order was used for
   the proposal-screen round in an earlier generalization unit.
+- **Decision** — no-change: covered by `review-gate` §2 step 2 (row and instances before the fix); the ledger-wrapper
+  idea in `docs/ideas.md` stays parked, its revisit condition unmet.
 
 ### generalize-process-defects-2026-11-07#2 — A green formatter claim was recorded before the section's last edit, in the unit that generalized the class
 
@@ -31,6 +33,7 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
 - **Consequence** — one review round and one formatter run; nothing was committed, and the claim was corrected.
 - **Knowledge boundary** — observed the append order and the failing re-run. Did not check whether rounds 1–5 shared it;
   each of their sections was followed by a `spotlessApply` before its check, so only this one is evidenced.
+- **Decision** — no-change: covered by `AGENTS.md`'s Formatting convention (run the formatter after the final write).
 
 ### generalize-process-defects-2026-11-07#3 — The `proposed` Decision lines were merged without their pull-request link
 
@@ -46,3 +49,5 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   `link-generalization-decision-records`, which adds the link and corrects the sentence.
 - **Knowledge boundary** — observed the merged lines and the sentence. Did not check whether a gate validates those
   lines; `docs/ideas.md` 2026-11-01 records that none does.
+- **Decision** — no-change: covered by this workflow's step 7; its recurrence site is the parked `docs/ideas.md`
+  2026-11-01 `Decision`-line check.

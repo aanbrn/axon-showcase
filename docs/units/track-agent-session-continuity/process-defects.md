@@ -12,6 +12,8 @@
   ordering left each round unrecorded for the duration of its fixes, and the `--expect` check ran after them.
 - **Knowledge boundary** — observed in this session's own tool sequence; whether a crash in that window would have lost
   the round's classes is a possibility, not an observed outcome.
+- **Decision** — no-change: covered by `review-gate` §2 step 2; the ledger-wrapper idea in `docs/ideas.md` stays parked,
+  its revisit condition unmet.
 
 ### track-agent-session-continuity#2 — The implementation-readiness consultation ran unrecorded
 
@@ -27,3 +29,5 @@
   say so rather than presenting themselves as pre-call.
 - **Knowledge boundary** — observed from the advisor's report and the register's content; whether an earlier write would
   have changed the consultation is not established.
+- **Decision** — no-change: covered by `/consult` §4 and its direct-delegation paragraph, and by the agent-session
+  register requirement; no mechanical check observes a call that leaves no trace.

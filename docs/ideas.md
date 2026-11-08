@@ -25,6 +25,16 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
+## 2026-11-08
+
+- Let the pre-commit guard admit a follow-up's edit of another unit's closed record — parked; no change yet. The guard's
+  requirement specifies the branch/path comparison for a staged record, so a follow-up correcting a merged unit's record
+  is refused and must commit with `--no-verify`, while the build's `--workspace-records` accepts the same edit and CI
+  stays green. This is a contract limitation rather than an implementation slip: the change amends the requirement —
+  scoping the comparison to the record of the unit the commit's claim or branch assigns while keeping the ownership
+  protection for the committing unit's own record — and owes a spec delta. Origin:
+  `captured: link-generalization-decision-records`.
+
 ## 2026-11-07
 
 - Move the OpenCode definition-inventory probe from the build workflow's step into `check` — parked; no change yet. The

@@ -15,3 +15,5 @@
   bullets and restored the heading; the review ledger, the finding instances, and the change artifacts were unaffected.
 - **Knowledge boundary** — observed the dropped heading and its repair. Did not check whether any gate would have caught
   it; the pre-commit guard and `--review-ready` inspect the staged set, not a file's heading structure.
+- **Decision** — no-change: covered by `AGENTS.md`'s programmatic-edit rule (anchor on the text being changed) and by
+  the span-edit rule.

@@ -38,16 +38,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   pull-request gate requirement puts this verification in `build` — a known-bad unregistered definition as the control,
   and the acquisition decision.
 
-- Gate the review hand-over's section with a `commit-hygiene` mode — parked; no change yet. The quick-review preflight
-  requires each invocation's hand-over section at `docs/units/<unit>/review-handover.md` before the caller waits, but
-  four records across four units invoked the reviewer with no section for that round — the last over five consecutive
-  rounds (`surface-projector-backlog#3`) — while the obligation is already stated in `review-gate` §2, the
-  `agent-skills` stalled-reviewer scenario, and `review-quick.md`'s input contract. A proposed mode,
-  `commit-hygiene.py --handover <unit>:<round>`, would fail unless the file carries a `## Round <N>` heading and would
-  be named in `review-gate` §2 step 1; it establishes presence only, not completeness or the invocation's ordering, so
-  its value depends on the normal route running it before delegation. Owes a `MODIFIED` delta on
-  `showcase/quality/commit-hygiene` and a control.
-
 - One continuous unit-scoped history of typed review and consultation events — parked; no change yet.
   `track-agent-session-continuity` records the deep reviewer's and the unit-bound advisor's invocations in
   `docs/units/<unit>/sessions.tsv`, while only the quick reviewer has a round sequence (`rounds.tsv`,

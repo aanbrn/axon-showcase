@@ -29,7 +29,9 @@ the tree and branch the record names; and
 digest script's canonical boundary is one the reviewer's definition names, reading both rather than restating either,
 and exempting only a label a class-acknowledgement comment names on that row; `--finding-instances` verifies each
 round recorded after the finding store's boundary carries its instances file; and `--unit-layout` verifies a unit's
-directory holds only the record kinds the layout admits, at its two levels.
+directory holds only the record kinds the layout admits, at its two levels; and `--handover <unit>:<round>` verifies the
+named round's hand-over section is present in the unit's permanent hand-over file, the pre-delegation check the review
+gate's preflight runs.
 
 No mode reads a failed read as a clean result — a git invocation or a tracked file's size: a read whose failure would
 look like an empty offender list raises, and `main` reports it as the check having failed. The exits that answer a
@@ -111,6 +113,13 @@ UNIT_RECORD_DIR = "docs/units"
 UNIT_RECORD_BASENAME = "unit.md"
 # Each unit's review-round rows live beside its record, in the same directory.
 ROUND_RECORD_BASENAME = "rounds.tsv"
+# A `--handover` argument's unit is one directory name: no separator, no dot component, no whitespace, no second colon.
+HANDOVER_UNIT_RE = re.compile(r"[^/\\\s:]+")
+# A `--handover` argument's round is a canonical positive decimal, so `0` and a leading zero are rejected.
+HANDOVER_ROUND_RE = re.compile(r"[1-9][0-9]*")
+# The heading the quick loop writes, at Markdown's legal ATX form; the token is matched exactly, so `Round 30` and
+# `Round 3x` are not round 3.
+HANDOVER_HEADING_RE = re.compile(r"^ {0,3}##[ \t]+Round[ \t]+(?P<token>[0-9]+)(?=[ \t]|$)")
 UNIT_RECORD_SINCE = "2026-11-03"
 ACKNOWLEDGED_UNIT_RECORD_ARCHIVES: dict[str, str] = {
     directory: "landed before the unit record existed; its inline record stands"
@@ -1231,7 +1240,29 @@ def check_large_files(repo: Path) -> int:
     return len(offenders)
 
 
-FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})")
+FENCE_OPEN_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
+FENCE_CLOSE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})[ \t]*$")
+
+
+def fence_opener(line: str) -> Optional[tuple[str, int]]:
+    """The (character, length) a fence line opens with, or `None` when the line is not a fence line."""
+    marker = FENCE_OPEN_RE.match(line)
+    if marker is None:
+        return None
+    delimiter = marker.group(1)
+    return (delimiter[0], len(delimiter))
+
+
+def fence_after(line: str, fence: Optional[tuple[str, int]]) -> Optional[tuple[str, int]]:
+    """The fence state after reading the line: opened by an opener, closed by a legal closer, else unchanged."""
+    opener = fence_opener(line)
+    if fence is None:
+        return opener
+    if opener is None:
+        return fence
+    if FENCE_CLOSE_RE.match(line) is not None and opener[0] == fence[0] and opener[1] >= fence[1]:
+        return None
+    return fence
 BLOCK_START_RE = re.compile(r"^\s*(?:#{1,6}\s|>|[-*+]\s|\d+\.\s|<)")
 THEMATIC_BREAK_RE = re.compile(r"^\s*([-*_])\s*(?:\1\s*){2,}$")
 DELIMITER_CELL_RE = re.compile(r"^\s*:?-+:?\s*$")
@@ -1294,16 +1325,8 @@ def find_table_row_offenders(path: str, text: str) -> list[tuple[str, int, int |
     index = 0
     while index < len(lines):
         line = lines[index]
-        marker = FENCE_RE.match(line)
-        if marker:
-            closing = marker.group(1)
-            if fence is None:
-                fence = (closing[0], len(closing))
-            elif closing[0] == fence[0] and len(closing) >= fence[1]:
-                fence = None
-            index += 1
-            continue
-        if fence is not None:
+        if fence is not None or fence_opener(line) is not None:
+            fence = fence_after(line, fence)
             index += 1
             continue
         if (
@@ -1319,7 +1342,7 @@ def find_table_row_offenders(path: str, text: str) -> list[tuple[str, int, int |
                 current = lines[row]
                 if row > index and (
                     not current.strip()
-                    or FENCE_RE.match(current)
+                    or fence_opener(current)
                     or BLOCK_START_RE.match(current)
                     or THEMATIC_BREAK_RE.match(current)
                 ):
@@ -2255,6 +2278,64 @@ def check_finding_instances(repo: Path) -> int:
     return len(problems)
 
 
+def parse_handover_argument(value: str) -> tuple[str, str]:
+    """The unit and the round token a `--handover` argument names; raise `ValueError` on a malformed one."""
+    unit, separator, round_token = value.rpartition(":")
+    if not separator:
+        raise ValueError("Hand-over: --handover expects <unit>:<round>, got {0!r}".format(value))
+    if not HANDOVER_UNIT_RE.fullmatch(unit) or unit in (".", ".."):
+        raise ValueError("Hand-over: --handover expects one unit directory name, got {0!r}".format(unit))
+    if not HANDOVER_ROUND_RE.fullmatch(round_token):
+        raise ValueError(
+            "Hand-over: --handover expects a canonical positive round number, got {0!r}".format(round_token)
+        )
+    return unit, round_token
+
+
+def heading_names_round(line: str, round_token: str) -> bool:
+    """Whether the line is a second-level heading naming exactly that round token."""
+    match = HANDOVER_HEADING_RE.match(line)
+    return bool(match) and match.group("token") == round_token
+
+
+def carries_round_section(text: str, round_token: str) -> bool:
+    """Whether the file carries a second-level heading naming that round, outside every fenced block."""
+    fence: Optional[tuple[str, int]] = None
+    for line in text.splitlines():
+        if fence is not None or fence_opener(line) is not None:
+            fence = fence_after(line, fence)
+            continue
+        if heading_names_round(line, round_token):
+            return True
+    return False
+
+
+def check_handover(repo: Path, value: str) -> int:
+    """Name the malformed argument, missing file, or absent section; return the failure count."""
+    try:
+        unit, round_token = parse_handover_argument(value)
+    except ValueError as error:
+        print(str(error), file=sys.stderr)
+        return 1
+    relative = handover_label(unit)
+    path = repo / relative
+    if not path.is_file():
+        print("Hand-over: {0} is missing".format(relative), file=sys.stderr)
+        return 1
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as error:
+        print("Hand-over: {0} could not be read: {1}".format(relative, error), file=sys.stderr)
+        return 1
+    if carries_round_section(text, round_token):
+        return 0
+    print(
+        "Hand-over: {0} carries no `## Round {1}` section".format(relative, round_token),
+        file=sys.stderr,
+    )
+    return 1
+
+
 # The mode group's flags, declared beside their registration so the mode-combination control can derive its
 # forms from this list rather than repeating them.
 MODE_FLAGS = (
@@ -2276,6 +2357,7 @@ MODE_FLAGS = (
     "--workspace-records",
     "--finding-instances",
     "--unit-layout",
+    "--handover",
 )
 
 
@@ -2751,7 +2833,7 @@ def build_parser() -> argparse.ArgumentParser:
             "Check commit hygiene over the staged set, the unit's readiness for the manual review pass, AGENTS.md "
             "markers, the tracked set, the workflow cron schedules, the archived change names, the review-round "
             "ledger, a file's size, the given markdown files' table rows, the ideas file's dated sections, the "
-            "review-round classes, or a change's workspace record."
+            "review-round classes, or a change's workspace record, or a round's hand-over section."
         )
     )
     mode = parser.add_mutually_exclusive_group()
@@ -2816,6 +2898,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--unit-layout",
         action="store_true",
         help="check a unit's directory holds only the record kinds the layout admits",
+    )
+    mode.add_argument(
+        "--handover",
+        metavar="UNIT:ROUND",
+        help="check the named round's hand-over section is present before the quick-review delegation",
     )
     parser.add_argument(
         "--expect",
@@ -2893,6 +2980,8 @@ def dispatch(args: argparse.Namespace, repo: Path) -> int:
         return 1 if check_finding_instances(repo) else 0
     if args.unit_layout:
         return 1 if check_unit_layout(repo) else 0
+    if args.handover is not None:
+        return check_handover(repo, args.handover)
     return 1 if check_staged(repo, args.formatter) else 0
 
 

@@ -68,6 +68,50 @@ def block(test, lines, since, canonical=None, reason=None):
     )
 
 
+def ledger_dir(test, rounds, sessions=None):
+    """A temporary ledger directory holding one unit's round record and, when given, its register."""
+    directory = tempfile.TemporaryDirectory()
+    test.addCleanup(directory.cleanup)
+    root = Path(directory.name)
+    unit = root / "unit-a"
+    unit.mkdir()
+    (unit / "rounds.tsv").write_text("\n".join(rounds) + "\n", encoding="utf-8")
+    if sessions is not None:
+        (unit / "sessions.tsv").write_text("\n".join(sessions) + "\n", encoding="utf-8")
+    return root
+
+
+def register_row(
+    round_number=1,
+    returned="ses_child1",
+    outcome="report",
+    event=1,
+    pass_number=1,
+    transition="created",
+    requested="-",
+):
+    """One fifteen-field quick-review register row for a fixture unit-a."""
+    return "\t".join(
+        [
+            "2026-11-09",
+            "unit-a",
+            "ses_main",
+            "review-quick",
+            "unit-a",
+            "-",
+            str(pass_number),
+            requested,
+            returned,
+            transition,
+            "-",
+            "round-{0}".format(round_number),
+            outcome,
+            str(event),
+            str(round_number),
+        ]
+    )
+
+
 def line(block_lines, prefix):
     """The single block line starting with `prefix`."""
     matches = [text for text in block_lines if text.startswith(prefix)]
@@ -102,6 +146,74 @@ class WindowSplitTests(unittest.TestCase):
         lines = block(self, STRADDLING, "2026-02-01")
         self.assertIn(": 0 round(s), 0 compliance miss(es)", line(lines, "  window-proper (rows dated after"))
         self.assertIn(": none", line(lines, "  classes raised"))
+
+
+SIX_FIELD_ROUND = "2026-11-09\tunit-a\t1\t-\t-\t0"
+
+
+class RegisterJoinTests(unittest.TestCase):
+    """The retired six-field row's echo, joined to its register's resolved quick `report` row."""
+
+    def digest(self, rounds=(SIX_FIELD_ROUND,), sessions=None):
+        path = ledger_dir(self, list(rounds), sessions)
+        return review_rounds.render(
+            str(path), "2026-11-01", review_rounds.read_rows(path), canonical_set(), None
+        )
+
+    def rows(self, lines):
+        return [text.strip() for text in lines if text.startswith("  20")]
+
+    def test_a_retired_row_echoes_the_register_session(self):
+        self.assertIn(SIX_FIELD_ROUND + "\tses_child1", self.rows(self.digest(sessions=[register_row()])))
+
+    def test_a_retired_row_without_a_register_still_digests(self):
+        self.assertIn(SIX_FIELD_ROUND, self.rows(self.digest()))
+
+    def test_a_round_with_stalled_attempts_takes_its_reporting_rows_session(self):
+        lines = self.digest(
+            sessions=[
+                register_row(returned="-", outcome="stalled", event=1, pass_number=1, transition="-"),
+                register_row(
+                    returned="ses_child2",
+                    event=2,
+                    pass_number=2,
+                    transition="continued",
+                    requested="ses_child2",
+                ),
+            ]
+        )
+        self.assertIn(SIX_FIELD_ROUND + "\tses_child2", self.rows(lines))
+
+    def test_a_nine_field_row_keeps_its_own_session(self):
+        row = "2026-11-05\tunit-a\t1\t-\t-\t0\tses_ledger\tcreated\t-"
+        lines = self.digest(rounds=(row,), sessions=[register_row()])
+        self.assertIn(row, self.rows(lines))
+
+    def test_a_single_file_record_joins_the_register_beside_it(self):
+        root = ledger_dir(self, [SIX_FIELD_ROUND], [register_row()])
+        single = root / "unit-a" / "rounds.tsv"
+
+        self.assertEqual(SIX_FIELD_ROUND.split("\t") + ["ses_child1"], review_rounds.read_rows(single)[0])
+
+    def test_a_register_row_of_the_older_width_carries_no_round_to_join(self):
+        old = "\t".join(
+            [
+                "2026-10-18",
+                "unit-a",
+                "ses_main",
+                "review-quick",
+                "unit-a",
+                "-",
+                "1",
+                "-",
+                "ses_child1",
+                "created",
+                "-",
+                "round-1",
+                "report",
+            ]
+        )
+        self.assertIn(SIX_FIELD_ROUND, self.rows(self.digest(sessions=[old])))
 
 
 class CandidateClassTests(unittest.TestCase):

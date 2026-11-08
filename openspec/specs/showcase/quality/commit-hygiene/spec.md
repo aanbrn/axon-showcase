@@ -17,15 +17,16 @@ according to its date, that the review-round ledger carries at most one row per 
 are contiguous from `1` apart from an explicitly acknowledged gap, that a round the caller names with `--expect` is
 recorded, that every class a row recorded after the canonical boundary carries is one the reviewer's definition names
 apart from an acknowledged label, that each round's reviewer session and its continuity are recorded, that each unit's
-agent-session register records its invocations' continuity and its hand-over links, that a quick-review round's
-hand-over section is present before the delegation, that every round recorded after the findings store's boundary
-carries its instances file, and that a unit's directory holds only the record kinds the layout admits — and, asserted at
-the review gate's manual-pass boundary rather than by a build check, that a unit the caller names with `--expect-clean`
-closes on a round carrying no finding class, since a round in flight is unclean by design, and that the unit's own tree
-is ready for the owner's pass: no unstaged new file, no stale indexed copy, and a base its `HEAD` contains, failing as
-not established when a read it needs fails rather than reporting the tree clean — and a committed `.gitattributes` that
-normalizes line endings (enforced by git, not the build) — so slips that were caught only by a human or a review pass
-are blocked by construction.
+agent-session register carries its review-event sequence, its invocations' continuity, and its hand-over links, that a
+post-retirement unit's quick rows correspond one-to-one with its recorded rounds, that a quick-review round's hand-over
+section is present before the delegation, that every round recorded after the findings store's boundary carries its
+instances file, and that a unit's directory holds only the record kinds the layout admits, the deep review's own record
+included — and, asserted at the review gate's manual-pass boundary rather than by a build check, that a unit the caller
+names with `--expect-clean` closes on a round carrying no finding class, since a round in flight is unclean by design,
+and that the unit's own tree is ready for the owner's pass: no unstaged new file, no stale indexed copy, and a base its
+`HEAD` contains, failing as not established when a read it needs fails rather than reporting the tree clean — and a
+committed `.gitattributes` that normalizes line endings (enforced by git, not the build) — so slips that were caught
+only by a human or a review pass are blocked by construction.
 
 ## Requirements
 
@@ -689,13 +690,20 @@ a unit's history, where a round in flight is unclean by design.
 
 ### Requirement: Review-round rows record the reviewer session's continuity
 
-The build SHALL verify that a unit's round record (`docs/units/<unit>/rounds.tsv`) records, for every row below the
-boundary the record format marks, the reviewer session the round ran in — its identifier, its transition, and, for a
-replacement, a reason the record format allows or `caller-restarted` for a restart already performed without an
-evidenced recovery case (a violation record, not a recovery case) — and that no row above it carries a field count other
-than the format's pre-fields width. A record carrying no boundary comment SHALL be read as having all its rows on the
-side its own rows show, so the comment SHALL be required only where a record holds rows on both sides. The verification
-SHALL be a `commit-hygiene.py` mode run by a `check` task over the tracked records.
+The build SHALL verify that a unit's round record (`docs/units/<unit>/rounds.tsv`) whose first round predates
+`2026-11-09` records, for every row below the boundary the record format marks, the reviewer session the round ran in —
+its identifier, its transition, and, for a replacement, a reason the agent-session register's format requirement names
+or `caller-restarted` for a restart already performed without an evidenced recovery case (a violation record, not a
+recovery case) — and that no row above it carries a field count other than the format's pre-fields width. A unit whose
+first round is dated on or after that date carries six-field rows: this mode SHALL judge its width, so a nine-field row
+in it fails, but SHALL NOT judge its session fields, whose continuity is the agent-session register's. A record carrying
+no boundary comment SHALL be read as having all its rows on the side its own rows show. The verification SHALL be a
+`commit-hygiene.py` mode run by a `check` task over the tracked records.
+
+#### Scenario: A post-retirement unit's width is judged, its session fields are not
+
+- **WHEN** a unit's first round is dated on or after `2026-11-09`
+- **THEN** the mode accepts its six-field rows and rejects a nine-field one, and it requires no session fields on them
 
 #### Scenario: The standard check verifies reviewer-session continuity
 
@@ -1306,18 +1314,23 @@ The `writer` SHALL be shape-checked: a reviewer's identifier has the same form.
 ### Requirement: The review-round record format is stated once
 
 Each unit's review-round record SHALL be the file `docs/units/<unit>/rounds.tsv`, holding that unit's data rows in the
-order they were recorded, as tab-separated fields: the date (`YYYY-MM-DD`); the unit, which SHALL name the directory the
-record is filed under; the round, continuous per unit across its proposal and implementation reviews; the classes
-raised, comma-separated or `-`; the classes that repeated a prior round, comma-separated or `-`; the compliance-miss
-count; the reviewer's session identifier; the session transition (`created`, `continued`, or `replaced`); and a
-replacement's reason (`expired`, `definition-changed`, `stopped-responding`, `parent-session-changed`, or
-`caller-restarted`; `-` otherwise).
+order they were recorded. A unit whose first round is dated on or after the retirement date (`2026-11-09`) carries six
+tab-separated fields: the date (`YYYY-MM-DD`); the unit, which SHALL name the directory the record is filed under; the
+round, continuous per unit across its proposal and implementation reviews; the classes raised, comma-separated or `-`;
+the classes that repeated a prior round, comma-separated or `-`; and the compliance-miss count. A unit whose first round
+predates that date keeps the nine-field form: those six fields, then the reviewer's session identifier, the session
+transition (`created`, `continued`, or `replaced`), and a replacement's reason the agent-session register's format
+requirement names. In a unit whose first round predates that date, a row dated on or before 2026-10-18 carries the
+six-field pre-fields width and a later row carries the nine-field form. A unit SHALL NOT mix the retirement's six-field
+form with the nine-field form; its pre-2026-10-18 rows are the pre-fields form, not the retirement form.
 
-The boundary between the rows that predate the session fields and those that carry them SHALL be marked by a comment
-line naming it. A record SHALL carry that marker only where it holds rows on both sides, and a record without one SHALL
-be read as having all its rows on the side its own rows show. A row carrying the pre-fields width SHALL be historical
-only when it is dated on or before the last day the fields were absent (2026-10-18); a later row lacks the fields and
-SHALL fail, so the exemption cannot be claimed by writing the old width today.
+In a unit whose first round predates `2026-11-09`, the boundary between the rows that predate the session fields and
+those that carry them SHALL be marked by a comment line naming it. A record SHALL carry that marker only where it holds
+rows on both sides, and a record without one SHALL be read as having all its rows on the side its own rows show. A row
+carrying the six-field width in a unit whose first round predates `2026-11-09` SHALL fail when it is dated after
+2026-10-18, because that unit's rows carry the session fields from that day; a row dated on or before 2026-10-18 keeps
+the pre-fields width, and a unit whose first round is dated on or after `2026-11-09` carries the six-field form by
+design and is not this paragraph's case.
 
 A gap whose report was never reconstructed SHALL be acknowledged by a comment line of the form
 `# --- Acknowledged gap: <unit> round <N> - <reason>`, and a class recorded before the canonical list landed, whose
@@ -1325,13 +1338,25 @@ round's report was never reconstructed, by `# --- Acknowledged class: <unit> rou
 that label on that row only.
 
 This requirement SHALL own the record format, so the `review-ledger` binding's owner cell SHALL name it rather than the
-retired header, and no per-unit file SHALL carry a normative header of its own.
+retired header, and no per-unit file SHALL carry a normative header of its own. The session fields' values are the
+agent-session register's format requirement's, and the reasons a replacement may carry are stated there.
 
 #### Scenario: A record's fields parse in the stated order
 
-- **WHEN** a unit's `rounds.tsv` carries a data row of the nine fields
-- **THEN** the record's readers parse the date, unit, round, classes raised, classes repeated, compliance misses,
-  session identifier, transition, and replacement reason from it
+- **WHEN** a unit's `rounds.tsv` carries a data row of the nine fields, or a post-retirement unit's carries six
+- **THEN** the record's readers parse the date, unit, round, classes raised, classes repeated, and compliance misses
+  from it, and the nine-field rows' session identifier, transition, and replacement reason as well
+
+#### Scenario: A unit's first round decides its width
+
+- **WHEN** a unit's first round is dated on or after `2026-11-09`
+- **THEN** its rows carry the six-field form for its life; a unit first rounded before that date keeps the historical
+  row-level form, six fields for a row dated on or before 2026-10-18 and nine after it
+
+#### Scenario: A nine-field row in a post-retirement unit fails
+
+- **WHEN** a unit whose first round is dated on or after `2026-11-09` carries a nine-field row
+- **THEN** `--session-continuity` fails, naming the unit and the row
 
 #### Scenario: A record's unit column names its directory
 
@@ -1351,8 +1376,8 @@ retired header, and no per-unit file SHALL carry a normative header of its own.
 
 #### Scenario: A six-field row dated after the fields fails
 
-- **WHEN** a record row dated after 2026-10-18 carries the pre-fields width
-- **THEN** the continuity verification fails, naming the row, its date, and the fields it lacks
+- **WHEN** a unit whose first round predates `2026-11-09` carries a six-field row dated after 2026-10-18
+- **THEN** `--session-continuity` fails, naming the row, its date, and the fields it lacks
 
 ### Requirement: Every review round recorded after the boundary keeps its finding instances
 
@@ -1494,9 +1519,9 @@ bump that drops or mangles the pin fails the build rather than leaving the wrapp
 ### Requirement: A unit's directory holds only the record kinds the layout names
 
 A unit's directory, `docs/units/<unit>/`, admits exactly: `unit.md`, `rounds.tsv`, `review-handover.md`,
-`process-defects.md` and `sessions.tsv` at its first level, and `findings/round-<N>.md` at its second. Presence is not
-required; any other tracked path below it SHALL fail. The verification SHALL be a `commit-hygiene.py` mode run by a
-`check` task over the tracked records, naming the unit, the path and that the layout does not admit it.
+`process-defects.md`, `sessions.tsv` and `deep-review.md` at its first level, and `findings/round-<N>.md` at its second.
+Presence is not required; any other tracked path below it SHALL fail. The verification SHALL be a `commit-hygiene.py`
+mode run by a `check` task over the tracked records, naming the unit, the path and that the layout does not admit it.
 
 #### Scenario: The standard check verifies the layout
 
@@ -1511,17 +1536,17 @@ required; any other tracked path below it SHALL fail. The verification SHALL be 
 #### Scenario: A unit holding only admitted kinds passes
 
 - **WHEN** every tracked path under a unit's directory is `unit.md`, `rounds.tsv`, `review-handover.md`,
-  `process-defects.md`, `sessions.tsv`, or `findings/round-<N>.md`
+  `process-defects.md`, `sessions.tsv`, `deep-review.md`, or `findings/round-<N>.md`
 - **THEN** the verification passes for that unit
 
 #### Scenario: A file at the unit's root that the layout does not admit fails
 
-- **WHEN** a tracked file sits directly in `docs/units/<unit>/` and its name is not one of the five single-file kinds
+- **WHEN** a tracked file sits directly in `docs/units/<unit>/` and its name is not one of the six single-file kinds
 - **THEN** the verification fails, naming the unit, the path and that the layout does not admit it
 
 #### Scenario: A path the two levels do not admit fails
 
-- **WHEN** a tracked path below `docs/units/<unit>/` is neither one of the five first-level filenames nor
+- **WHEN** a tracked path below `docs/units/<unit>/` is neither one of the six first-level filenames nor
   `findings/round-<N>.md` — a third level such as `findings/consultations/advisor-1.md`, or another location such as
   `other/round-1.md`
 - **THEN** the verification fails, naming the unit, the path and that the layout does not admit it, so neither a new
@@ -1599,24 +1624,34 @@ name a registered agent by its own name; the scope, which SHALL be the unit for 
 slug for a consultation; the opinion (`primary` or `independent` for a consultation, `-` for a reviewer); the pass,
 continuous per `(unit, agent, scope, opinion)`; the requested session identifier (`-` when the invocation was asked for
 none); the returned session identifier (`-` when the invocation reported none); the transition (`created`, `continued`,
-`replaced`, or `-`); a replacement's reason, from the set the review-round record's format requirement names, where
-`caller-restarted` records a violation rather than a justified case (`-` otherwise); the hand-over section's slug; and
-the outcome (`report`, `stalled`, `failed`, or `mismatch`).
+`replaced`, or `-`); a replacement's reason (`expired`, `definition-changed`, `stopped-responding`,
+`parent-session-changed`, or `caller-restarted`, which records a violation rather than a justified case; `-` otherwise);
+the hand-over section's slug; the outcome (`report`, `stalled`, `failed`, or `mismatch`); and, on a row dated on or
+after the event boundary (`2026-11-09`), the event — the unit's sequence number, contiguous from `1` across its rows
+from that date — then the round a quick row attempts or reports (`-` for another agent). A row before that date carries
+the thirteen-field width and neither field; a row on or after it carries fifteen fields.
 
-The hand-over section's slug SHALL name a second-level heading in the unit's `review-handover.md`, which SHALL begin
-with that slug in backticks, so the row and the context it points at resolve to each other.
+A non-quick row's hand-over slug SHALL name a second-level heading in the unit's `review-handover.md`, which SHALL begin
+with that slug in backticks. A quick row's slug is `round-<round>` and resolves to a second-level heading beginning
+`Round <round>`, the form the hand-over check uses, so the row and the context it points at resolve to each other. A
+non-quick row's round SHALL be `-`.
 
-The quick reviewer SHALL NOT be recorded here: its session's continuity is the review-round record's. A consultation
-that starts no unit SHALL NOT be recorded here either.
+The quick reviewer SHALL be recorded here for a unit whose first round is dated on or after `2026-11-09`: its scope is
+the unit, its opinion `-`, its round the round it attempts or reports, its pass the invocation's number for that key,
+and its hand-over slug `round-<round>`. A round may carry several invocations — a stalled attempt, another, and the one
+that reports — each its own row with the round and the next pass, so the round's ledger row stays one and the hand-over
+section keeps each attempt's context. A stalled invocation's row is appended when its stall is detected, before the
+replacement starts; the replacement's row is appended when its own outcome is known. For a unit whose first round
+predates `2026-11-09`, the quick reviewer's continuity is the round record's and SHALL NOT be recorded here. A
+consultation that starts no unit SHALL NOT be recorded here either.
 
 This requirement SHALL own the agent-session record's format, and no per-unit file SHALL carry a normative header of its
 own. The set of registered agents is the requirement recording their sessions, not this one.
 
 #### Scenario: A record's fields parse in the stated order
 
-- **WHEN** a unit's `sessions.tsv` carries a data row of the thirteen fields
-- **THEN** the record's readers parse the date, unit, main session, agent, scope, opinion, pass, requested identifier,
-  returned identifier, transition, reason, hand-over slug, and outcome from it
+- **WHEN** a unit's `sessions.tsv` carries a data row dated before `2026-11-09`, and a row on or after it
+- **THEN** the earlier row parses thirteen fields and the later one fifteen, the last two being the event and the round
 
 #### Scenario: A record's unit column names its directory
 
@@ -1625,7 +1660,7 @@ own. The set of registered agents is the requirement recording their sessions, n
 
 #### Scenario: A hand-over slug resolves to its section
 
-- **WHEN** a row carries a hand-over slug
+- **WHEN** a row other than a quick row carries a hand-over slug
 - **THEN** the unit's `review-handover.md` carries a second-level heading that begins with that slug in backticks
 
 #### Scenario: An opinion belongs to a consultation
@@ -1640,8 +1675,18 @@ own. The set of registered agents is the requirement recording their sessions, n
 
 #### Scenario: A quick-reviewer row is not admitted
 
-- **WHEN** a row names `review-quick` as its agent
-- **THEN** the verification fails, naming the row, because the quick reviewer's continuity is the review-round record's
+- **WHEN** a row names `review-quick` as its agent for a unit whose first round predates `2026-11-09`
+- **THEN** the verification fails, naming the row, because that unit's quick continuity is the review-round record's
+
+#### Scenario: A quick-reviewer row is admitted for a post-retirement unit
+
+- **WHEN** a row names `review-quick` as its agent for a unit whose first round is dated on or after `2026-11-09`
+- **THEN** the verification accepts it
+
+#### Scenario: An event is present from its boundary
+
+- **WHEN** a row is dated on or after `2026-11-09`
+- **THEN** it carries the event field, contiguous from `1` per unit, and a row before it carries none
 
 #### Scenario: An outside-unit consultation is not recorded
 
@@ -1666,11 +1711,17 @@ The build SHALL verify each agent-session row's identity and continuity, per `(u
   rather than a replacement;
 - a `continued` row's main session SHALL equal the last resolved row's, and a `parent-session-changed` row's SHALL
   differ from it, since a child session cannot be continued from another main session;
-- the pass SHALL number every row continuously from `1` per key, whether or not the row resolves a session;
-- a `replaced` row SHALL carry a reason the review-round record's format requirement names, and a row whose transition
-  is not `replaced` SHALL carry none;
-- a row naming an agent the registering requirement does not register SHALL fail;
-- a row's hand-over slug SHALL resolve to a section, as the format requirement states.
+- the pass SHALL number every row continuously from `1` per key, whether or not the row resolves a session; a
+  `review-quick` row's pass is its invocation's number and its round SHALL be present, and every quick row of one round
+  (the stalled attempts and the one that reports) SHALL share that round;
+- the event SHALL be contiguous from `1` per unit across the rows dated on or after `2026-11-09`, and such a row SHALL
+  carry the fifteen-field width while a row before it carries the thirteen-field width;
+- a `replaced` row SHALL carry a reason this record's format requirement names, and a row whose transition is not
+  `replaced` SHALL carry none;
+- a row naming an agent the registering requirement does not register SHALL fail, and a `review-quick` row SHALL fail
+  when the unit's first round predates `2026-11-09`;
+- a row's hand-over slug SHALL resolve to a section, as the format requirement states, and a `review-quick` row's
+  `round-<round>` slug SHALL resolve to a second-level heading beginning `Round <round>`.
 
 The record SHALL be append-only: a row SHALL NOT be removed or rewritten, so a staged record's committed prefix SHALL
 equal the committed record's rows.
@@ -1681,6 +1732,38 @@ working tree's copy, and a staged record that removes or rewrites a committed ro
 
 Passing the verification SHALL validate the recorded fields only: it SHALL NOT attest that a replacement's stated cause
 occurred, that a forced replacement was reported to the owner, or that a discretionary one was approved.
+
+#### Scenario: An event gap or duplicate fails
+
+- **WHEN** a unit's events are not contiguous from `1` on its rows dated on or after `2026-11-09`
+- **THEN** the verification fails, naming the unit and the event
+
+#### Scenario: A quick row on a post-retirement unit passes
+
+- **WHEN** a unit whose first round is dated on or after `2026-11-09` records `review-quick` with its invocation as the
+  pass, the round it reports, and `round-<round>` as its slug
+- **THEN** the verification passes for that row
+
+#### Scenario: A quick row on a pre-retirement unit fails
+
+- **WHEN** a unit whose first round predates `2026-11-09` records `review-quick`
+- **THEN** the verification fails, naming the row
+
+#### Scenario: A quick row without its round fails
+
+- **WHEN** a `review-quick` row carries `-` as its round
+- **THEN** the verification fails, naming the row
+
+#### Scenario: A round's several quick rows share the round
+
+- **WHEN** a round's reviewer stalled twice and the third invocation reported
+- **THEN** the three rows carry that round and consecutive passes
+
+#### Scenario: A row's width follows the boundary
+
+- **WHEN** a row dated before `2026-11-09` carries a width other than thirteen, or one on or after it a width other than
+  fifteen
+- **THEN** the verification fails, naming the row and its width
 
 #### Scenario: The standard check verifies agent-session continuity
 
@@ -1892,3 +1975,31 @@ adequate.
 
 - **WHEN** the check passes for a section written after the delegation
 - **THEN** it reports only that a matching heading was present when it ran
+
+### Requirement: A post-retirement round's session evidence is complete
+
+For a unit whose first round is dated on or after `2026-11-09`, each recorded round SHALL have exactly one
+`review-quick` row with the `report` outcome and that round. A recorded round without one, a second `report` row for the
+same round, or a quick `report` row naming no recorded round SHALL fail. The verification SHALL read the unit's ledger
+and register as they are committed or staged, and it SHALL be a `commit-hygiene.py` mode. The digest's permissive read
+is not this requirement's subject.
+
+#### Scenario: A round with its report row passes
+
+- **WHEN** a post-retirement unit's round 3 has one `review-quick` `report` row carrying round 3
+- **THEN** the verification passes for that round
+
+#### Scenario: A round without its report row fails
+
+- **WHEN** a post-retirement unit records round 3 in its ledger and no quick `report` row carries that round
+- **THEN** the verification fails, naming the unit and the round
+
+#### Scenario: A duplicate report row fails
+
+- **WHEN** two quick `report` rows carry the same round
+- **THEN** the verification fails, naming the unit and the round
+
+#### Scenario: A quick report row naming no recorded round fails
+
+- **WHEN** a quick `report` row carries a round the ledger does not record
+- **THEN** the verification fails, naming the unit and the round

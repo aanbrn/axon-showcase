@@ -333,7 +333,10 @@ new) precedes your **manual review**; the review gate decides whether a deep `re
 You review the proposal before implementation and the finished work before delivery; the lifecycle's named-direct-edit
 route skips the proposal review and keeps the implementation one. Before your manual review the agent refreshes the
 branch against `origin/main` so you read the diff against current `main`, and stages the unit's new files so they appear
-in your IDE's Changes panel.
+in your IDE's Changes panel. What the reviews produce stays in the unit's own record as one event sequence:
+`sessions.tsv` orders every stateful review invocation, `rounds.tsv` and `findings/` beside it keep the quick loop's
+outcome and what each round found, and `deep-review.md` holds the deep review's routing decision, its passes, and its
+findings' statuses.
 
 The unit is intended to ship in one **PR**; a draft PR can share the plan after the proposal review. Implementation
 approval alone does not start delivery — the owner must also request it. During **Deliver**, the agent publishes the
@@ -472,7 +475,9 @@ whether it consumed included usage or additional credits. See
   missing. After implementation one routing decision selects a deep `review-thorough` pass — required, recommended for
   an explicit resolution, or not needed — and a manual `/review-thorough` run is always available. Each deep pass and
   unit-bound consultation is recorded in the unit's agent-session register and reused across passes, with its hand-over
-  written before the call.
+  written before the call; that register is the unit's review-event spine, the review ledger keeps the quick loop's
+  outcome, and the unit's `deep-review.md` holds the deep decision, its passes, and its findings' statuses. The quick
+  gates still read the ledger as before; the deep budget's full passes moved to the unit's record, and no gate widened.
 - **Recording, then generalizing**: every unit records the process defects it observes in
   `docs/units/<unit>/process-defects.md` as it works, and `/flag-process-defect` adds one you report only after the
   agent verifies the episode, rather than taking the report on trust; `/generalize-process-defects` later turns those

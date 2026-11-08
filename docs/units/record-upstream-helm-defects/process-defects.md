@@ -20,6 +20,8 @@ process defects"; the upstream work carries no branch in this repository, so thi
 - **Consequence** — one abort and one full re-run; no work was lost and nothing had been published.
 - **Knowledge boundary** — observed: the paused state, the abort, and the successful re-run. Assumed: that `head`'s
   early exit ended git's output stream. Not checked: git's own exit status, which the pipeline reported as `head`'s.
+- **Decision** — no-change: below the promotion gate — one incident, repaired by an abort and a re-run; the pipe and
+  exit-code class is recorded for reporting.
 
 ### record-upstream-helm-defects#2 — The first edit preceded the `Packs:` classification line
 
@@ -36,6 +38,7 @@ process defects"; the upstream work carries no branch in this repository, so thi
   loaded at that point.
 - **Consequence** — the classification was retroactive; no produced artifact differs because of it.
 - **Knowledge boundary** — observed: the ordering. Not checked: whether any gate or reviewer reads the line's timing.
+- **Decision** — no-change: covered by `AGENTS.md`'s packs rule (state the `Packs:` line before the first edit).
 
 ### record-upstream-helm-defects#3 — A reviewer handoff omitted the subject pack
 
@@ -51,6 +54,7 @@ process defects"; the upstream work carries no branch in this repository, so thi
   round its re-invocation returned.
 - **Consequence** — one extra reviewer invocation; the refused run recorded no review round.
 - **Knowledge boundary** — observed: the refusal and the repeat. Not checked: whether the refused invocation was billed.
+- **Decision** — no-change: covered by the packs rule's delegated-agent sentence and its applied edited-paths bullet.
 
 ### record-upstream-helm-defects#4 — A gate's status was reported while its bot comment flagged uncovered code
 
@@ -71,6 +75,8 @@ process defects"; the upstream work carries no branch in this repository, so thi
 - **Knowledge boundary** — observed: both comments and both reports. Not checked: whether the project wants full patch
   coverage, or only that its threshold admits less. Not established: whether #240's delivery rested on a decision about
   its advisory, and by whom.
+- **Decision** — proposed: https://github.com/aanbrn/axon-showcase/pull/866 — applied as P1 in `AGENTS.md`'s
+  `**Checking CI status**` bullet by `generalize-process-defects-2026-11-08`.
 
 ### record-upstream-helm-defects#5 — A quick-review hand-over was written after the invocation returned
 
@@ -86,3 +92,5 @@ process defects"; the upstream work carries no branch in this repository, so thi
   are in `findings/round-1.md`. A stall during that wait would have had no record to recover it from.
 - **Knowledge boundary** — observed: the ordering and the section's own statement. Not checked: whether any check reads
   the hand-over's timing.
+- **Decision** — no-change: covered by `review-gate` §2 preflight; the `--handover` check verifies a section's presence,
+  and only the ordering is unenforced.

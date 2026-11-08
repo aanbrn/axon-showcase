@@ -19,3 +19,5 @@ Process defects observed while working this unit. Recorded under `AGENTS.md`'s "
   bypassed. A guard change admitting a follow-up's edit of a closed record is a unit of its own.
 - **Knowledge boundary** — observed the refusal and the passing CI-side check. Did not check whether an earlier
   follow-up that corrected a merged record hit the same refusal, or how it committed.
+- **Decision** — proposed: parked as the `docs/ideas.md` 2026-11-08 entry in `generalize-process-defects-2026-11-08`;
+  the guard's requirement limits a follow-up's edit of a closed record, and the change owes a spec delta.

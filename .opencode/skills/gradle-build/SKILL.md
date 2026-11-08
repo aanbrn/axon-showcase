@@ -162,10 +162,10 @@ coordinates keep the leading-integer major comparison.
   `HelmPlugin.createRepositoriesFromProjectProperties` once per helm project, and only on a run whose
   configuration-cache entry is not reused (so probe with `--no-configuration-cache`;
   `-Dorg.gradle.deprecation.trace=true` names the emitting class); tracked upstream as
-  build-extensions-oss/gradle-helm-plugin#145, so bump the plugin when a fixed release lands. The
-  `Configuration.visible` deprecation (`setVisible(boolean)`, removed in Gradle 11) is emitted by several third-party
-  plugins (helm, errorprone, SpotBugs, Spring Boot, protobuf) and is likewise plugin-side. Do not add a local workaround
-  for either.
+  build-extensions-oss/gradle-helm-plugin#145, which closed 2026-11-08 when PR `#252` merged after `3.3.1` shipped, so
+  bump the plugin once a release carries the fix. The `Configuration.visible` deprecation (`setVisible(boolean)`,
+  removed in Gradle 11) is emitted by several third-party plugins (helm, errorprone, SpotBugs, Spring Boot, protobuf)
+  and is likewise plugin-side. Do not add a local workaround for either.
 
 - **A task whose verdict derives from wall-clock time or external state must not declare an output Gradle can re-use — a
   cached UP-TO-DATE run serves a stale verdict.** `npmAudit` first declared `outputs.file(...)`, so a re-run was

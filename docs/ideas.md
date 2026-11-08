@@ -481,12 +481,6 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   first scheduled run that installs it is the verification, and a red one there is this pin's to answer for. Revisit if
   that run does not install the tag, or if the web UI image build regresses after the bump.
 
-- Retarget the guidance-evidence record's stale `#755` location — parked; no change yet.
-  `docs/guidance-evidence/documentation-and-durable-claims.md` says `#755` "stays cited in ADR-0007, `README.md`, and
-  `## Build & Test`", but the citation moved to `.opencode/skills/gradle-build/SKILL.md` in `6518d081`; `AGENTS.md`
-  holds no `#755` (only `100755`). `extract-deployment-operations-guidance` edits the adjacent `#1340` clause and
-  deliberately leaves this one, so the fix is its own docs unit: name the `gradle-build` pack.
-
 ## 2026-10-20
 
 - Convert the remaining Git-tranche Gotchas rules — parked; no change yet. `convert-remaining-gotchas-rules` completed
@@ -771,9 +765,10 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   carries `Fission-AI/OpenSpec#1894` — parked; the `v1.16.0` clause of the same watch condition is done and this one has
   no change yet. `Fission-AI/OpenSpec#1892`'s unparseable-config half shipped in `v1.16.0` (closed 2026-10-30, fixed by
   PR `#2127`): `validate` exits 1 on a config it cannot read, while the other commands still warn and carry on.
-  `Fission-AI/OpenSpec#1891`'s rules-array half is still live — its fix `Fission-AI/OpenSpec#1894` is open and unmerged
-  — so the `ci.yml` probe's list-shape arm and the list-shape controls in `/opsx-tool-update` remain the only guards
-  against a config whose lists the CLI silently drops. The watch condition has two clauses, each alone requiring its own
+  `Fission-AI/OpenSpec#1891`'s rules-array half is still live — its shipped fix `#1984` only names the offending item
+  and leaves the drop behavior unchanged, while the behavior fix `Fission-AI/OpenSpec#1894` is open and unmerged — so
+  the `ci.yml` probe's list-shape arm and the list-shape controls in `/opsx-tool-update` remain the only guards against
+  a config whose lists the CLI silently drops. The watch condition has two clauses, each alone requiring its own
   removal, checked when the CLI is bumped rather than on the next weekly sweep: a pin reaching `v1.16.0` drops the
   probe's `could not parse` arm (done: that move retired it — `openspec validate --all` exits 1 on an unparseable
   config, and `ci.yml` now greps only the list-shape warning), and a release carrying `#1894` retires the remaining arm
@@ -914,8 +909,8 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   but 3.x targets Spring Boot 4 and `spring-data-elasticsearch` 6.x, so retiring the workaround rides the deferred
   Spring Boot 4 migration (ADR-0004) — re-check when that migration lands, not on a chart or patch bump. The other
   closure candidate does not apply — `#1060` leaves our `checkBuildEnvironmentConstraints` row untouched (the `#755`
-  verdict is recorded in the upstream-reference bullet in `AGENTS.md` and ADR-0007). Recorded here rather than in the PR
-  body that surfaced it, which no tool reads.
+  verdict is recorded in the `gradle-build` pack and ADR-0007, whose decision ADR-0021 supersedes and keeps as the
+  evidence). Recorded here rather than in the PR body that surfaced it, which no tool reads.
 
 ## 2026-09-07
 

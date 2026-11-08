@@ -460,6 +460,7 @@ class SettingsStageTests(unittest.TestCase):
         self.assertIn(str(INTERPRETER), message)
         self.assertIn("Register it in IntelliJ", message)
         self.assertIn("Or run this tree on an interpreter that is already registered", message)
+        self.assertIn("Make python3 resolve to that version", message)
         self.assertIn("pyenv local", message)
         self.assertIn("Registered Python SDKs", message)
         self.assertIn("Other Python -> /opt/other/python3", message)

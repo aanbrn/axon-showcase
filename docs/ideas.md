@@ -35,6 +35,19 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   protection for the committing unit's own record — and owes a spec delta. Origin:
   `captured: link-generalization-decision-records`.
 
+- Retry a release-asset download across the upstream outage window — parked; no change yet. The `Install actionlint` and
+  `Scan the source for secrets` steps each retry their release-asset download three times with a five-second pause, so a
+  failure that outlasts that window fails `build` for a reason unrelated to the pull request: on 2026-11-08 six attempts
+  failed on the actionlint install and three on the gitleaks scan between 08:53Z and 09:23Z (about half an hour), and
+  the run took ten attempts before the gate passed. The actionlint install's log shows a 92-byte body that is not a gzip
+  stream, the caller's own `curl` of both assets returned `504` with the same 92-byte body and intermittently `200`, and
+  `githubstatus.com` read "All Systems Operational" for that window — its 10:36–12:32Z incident for
+  unauthenticated-request timeouts postdates the failures and corroborates the premise. `gitleaks` is pinned to 8.30.1
+  and checksum-verified, while `actionlint` installs the installer script's `latest` default with no checksum, so the
+  change must first pin `actionlint`'s version and add a checksum check, then widen the window with backoff across a few
+  minutes and add a checksum-verified fallback source — keeping the pin and checksum `gitleaks` already has, and still
+  failing once the window is exhausted. Origin: `captured: park-the-download-retry-idea`.
+
 - Let `ensure-idea-settings.py` select the IntelliJ configuration of the installed IDE version — parked; no change yet.
   The script considers every `IntelliJIdea*`/`IdeaIC*` directory under the platform root and reports `NEEDS_ACTION` when
   more than one registers the probe interpreter, so a contributor who upgrades IDEA keeps the previous version's

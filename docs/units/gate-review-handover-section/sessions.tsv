@@ -1,0 +1,5 @@
+2026-11-07	gate-review-handover-section	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	handover-guard-scope	primary	1	-	ses_e4969fe3effelQc5YYYHfxYF9E	created	-	advisor-scope-1	report
+2026-11-07	gate-review-handover-section	ses_e4960ba02ffeSVwO2K6w3UICYO	technical-advisor	handover-guard-scope	primary	2	-	ses_e4953081fffezMukcDE3WpQQtz	replaced	parent-session-changed	advisor-scope-2	report
+2026-11-08	gate-review-handover-section	ses_e4960ba02ffeSVwO2K6w3UICYO	technical-advisor	handover-guard-scope	primary	3	ses_e4953081fffezMukcDE3WpQQtz	ses_e4953081fffezMukcDE3WpQQtz	continued	-	advisor-scope-3	report
+2026-11-08	gate-review-handover-section	ses_e4960ba02ffeSVwO2K6w3UICYO	review-thorough	gate-review-handover-section	-	1	-	ses_e474f80fcffezjtWW97dpdXLyW	created	-	deep-1	report
+2026-11-08	gate-review-handover-section	ses_e4960ba02ffeSVwO2K6w3UICYO	technical-advisor	handover-guard-scope	primary	4	ses_e4953081fffezMukcDE3WpQQtz	ses_e4953081fffezMukcDE3WpQQtz	continued	-	advisor-scope-4	report

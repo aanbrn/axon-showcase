@@ -110,7 +110,9 @@ its format.
      produced one of the recovery cases the rule names, recording the concrete reason and both identifiers — the failed
      session and its replacement's — before you replace; and bound each invocation with a deadline your policy supplies,
      recording the invocation's hand-over **before** you wait on it, at `docs/units/<unit>/review-handover.md` — one
-     section per quick-review invocation appended to the unit's file.
+     section per quick-review invocation appended to the unit's file. Write that section's heading as `## Round <N>`,
+     with an optional descriptive suffix, then run `python3 scripts/commit-hygiene.py --handover <unit>:<round>`
+     immediately before the delegation; its failure stops the call.
    - A hand-over recorded before that location existed is read where it was recorded, in the change directory or its
      archive.
    - The unit's missing file is not evidence that no earlier invocation happened.

@@ -1200,12 +1200,26 @@ class UniqueReviewRoundTests(unittest.TestCase):
         declared = sorted(action.option_strings[0] for action in parser._mutually_exclusive_groups[0]._group_actions)
         self.assertEqual(sorted(commit_hygiene.MODE_FLAGS), declared)
 
+        # A value-taking mode needs an operand, or the parser rejects the form before the guard the case tests runs.
+        actions = {
+            action.option_strings[0]: action for action in parser._mutually_exclusive_groups[0]._group_actions
+        }
+        operands = {"--handover": "unit-a:1"}
+        self.assertEqual(
+            sorted(flag for flag, action in actions.items() if action.nargs != 0),
+            sorted(operands),
+            "a value-taking mode was added without an operand for this control",
+        )
+
         for flag in commit_hygiene.MODE_FLAGS:
             if flag == "--unique-rounds":
                 continue
+            arguments = [flag] + ([operands[flag]] if flag in operands else [])
             stderr = io.StringIO()
             with contextlib.redirect_stderr(stderr):
-                self.assertEqual(commit_hygiene.main([flag, "--expect", "unit-a:1", "--repo", str(repo)]), 1)
+                self.assertEqual(
+                    commit_hygiene.main(arguments + ["--expect", "unit-a:1", "--repo", str(repo)]), 1
+                )
             self.assertIn("--expect needs --unique-rounds", stderr.getvalue())
 
         # The bare form, with no mode flag at all.
@@ -3872,6 +3886,7 @@ MODE_TEST_COVERAGE = {
     "--workspace-records": ("WorkspaceRecordTests", "check_workspace_records"),
     "--finding-instances": ("FindingInstancesTests", "check_finding_instances"),
     "--unit-layout": ("UnitLayoutTests", "check_unit_layout"),
+    "--handover": ("HandoverTests", "check_handover"),
 }
 
 
@@ -4099,6 +4114,158 @@ class UnitRecordTests(unittest.TestCase):
 
         self.assertEqual(1, code)
         self.assertIn("no reference to the unit record", stderr)
+
+
+class HandoverTests(unittest.TestCase):
+    def _repo_with_handover(self, text: str) -> Path:
+        repo = make_repo(self)
+        unit_dir = repo / "docs" / "units" / "unit-a"
+        unit_dir.mkdir(parents=True)
+        (unit_dir / "review-handover.md").write_text(text, encoding="utf-8")
+        return repo
+
+    def _check(self, repo: Path, argument: str = "unit-a:3") -> tuple[int, str]:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--handover", argument, "--repo", str(repo)])
+        return code, stderr.getvalue()
+
+    def test_a_present_heading_passes(self):
+        code, stderr = self._check(self._repo_with_handover("## Round 3\n"))
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
+
+    def test_a_descriptive_suffix_passes(self):
+        code, stderr = self._check(self._repo_with_handover("## Round 3 — proposal screen\n"))
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
+
+    def test_a_longer_round_token_does_not_match(self):
+        code, stderr = self._check(self._repo_with_handover("## Round 30\n"))
+
+        self.assertEqual(1, code)
+        self.assertIn("no `## Round 3` section", stderr)
+
+    def test_a_token_continuing_past_the_round_does_not_match(self):
+        code, _ = self._check(self._repo_with_handover("## Round 3x\n"))
+
+        self.assertEqual(1, code)
+
+    def test_a_backticked_token_does_not_match(self):
+        code, _ = self._check(self._repo_with_handover("## `Round 3` — proposal screen\n"))
+
+        self.assertEqual(1, code)
+
+    def test_a_heading_with_a_leading_zero_does_not_match(self):
+        code, _ = self._check(self._repo_with_handover("## Round 03\n"))
+
+        self.assertEqual(1, code)
+
+    def test_a_different_round_fails_naming_the_unit_and_the_round(self):
+        code, stderr = self._check(self._repo_with_handover("## Round 2\n"))
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/units/unit-a/review-handover.md", stderr)
+        self.assertIn("no `## Round 3` section", stderr)
+
+    def test_a_fenced_heading_is_not_a_section(self):
+        code, _ = self._check(self._repo_with_handover("```\n## Round 3\n```\n"))
+
+        self.assertEqual(1, code)
+
+    def test_a_fence_stays_open_past_a_pseudo_closer(self):
+        code, _ = self._check(self._repo_with_handover("```\n``` not a closer\n## Round 3\n```\n"))
+
+        self.assertEqual(1, code)
+
+    def test_an_indented_line_does_not_close_a_fence(self):
+        code, _ = self._check(self._repo_with_handover("```\n    ```\n## Round 3\n```\n"))
+
+        self.assertEqual(1, code)
+
+    def test_an_indented_line_does_not_open_a_fence(self):
+        code, stderr = self._check(self._repo_with_handover("    ```\n## Round 3\n"))
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
+
+    def test_a_heading_after_a_closed_fence_passes(self):
+        code, stderr = self._check(self._repo_with_handover("```\ncode\n```\n\n## Round 3\n"))
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
+
+    def test_a_heading_with_legal_markdown_spacing_passes(self):
+        for text in ("##  Round 3\n", "   ## Round 3\n", "##\tRound 3\n"):
+            with self.subTest(text=text):
+                code, stderr = self._check(self._repo_with_handover(text))
+                self.assertEqual(0, code)
+                self.assertEqual("", stderr)
+
+    def test_the_function_returns_the_failure_count(self):
+        repo = self._repo_with_handover("## Round 2\n")
+
+        with contextlib.redirect_stderr(io.StringIO()):
+            failures = commit_hygiene.check_handover(repo, "unit-a:3")
+
+        self.assertEqual(1, failures)
+
+    def test_a_third_level_heading_is_not_a_section(self):
+        code, _ = self._check(self._repo_with_handover("### Round 3\n"))
+
+        self.assertEqual(1, code)
+
+    def test_a_missing_file_fails_naming_it(self):
+        repo = make_repo(self)
+        (repo / "docs" / "units" / "unit-a").mkdir(parents=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/units/unit-a/review-handover.md is missing", stderr)
+
+    def test_an_unreadable_file_fails_naming_it(self):
+        repo = make_repo(self)
+        unit_dir = repo / "docs" / "units" / "unit-a"
+        unit_dir.mkdir(parents=True)
+        (unit_dir / "review-handover.md").write_bytes(b"## Round 3\n\xff\xfe")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/units/unit-a/review-handover.md could not be read", stderr)
+
+    def test_a_malformed_argument_fails_naming_what_it_expected(self):
+        code, stderr = self._check(self._repo_with_handover("## Round 3\n"), "unit-a")
+
+        self.assertEqual(1, code)
+        self.assertIn("expects <unit>:<round>", stderr)
+
+    def test_a_non_canonical_round_fails_naming_the_round(self):
+        repo = self._repo_with_handover("## Round 3\n")
+
+        for argument in ("unit-a:", "unit-a:0", "unit-a:03", "unit-a:3.0", "unit-a:three"):
+            with self.subTest(argument=argument):
+                code, stderr = self._check(repo, argument)
+                self.assertEqual(1, code)
+                self.assertIn("canonical positive round number", stderr)
+
+    def test_a_unit_that_is_not_one_directory_name_fails(self):
+        repo = self._repo_with_handover("## Round 3\n")
+
+        for argument in ("a/b:3", "a\\b:3", "..:3", ".:3", "a b:3", ":3"):
+            with self.subTest(argument=argument):
+                code, stderr = self._check(repo, argument)
+                self.assertEqual(1, code)
+                self.assertIn("one unit directory name", stderr)
+
+    def test_a_second_colon_fails_naming_the_unit_it_received(self):
+        code, stderr = self._check(self._repo_with_handover("## Round 3\n"), "unit-a:3:4")
+
+        self.assertEqual(1, code)
+        self.assertIn("one unit directory name, got 'unit-a:3'", stderr)
 
 
 class ModeCoverageTests(unittest.TestCase):

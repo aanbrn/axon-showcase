@@ -467,10 +467,12 @@ whether it consumed included usage or additional credits. See
   waiting on. Continuing the same main session keeps the unit's recorded reviewer and consultation sessions; a new
   session records each one's `parent-session-changed` replacement and restarts it from the recorded hand-over.
 - **Code review**: every unit is auto-reviewed after its proposal and after its implementation; the quick-review loop is
-  a bounded screen that repeats until it finds nothing new. After implementation one routing decision selects a deep
-  `review-thorough` pass — required, recommended for an explicit resolution, or not needed — and a manual
-  `/review-thorough` run is always available. Each deep pass and unit-bound consultation is recorded in the unit's
-  agent-session register and reused across passes, with its hand-over written before the call.
+  a bounded screen that repeats until it finds nothing new, and each delegation is preceded by a presence check of the
+  round's hand-over section (`commit-hygiene.py --handover <unit>:<round>`), which stops the call when the section is
+  missing. After implementation one routing decision selects a deep `review-thorough` pass — required, recommended for
+  an explicit resolution, or not needed — and a manual `/review-thorough` run is always available. Each deep pass and
+  unit-bound consultation is recorded in the unit's agent-session register and reused across passes, with its hand-over
+  written before the call.
 - **Recording, then generalizing**: every unit records the process defects it observes in
   `docs/units/<unit>/process-defects.md` as it works, and `/flag-process-defect` adds one you report only after the
   agent verifies the episode, rather than taking the report on trust; `/generalize-process-defects` later turns those

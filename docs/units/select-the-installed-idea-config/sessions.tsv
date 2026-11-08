@@ -1,0 +1,7 @@
+2026-11-08	select-the-installed-idea-config	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	proposal-readiness	primary	1	-	ses_e447ce213ffeqmJov322EajqWZ	created	-	advisor-proposal-1	report
+2026-11-08	select-the-installed-idea-config	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	proposal-readiness	primary	2	ses_e447ce213ffeqmJov322EajqWZ	ses_e447ce213ffeqmJov322EajqWZ	continued	-	advisor-proposal-2	report
+2026-11-08	select-the-installed-idea-config	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	deep-review-routing	primary	1	-	ses_e44369502ffe9L25Dj03As6NdJ	created	-	advisor-routing-1	report
+2026-11-08	select-the-installed-idea-config	ses_e4add21daffe0vW0OISMmtQS3i	review-thorough	select-the-installed-idea-config	-	1	-	ses_e442e93d0ffe5VpH7QOauffd4R	created	-	deep-1	report
+2026-11-08	select-the-installed-idea-config	ses_e4add21daffe0vW0OISMmtQS3i	review-thorough	select-the-installed-idea-config	-	2	ses_e442e93d0ffe5VpH7QOauffd4R	ses_e442e93d0ffe5VpH7QOauffd4R	continued	-	deep-2	report
+2026-11-08	select-the-installed-idea-config	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	deep-review-routing	primary	2	ses_e44369502ffe9L25Dj03As6NdJ	ses_e44369502ffe9L25Dj03As6NdJ	continued	-	advisor-routing-2	report
+2026-11-08	select-the-installed-idea-config	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	deep-review-routing	primary	3	ses_e44369502ffe9L25Dj03As6NdJ	ses_e44369502ffe9L25Dj03As6NdJ	continued	-	advisor-routing-3	report

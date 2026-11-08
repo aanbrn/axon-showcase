@@ -1,0 +1,1 @@
+- [coherence] proposal.md:42 — the Modified Capabilities entry still described the tie unconditionally

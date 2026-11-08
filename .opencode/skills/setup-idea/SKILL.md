@@ -57,9 +57,13 @@ Each tree the workspace procedure creates — a new unit's or a continued unit's
    - `NEEDS_ACTION` — hand the user the block the script printed: its first line states what is wrong, then the remedies
      — register the printed interpreter once per configuration (File → Project Structure → SDKs → Add SDK → Python SDK),
      or run the tree on an interpreter that is already registered (`pyenv local <version>` where pyenv supplies one) —
-     and only then the registered SDKs with their interpreter paths and the configurations searched. Walk the user
-     through the first remedy or the alternative, then re-run. Every working tree that resolves the same interpreter
-     reuses it; the ambiguity case names the matching entries and the `--idea-config-dir` / keep-one-entry remedy.
+     and only then the registered SDKs with their interpreter paths and the configurations searched. On macOS the script
+     reads the installed IDE's bundle to pick the configuration, so a block naming the identified configuration means
+     the fix belongs there (register the interpreter in it, or open IntelliJ once so it creates the configuration); it
+     never falls back to another configuration's SDK name. Walk the user through the first remedy or the alternative,
+     then re-run. Every working tree that resolves the same interpreter reuses it; a genuine ambiguity names the
+     matching entries and the `--idea-config-dir` / keep-one-entry remedy, and a custom `idea.config.path` is not
+     detected, so that contributor passes `--idea-config-dir`.
    - `ERROR` — report the message; no module was written.
 5. **Hand back**: report what the script restored, left unchanged, or skipped and both outcome lines. Then give the
    Python module's activation procedure: the module appears when the project is opened after a run made while the

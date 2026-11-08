@@ -1,0 +1,1 @@
+- [formatting] scripts/test-ensure-idea-settings.py:898 — the new case's docstring exceeded 120 characters

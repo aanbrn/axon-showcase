@@ -53,8 +53,21 @@ write_config() {
 run_wrapper() {
     tree="$1"
     shift
-    HOME="$tree/home" IDEA_HOME="" IDEA_SEARCH_ROOTS="" PATH="$tree/bin:/usr/bin:/bin:/usr/sbin:/sbin" \
+    HOME="$tree/home" IDEA_HOME="" IDEA_SEARCH_ROOTS="" HELPER_ARGV="$tree/helper.argv" \
+        PATH="$tree/bin:/usr/bin:/bin:/usr/sbin:/sbin" \
         bash "$tree/scripts/setup-idea.sh" "$@" >"$tree/out.log" 2>&1
+}
+
+# Replaces the copied helper with one that records the arguments the wrapper passes it, so the wrapper's wiring is
+# observable without running the real settings merge.
+stub_helper() {
+    cat >"$1/scripts/ensure-idea-settings.py" <<'PY'
+import os
+import sys
+
+with open(os.environ["HELPER_ARGV"], "w", encoding="utf-8") as handle:
+    handle.write(" ".join(sys.argv[1:]))
+PY
 }
 
 run_wrapper_with_search_roots() {
@@ -372,6 +385,49 @@ else
 fi
 grep -q "installPlugins" "$tree/launcher.log" 2>/dev/null ||
     fail "a colon-separated list of search roots was not read as separate roots"
+
+tree="$(new_tree bundle-argument)"
+write_config "$tree"
+stub_helper "$tree"
+if run_wrapper "$tree" "$tree/stub-idea"; then
+    :
+else
+    fail "a run with an explicit launcher exited non-zero"
+fi
+grep -q -- "--idea-bundle $tree/stub-idea" "$tree/helper.argv" 2>/dev/null ||
+    fail "the wrapper did not pass the resolved launcher as --idea-bundle"
+grep -q "installPlugins" "$tree/launcher.log" 2>/dev/null ||
+    fail "the plugin install did not use the resolved launcher"
+
+tree="$(new_tree bundle-with-explicit-dir)"
+write_config "$tree"
+stub_helper "$tree"
+if run_wrapper "$tree" --idea-config-dir "$tree/ideaconf" "$tree/stub-idea"; then
+    :
+else
+    fail "a run with an explicit directory exited non-zero"
+fi
+if grep -q -- "--idea-bundle" "$tree/helper.argv" 2>/dev/null; then
+    fail "an explicit --idea-config-dir still passed --idea-bundle"
+fi
+
+# A machine without IntelliJ and without an explicit directory still applies the settings: the helper is called with no
+# bundle argument, and the empty-argument path must not abort the wrapper (bash 3.2 rejects an empty array expansion).
+tree="$(new_tree no-launcher-no-explicit-dir)"
+stub_helper "$tree"
+if run_wrapper "$tree"; then
+    :
+else
+    fail "a run without a launcher and without --idea-config-dir exited non-zero"
+fi
+if grep -q -- "--idea-bundle\|--idea-config-dir" "$tree/helper.argv" 2>/dev/null; then
+    fail "the helper was given a bundle or directory argument when neither was resolved"
+fi
+case "$(cat "$tree/helper.argv" 2>/dev/null)" in
+*"unbound variable"*)
+    fail "the wrapper expanded an empty argument array"
+    ;;
+esac
 
 if [ "$failures" -ne 0 ]; then
     echo "$failures check(s) failed" >&2

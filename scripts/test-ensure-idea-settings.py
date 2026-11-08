@@ -12,6 +12,7 @@ Each case builds a temporary repository root and a temporary IntelliJ configurat
 import contextlib
 import importlib.util
 import io
+import plistlib
 import re
 import shutil
 import subprocess
@@ -105,9 +106,34 @@ class SettingsStageTests(unittest.TestCase):
             "idea_config_dir": self.config,
             "roots": [self.tmp / "no-roots"],
             "probe": self.probe,
+            "platform": "darwin",
+            "bundle_roots": [self.tmp / "no-bundles"],
         }
         arguments.update(overrides)
         return ensure.python_stage(self.root, **arguments)
+
+    def bundle(self, name: str, version: str, *, root: Path | None = None, plist: bytes | None = None) -> Path:
+        """Write a fixture app bundle whose Info.plist names `version`, and return the bundle's path."""
+        directory = root or (self.tmp / "bundles")
+        bundle = directory / f"{name}.app"
+        contents = bundle / "Contents"
+        contents.mkdir(parents=True)
+        payload = plist if plist is not None else plistlib.dumps({"CFBundleShortVersionString": version})
+        (contents / "Info.plist").write_bytes(payload)
+        return bundle
+
+    def product(
+        self,
+        prefix: str,
+        version: str,
+        sdk_name: str | None = None,
+        interpreter: Path | None = None,
+    ) -> Path:
+        """Write a configuration for a product and version, registering the fixture interpreter by default."""
+        config = self.tmp / "products" / f"{prefix}{version}"
+        entry = sdk_name if sdk_name is not None else f"{prefix} {version} Python"
+        self.write_table((entry, str(interpreter or INTERPRETER)), config=config)
+        return config
 
     def main_status(self, *argv: str) -> int:
         """Run the module's entry point, discarding its report."""
@@ -500,7 +526,8 @@ class SettingsStageTests(unittest.TestCase):
         self.assertEqual(ensure.SKIPPED, outcome, message)
         self.assertIn(str(INTERPRETER), message)
         with unittest.mock.patch.object(ensure, "default_roots", lambda: [self.tmp / "absent"]):
-            self.assertEqual(0, self.main_status())
+            with unittest.mock.patch.object(ensure, "default_bundle_roots", lambda: [self.tmp / "no-bundles"]):
+                self.assertEqual(0, self.main_status())
         self.assertTrue((self.root / ".idea" / "palantir-java-format.xml").is_file())
 
     def test_an_unusable_explicit_configuration_is_an_error_without_fallback(self) -> None:
@@ -585,6 +612,321 @@ class SettingsStageTests(unittest.TestCase):
         command = run.call_args.args[0]
         self.assertEqual(ensure.INTERPRETER_PROGRAM, command[2])
         self.assertEqual(str(self.root), run.call_args.kwargs["cwd"])
+
+
+    def test_an_upgrade_selects_the_installed_versions_configuration(self) -> None:
+        """Two configurations register the interpreter, and the installed bundle's version picks one."""
+        stale = self.product("IntelliJIdea", "2025.3", "Stale Python")
+        live = self.product("IntelliJIdea", "2026.3", "Live Python")
+        self.bundle("IntelliJ IDEA", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None, roots=[self.tmp / "products"], bundle_roots=[self.tmp / "bundles"]
+        )
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        self.assertIn("Live Python", (self.root / ensure.MODULE_RELATIVE).read_text(encoding="utf-8"))
+        self.assertIn(live.name, message)
+        self.assertIn("IntelliJ IDEA.app", message)
+        self.assertNotIn(stale.name, message)
+
+    def test_the_launcher_selects_its_bundle_ahead_of_a_newer_one(self) -> None:
+        """A launcher resolved for the older bundle selects that bundle's configuration."""
+        older = self.product("IntelliJIdea", "2025.3", "Older Python")
+        self.product("IntelliJIdea", "2026.3", "Newer Python")
+        older_bundle = self.bundle("IntelliJ IDEA", "2025.3")
+        self.bundle("IntelliJ IDEA 2026.3", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None,
+            roots=[self.tmp / "products"],
+            bundle_roots=[self.tmp / "bundles"],
+            idea_bundle=older_bundle / "Contents" / "MacOS" / "idea",
+        )
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        self.assertIn("Older Python", (self.root / ensure.MODULE_RELATIVE).read_text(encoding="utf-8"))
+        self.assertIn(older.name, message)
+
+    def test_a_unique_match_with_no_bundle_resolves_and_says_so(self) -> None:
+        """With no installed bundle the search decides, and the line says no bundle resolved."""
+        self.write_table(("Only Python", str(INTERPRETER)))
+
+        outcome, message = self.stage(idea_config_dir=None, roots=[self.tmp])
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        self.assertIn("No installed IntelliJ IDEA bundle resolved", message)
+
+    def test_no_bundle_and_several_configurations_refuses(self) -> None:
+        """Two matching configurations and no bundle to choose keep today's refusal."""
+        self.product("IntelliJIdea", "2025.3")
+        self.product("IntelliJIdea", "2026.3", "Second Python")
+
+        outcome, message = self.stage(idea_config_dir=None, roots=[self.tmp / "products"])
+
+        self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
+        self.assertIn("several", message)
+        self.assertIn("No installed IntelliJ IDEA bundle resolved", message)
+
+    def test_no_bundle_and_no_match_refuses_and_says_so(self) -> None:
+        """No bundle and no registered interpreter still reports the action, naming the search."""
+        self.write_table(("Other Python", "/usr/bin/python3"))
+
+        outcome, message = self.stage(idea_config_dir=None, roots=[self.tmp])
+
+        self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
+        self.assertIn("not registered as a Python SDK", message)
+        self.assertIn("No installed IntelliJ IDEA bundle resolved", message)
+
+    def test_an_unreadable_bundle_is_skipped(self) -> None:
+        """A corrupt plist does not hide the readable bundle beside it."""
+        self.bundle("IntelliJ IDEA", "2026.3", plist=b"not a plist")
+        self.product("IntelliJIdea", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None, roots=[self.tmp / "products"], bundle_roots=[self.tmp / "bundles"]
+        )
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+
+    def test_the_installed_configuration_without_the_sdk_stops(self) -> None:
+        """The identified configuration lacking the SDK stops, and another configuration is not used."""
+        self.product("IntelliJIdea", "2026.3", "Other Python", Path("/usr/bin/python3"))
+        other = self.product("IntelliJIdea", "2025.3", "Stale Python")
+        self.bundle("IntelliJ IDEA", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None, roots=[self.tmp / "products"], bundle_roots=[self.tmp / "bundles"]
+        )
+
+        self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
+        self.assertIn("IntelliJIdea2026.3", message)
+        self.assertIn("--idea-config-dir", message)
+        self.assertIn("Register it there", message)
+        self.assertFalse((self.root / ensure.MODULE_RELATIVE).exists())
+        self.assertNotIn(other.name, message)
+
+    def test_the_stop_holds_when_no_other_configuration_matches(self) -> None:
+        """Nothing else registers the interpreter, and the identified configuration still stops the stage."""
+        self.product("IntelliJIdea", "2026.3", "Other Python", Path("/usr/bin/python3"))
+        self.bundle("IntelliJ IDEA", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None, roots=[self.tmp / "products"], bundle_roots=[self.tmp / "bundles"]
+        )
+
+        self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
+        self.assertFalse((self.root / ensure.MODULE_RELATIVE).exists())
+
+    def test_the_installed_ide_with_no_configuration_stops(self) -> None:
+        """A bundle whose version has no configuration directory stops with the location and the flag."""
+        self.product("IntelliJIdea", "2025.3")
+        self.bundle("IntelliJ IDEA", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None, roots=[self.tmp / "products"], bundle_roots=[self.tmp / "bundles"]
+        )
+
+        self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
+        self.assertIn("no IntelliJ configuration exists at the default location", message)
+        self.assertIn("--idea-config-dir", message)
+        self.assertFalse((self.root / ensure.MODULE_RELATIVE).exists())
+
+    def test_the_absent_configuration_stop_holds_without_another_match(self) -> None:
+        """The same stop holds when no configuration registers the interpreter at all."""
+        self.product("IntelliJIdea", "2025.3", "Other Python")
+        self.bundle("IntelliJ IDEA", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None, roots=[self.tmp / "products"], bundle_roots=[self.tmp / "bundles"]
+        )
+
+        self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
+        self.assertIn("no IntelliJ configuration exists at the default location", message)
+
+    def test_two_products_at_one_version_are_refused(self) -> None:
+        """Ultimate and Community at one version leave the choice to the contributor."""
+        self.product("IntelliJIdea", "2026.3")
+        self.product("IdeaIC", "2026.3", "Community Python")
+        self.bundle("IntelliJ IDEA", "2026.3")
+        self.bundle("IntelliJ IDEA CE", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None, roots=[self.tmp / "products"], bundle_roots=[self.tmp / "bundles"]
+        )
+
+        self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
+        self.assertIn("IntelliJIdea2026.3", message)
+        self.assertIn("IdeaIC2026.3", message)
+        self.assertIn("--idea-config-dir", message)
+
+    def test_the_newest_of_two_versions_is_used(self) -> None:
+        """Two bundles at different versions try the newest first."""
+        self.product("IntelliJIdea", "2026.3", "Newest Python")
+        self.bundle("IntelliJ IDEA", "2025.3")
+        self.bundle("IntelliJ IDEA 2026", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None, roots=[self.tmp / "products"], bundle_roots=[self.tmp / "bundles"]
+        )
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        self.assertIn("Newest Python", (self.root / ensure.MODULE_RELATIVE).read_text(encoding="utf-8"))
+        self.assertIn("2026.3", message)
+
+    def test_an_explicit_directory_wins_over_a_bundle(self) -> None:
+        """`--idea-config-dir` overrides the installed-version selection."""
+        explicit = self.product("IntelliJIdea", "2025.3", "Explicit Python")
+        self.product("IntelliJIdea", "2026.3", "Live Python")
+        self.bundle("IntelliJ IDEA", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=explicit, roots=[self.tmp / "products"], bundle_roots=[self.tmp / "bundles"]
+        )
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        self.assertIn("Explicit Python", (self.root / ensure.MODULE_RELATIVE).read_text(encoding="utf-8"))
+
+    def test_a_non_mac_platform_consults_no_bundle(self) -> None:
+        """On another platform the bundle is not read, and the refusal names the limitation."""
+        self.product("IntelliJIdea", "2025.3")
+        self.product("IntelliJIdea", "2026.3", "Second Python")
+        self.bundle("IntelliJ IDEA", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None,
+            roots=[self.tmp / "products"],
+            bundle_roots=[self.tmp / "bundles"],
+            platform="linux",
+        )
+
+        self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
+        self.assertIn("No installed IntelliJ IDEA bundle resolved on this platform", message)
+
+
+    def test_a_launcher_outside_a_bundle_falls_through_to_the_scan(self) -> None:
+        """An IDEA_HOME launcher names no bundle, so the installed-bundle scan still resolves one."""
+        self.product("IntelliJIdea", "2026.3")
+        self.bundle("IntelliJ IDEA", "2026.3")
+        launcher = self.tmp / "idea-home" / "bin" / "idea.sh"
+        launcher.parent.mkdir(parents=True)
+        launcher.write_text("#!/bin/sh\n", encoding="utf-8")
+
+        outcome, message = self.stage(
+            idea_config_dir=None,
+            roots=[self.tmp / "products"],
+            bundle_roots=[self.tmp / "bundles"],
+            idea_bundle=launcher,
+        )
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        self.assertIn("IntelliJIdea2026.3", message)
+
+    def test_the_launcher_settles_a_two_product_tie(self) -> None:
+        """A launcher naming one product selects it, rather than the tie refusal."""
+        self.product("IntelliJIdea", "2026.3", "Ultimate Python")
+        self.product("IdeaIC", "2026.3", "Community Python")
+        self.bundle("IntelliJ IDEA", "2026.3")
+        community = self.bundle("IntelliJ IDEA CE", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None,
+            roots=[self.tmp / "products"],
+            bundle_roots=[self.tmp / "bundles"],
+            idea_bundle=community,
+        )
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        self.assertIn("Community Python", (self.root / ensure.MODULE_RELATIVE).read_text(encoding="utf-8"))
+        self.assertIn("IdeaIC2026.3", message)
+
+    def test_an_unreadable_bundle_plist_falls_through_to_the_scan(self) -> None:
+        """A launcher whose bundle plist is corrupt is skipped, and the scan's bundle is used."""
+        self.product("IntelliJIdea", "2026.3")
+        corrupt = self.bundle("IntelliJ IDEA CE", "2026.3", plist=b"not a plist")
+        self.bundle("IntelliJ IDEA", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None,
+            roots=[self.tmp / "products"],
+            bundle_roots=[self.tmp / "bundles"],
+            idea_bundle=corrupt,
+        )
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        self.assertIn("IntelliJIdea2026.3", message)
+
+
+    def test_two_matching_entries_in_the_identified_configuration_are_refused(self) -> None:
+        """Two entries for the interpreter in the identified configuration is the ambiguity the tool refuses."""
+        config = self.tmp / "products" / "IntelliJIdea2026.3"
+        options = config / "options"
+        options.mkdir(parents=True, exist_ok=True)
+        (options / "jdk.table.xml").write_text(
+            sdk_table(("First Python", str(INTERPRETER)), ("Second Python", str(INTERPRETER))), encoding="utf-8"
+        )
+        self.bundle("IntelliJ IDEA", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None, roots=[self.tmp / "products"], bundle_roots=[self.tmp / "bundles"]
+        )
+
+        self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
+        self.assertIn("several Python SDK entries", message)
+        self.assertIn(str(INTERPRETER), message)
+        self.assertIn("First Python", message)
+        self.assertIn("Second Python", message)
+        self.assertFalse((self.root / ensure.MODULE_RELATIVE).exists())
+
+
+    def test_a_two_product_tie_with_one_registration_selects_it(self) -> None:
+        """Only one of two same-version editions registers the interpreter, so that configuration is not a tie."""
+        self.product("IntelliJIdea", "2026.3", "Ultimate Python")
+        self.product("IdeaIC", "2026.3", "Community Python", Path("/usr/bin/python3"))
+        self.bundle("IntelliJ IDEA", "2026.3")
+        self.bundle("IntelliJ IDEA CE", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None, roots=[self.tmp / "products"], bundle_roots=[self.tmp / "bundles"]
+        )
+
+        self.assertEqual(ensure.CONFIGURED, outcome, message)
+        self.assertIn("Ultimate Python", (self.root / ensure.MODULE_RELATIVE).read_text(encoding="utf-8"))
+
+
+    def test_a_corrupt_tie_configuration_table_is_an_error(self) -> None:
+        """An unparsable table in one of two same-version configurations is reported, not read as no registration."""
+        self.product("IntelliJIdea", "2026.3", "Good Python")
+        corrupt = self.tmp / "products" / "IdeaIC2026.3" / "options"
+        corrupt.mkdir(parents=True)
+        (corrupt / "jdk.table.xml").write_text("<application><jdk>", encoding="utf-8")
+        self.bundle("IntelliJ IDEA", "2026.3")
+        self.bundle("IntelliJ IDEA CE", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None, roots=[self.tmp / "products"], bundle_roots=[self.tmp / "bundles"]
+        )
+
+        self.assertEqual(ensure.ERROR, outcome, message)
+        self.assertIn("cannot read", message)
+        self.assertFalse((self.root / ensure.MODULE_RELATIVE).exists())
+
+
+    def test_a_two_product_tie_with_no_registration_takes_the_missing_sdk_stop(self) -> None:
+        """Neither edition registers the interpreter, so it is the missing-SDK stop, not the tie refusal."""
+        self.product("IntelliJIdea", "2026.3", "Other Ultimate", Path("/usr/bin/python3"))
+        self.product("IdeaIC", "2026.3", "Other Community", Path("/usr/bin/python3"))
+        self.bundle("IntelliJ IDEA", "2026.3")
+        self.bundle("IntelliJ IDEA CE", "2026.3")
+
+        outcome, message = self.stage(
+            idea_config_dir=None, roots=[self.tmp / "products"], bundle_roots=[self.tmp / "bundles"]
+        )
+
+        self.assertEqual(ensure.NEEDS_ACTION, outcome, message)
+        self.assertIn("registers no Python SDK", message)
+        self.assertNotIn("both register", message)
+        self.assertFalse((self.root / ensure.MODULE_RELATIVE).exists())
 
 
 if __name__ == "__main__":

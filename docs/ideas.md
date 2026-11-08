@@ -48,15 +48,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   minutes and add a checksum-verified fallback source — keeping the pin and checksum `gitleaks` already has, and still
   failing once the window is exhausted. Origin: `captured: park-the-download-retry-idea`.
 
-- Let `ensure-idea-settings.py` select the IntelliJ configuration of the installed IDE version — parked; no change yet.
-  The script considers every `IntelliJIdea*`/`IdeaIC*` directory under the platform root and reports `NEEDS_ACTION` when
-  more than one registers the probe interpreter, so a contributor who upgrades IDEA keeps the previous version's
-  configuration beside the new one and every `new-worktree.sh` run reports `Tree NOT ready` until the stale directory is
-  moved away or `--idea-config-dir` is passed. The remedy today is host cleanup. A fix resolves the installed IDE's
-  version (the app bundle's `CFBundleShortVersionString` on macOS), prefers the configuration directory whose version
-  matches, and reports the choice instead of refusing; it owes a control for the upgraded-IDE layout and a `MODIFIED`
-  delta on the ide-config capability.
-
 ## 2026-11-07
 
 - Move the OpenCode definition-inventory probe from the build workflow's step into `check` — parked; no change yet. The

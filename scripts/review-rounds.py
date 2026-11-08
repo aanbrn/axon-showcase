@@ -102,20 +102,65 @@ PRE_CANONICAL_MAP: Dict[str, str] = dict(
 
 DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 
+# The width of the six-field round row the retirement introduced, which carries the loop's outcome and no session. The
+# same number of fields is the pre-fields form of a row dated before 2026-10-18, which likewise carries no session. Only a
+# row this wide takes the register join.
+RETIRED_ROW_FIELDS = 6
+
+# The register's field positions, for its last widest form.
+REGISTER_AGENT = 3
+REGISTER_RETURNED = 8
+REGISTER_OUTCOME = 12
+REGISTER_ROUND = 14
+REGISTER_EVENT_ROW_FIELDS = 15
+
+
+def register_sessions(path: Path) -> Dict[Tuple[str, str], str]:
+    """The session each `(unit, round)` resolves to, from the registers' quick reviewer `report` rows.
+
+    The register is read permissively: a row of either width is skipped when it carries no round, and a round with
+    several attempts resolves through its `report` row rather than a stalled one. A unit with no register yields no
+    entries, so the echo never requires one.
+    """
+    files = sorted(path.glob("*/sessions.tsv")) if path.is_dir() else [path.parent / "sessions.tsv"]
+    sessions: Dict[Tuple[str, str], str] = {}
+    for register in files:
+        if not register.is_file():
+            continue
+        for line in register.read_text(encoding="utf-8").splitlines():
+            if not line.strip() or line.startswith("#"):
+                continue
+            fields = line.split("\t")
+            if len(fields) < REGISTER_EVENT_ROW_FIELDS or fields[REGISTER_AGENT] != "review-quick":
+                continue
+            round_text = fields[REGISTER_ROUND]
+            returned = fields[REGISTER_RETURNED]
+            if fields[REGISTER_OUTCOME] != "report" or not round_text.isdigit() or returned in ("", "-"):
+                continue
+            sessions[(fields[1], round_text)] = returned
+    return sessions
+
 
 def read_rows(path: Path) -> List[List[str]]:
     """The records' data rows as tab-separated field lists, comment and blank lines dropped.
 
     `path` is the directory holding the per-unit records, read in unit order so a unit's rows keep their recorded order;
-    a single file is still read when one is named.
+    a single file is still read when one is named. A row of the retired six-field form gains the session the unit's
+    register reports for its round, and keeps its own fields when the register has none.
     """
     files = sorted(path.glob("*/rounds.tsv")) if path.is_dir() else [path]
+    sessions = register_sessions(path)
     rows: List[List[str]] = []
     for record in files:
         for line in record.read_text(encoding="utf-8").splitlines():
             if not line.strip() or line.startswith("#"):
                 continue
-            rows.append(line.split("\t"))
+            fields = line.split("\t")
+            if len(fields) == RETIRED_ROW_FIELDS:
+                session = sessions.get((fields[1], fields[2]))
+                if session is not None:
+                    fields = fields + [session]
+            rows.append(fields)
     return rows
 
 

@@ -25,6 +25,29 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
+## 2026-11-08
+
+- Let the pre-commit guard admit a follow-up's edit of another unit's closed record — parked; no change yet. The guard's
+  requirement specifies the branch/path comparison for a staged record, so a follow-up correcting a merged unit's record
+  is refused and must commit with `--no-verify`, while the build's `--workspace-records` accepts the same edit and CI
+  stays green. This is a contract limitation rather than an implementation slip: the change amends the requirement —
+  scoping the comparison to the record of the unit the commit's claim or branch assigns while keeping the ownership
+  protection for the committing unit's own record — and owes a spec delta. Origin:
+  `captured: link-generalization-decision-records`.
+
+- Retry a release-asset download across the upstream outage window — parked; no change yet. The `Install actionlint` and
+  `Scan the source for secrets` steps each retry their release-asset download three times with a five-second pause, so a
+  failure that outlasts that window fails `build` for a reason unrelated to the pull request: on 2026-11-08 six attempts
+  failed on the actionlint install and three on the gitleaks scan between 08:53Z and 09:23Z (about half an hour), and
+  the run took ten attempts before the gate passed. The actionlint install's log shows a 92-byte body that is not a gzip
+  stream, the caller's own `curl` of both assets returned `504` with the same 92-byte body and intermittently `200`, and
+  `githubstatus.com` read "All Systems Operational" for that window — its 10:36–12:32Z incident for
+  unauthenticated-request timeouts postdates the failures and corroborates the premise. `gitleaks` is pinned to 8.30.1
+  and checksum-verified, while `actionlint` installs the installer script's `latest` default with no checksum, so the
+  change must first pin `actionlint`'s version and add a checksum check, then widen the window with backoff across a few
+  minutes and add a checksum-verified fallback source — keeping the pin and checksum `gitleaks` already has, and still
+  failing once the window is exhausted. Origin: `captured: park-the-download-retry-idea`.
+
 ## 2026-11-07
 
 - Move the OpenCode definition-inventory probe from the build workflow's step into `check` — parked; no change yet. The
@@ -37,31 +60,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   differently, which is unverified. Building it owes a `MODIFIED` delta on `showcase/quality/merge-governance` — its
   pull-request gate requirement puts this verification in `build` — a known-bad unregistered definition as the control,
   and the acquisition decision.
-
-- Gate the review hand-over's section with a `commit-hygiene` mode — parked; no change yet. The quick-review preflight
-  requires each invocation's hand-over section at `docs/units/<unit>/review-handover.md` before the caller waits, but
-  four records across four units invoked the reviewer with no section for that round — the last over five consecutive
-  rounds (`surface-projector-backlog#3`) — while the obligation is already stated in `review-gate` §2, the
-  `agent-skills` stalled-reviewer scenario, and `review-quick.md`'s input contract. A proposed mode,
-  `commit-hygiene.py --handover <unit>:<round>`, would fail unless the file carries a `## Round <N>` heading and would
-  be named in `review-gate` §2 step 1; it establishes presence only, not completeness or the invocation's ordering, so
-  its value depends on the normal route running it before delegation. Owes a `MODIFIED` delta on
-  `showcase/quality/commit-hygiene` and a control.
-
-- One continuous unit-scoped history of typed review and consultation events — parked; no change yet.
-  `track-agent-session-continuity` records the deep reviewer's and the unit-bound advisor's invocations in
-  `docs/units/<unit>/sessions.tsv`, while only the quick reviewer has a round sequence (`rounds.tsv`,
-  `findings/round-<N>.md`). The asymmetry is semantic rather than a ranking: a quick round is a convergence step, a deep
-  pass is a budgeted pass whose finding statuses already have one authoritative home on the change's review task, and a
-  consultation gates nothing. The target shape is one continuous event spine — a unit-wide event number, the agent, the
-  scope and opinion, the session identity and outcome, and a numbered result reference — with each agent keeping its own
-  report contract, so "stored the same way" means one retrieval pattern rather than identical reports. The gates stay
-  typed projections of that spine: `--expect-clean` reads the latest quick round, the routing floor's repeated-class
-  signal and the digest read quick rounds, and the deep-review budget counts full passes; a consultation still creates
-  no gate. Historical interleaving is not established, so a later change takes an explicit forward boundary and
-  preserves the old round identifiers rather than reconstructing a chronology. Revisit when, after this unit merges, the
-  first subsequent unit has recorded both a quick review and a deep pass or consultation, so the mixed history can be
-  examined before either schema is extended again.
 
 ## 2026-11-06
 

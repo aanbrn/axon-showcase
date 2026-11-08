@@ -15,6 +15,7 @@ contributor's action or could not run. Stdlib only.
 """
 
 import argparse
+import plistlib
 import re
 import shutil
 import subprocess
@@ -76,6 +77,11 @@ IDE_CONFIG_ROOTS = {
     "linux": [".config/JetBrains"],
     "win32": ["AppData/Roaming/JetBrains"],
 }
+IDE_BUNDLE_NAME = "IntelliJ IDEA"
+IDE_COMMUNITY_MARK = "CE"
+IDE_PLIST_RELATIVE = "Contents/Info.plist"
+IDE_VERSION_KEY = "CFBundleShortVersionString"
+IDE_CONFIG_HINT = "pass --idea-config-dir if IntelliJ uses a custom idea.config.path"
 
 INTERPRETER_PROGRAM = (
     "import sys; print(sys.executable); print('%d.%d.%d' % sys.version_info[:3]); "
@@ -208,6 +214,71 @@ def default_roots() -> List[Path]:
     """Return this platform's IntelliJ configuration roots."""
     home = Path.home()
     return [home / relative for relative in IDE_CONFIG_ROOTS.get(sys.platform, [])]
+
+
+def default_bundle_roots() -> List[Path]:
+    """Return this platform's IntelliJ app-bundle roots; only macOS installs one the scan can read."""
+    if sys.platform != "darwin":
+        return []
+    return [Path("/Applications"), Path.home() / "Applications"]
+
+
+def product_prefix(bundle: Path) -> str:
+    """Return the configuration-directory prefix an app bundle's product uses."""
+    return "IdeaIC" if IDE_COMMUNITY_MARK in bundle.name else "IntelliJIdea"
+
+
+def bundle_version(bundle: Path) -> Optional[Tuple[int, ...]]:
+    """Return an app bundle's short version, or None when its plist is unreadable or carries none."""
+    plist = bundle / IDE_PLIST_RELATIVE
+    try:
+        with plist.open("rb") as handle:
+            data = plistlib.load(handle)
+    except (OSError, plistlib.InvalidFileException, ValueError):
+        return None
+    value = data.get(IDE_VERSION_KEY)
+    if not isinstance(value, str):
+        return None
+    parsed = version_tuple(value)
+    return parsed or None
+
+
+def launcher_bundle(launcher: Path) -> Optional[Path]:
+    """Return the app bundle a launcher path belongs to, or None when it is not inside one."""
+    for parent in launcher.parents:
+        if parent.suffix == ".app":
+            return parent
+    return None
+
+
+def installed_bundles(roots: Sequence[Path]) -> List[Tuple[str, Tuple[int, ...], Path]]:
+    """Return (prefix, version, bundle) for each readable IntelliJ app bundle, newest first.
+
+    A bundle whose plist is missing, malformed, or carries no short version is skipped, so one unreadable install does
+    not hide the others.
+    """
+    found: List[Tuple[str, Tuple[int, ...], Path]] = []
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for child in sorted(root.iterdir()):
+            if not child.is_dir() or not child.name.startswith(IDE_BUNDLE_NAME) or child.suffix != ".app":
+                continue
+            version = bundle_version(child)
+            if version is None:
+                continue
+            found.append((product_prefix(child), version, child))
+    return sorted(found, key=lambda pair: (pair[1], pair[0]), reverse=True)
+
+
+def configuration_for(pair: Tuple[str, Tuple[int, ...], Path], candidates: Sequence[Path]) -> Optional[Path]:
+    """Return the configuration directory an installed pair names, or None when it has none."""
+    prefix, version, _ = pair
+    wanted = prefix + ".".join(str(part) for part in version[:2])
+    for candidate in candidates:
+        if candidate.name == wanted:
+            return candidate
+    return None
 
 
 def expand_home(value: str) -> Path:
@@ -361,11 +432,102 @@ def ensure_module_registration() -> bool:
     return write_if_changed(path, render(tree))
 
 
+def target_configuration(
+    candidates: Sequence[Path],
+    platform: str,
+    bundle_roots: Optional[Sequence[Path]],
+    idea_bundle: Optional[Path],
+    interpreter: Optional[Path] = None,
+    in_environment: bool = False,
+) -> Tuple[Optional[Tuple[str, Tuple[int, ...], Path]], Optional[Tuple[str, str]]]:
+    """Identify the configuration an installed IntelliJ bundle names, or report why it cannot.
+
+    Returns `(pair, None)` when the pair is identified, `(None, (outcome, message))` when identification stops the
+    stage, and `(None, None)` when no bundle resolves — the caller then follows the configuration search.
+    """
+    if platform != "darwin":
+        return None, None
+    if idea_bundle is not None:
+        bundle = idea_bundle if idea_bundle.suffix == ".app" else launcher_bundle(idea_bundle)
+        version = bundle_version(bundle) if bundle is not None else None
+        if bundle is not None and version is not None:
+            return _resolved_pair((product_prefix(bundle), version, bundle), candidates)
+        # A launcher outside an app bundle, or a bundle whose plist is unreadable, is skipped: the installed-bundle
+        # scan below still may resolve one, and the configuration search decides when none does.
+    roots = list(bundle_roots) if bundle_roots is not None else default_bundle_roots()
+    pairs = installed_bundles(roots)
+    if not pairs:
+        return None, None
+    newest = [pair for pair in pairs if pair[1] == pairs[0][1]]
+    if len({pair[0] for pair in newest}) > 1:
+        # Two editions at one version is a tie only when both configurations register the interpreter; one of them
+        # registering is the answer, and neither is the missing-SDK stop below.
+        try:
+            registering = [
+                pair for pair in newest if _registers_interpreter(pair, candidates, interpreter, in_environment)
+            ]
+        except MergeError as error:
+            return None, (ERROR, str(error))
+        if len(registering) == 1:
+            return _resolved_pair(registering[0], candidates)
+        if len(registering) > 1:
+            listed = "\n".join(
+                "    " + pair[0] + ".".join(str(part) for part in pair[1][:2]) + " (" + str(pair[2]) + ")"
+                for pair in newest
+            )
+            return None, (
+                NEEDS_ACTION,
+                "IntelliJ IDEA Ultimate and Community are both installed at one version and both register this tree's\n"
+                "interpreter, so which configuration to read is the contributor's choice.\n"
+                "\n"
+                f"{listed}\n"
+                "\n"
+                "  " + IDE_CONFIG_HINT + ".",
+            )
+    return _resolved_pair(pairs[0], candidates)
+
+
+def _registers_interpreter(
+    pair: Tuple[str, Tuple[int, ...], Path],
+    candidates: Sequence[Path],
+    interpreter: Path,
+    in_environment: bool,
+) -> bool:
+    """Report whether the pair's configuration registers the interpreter; a corrupt table raises."""
+    configuration = configuration_for(pair, candidates)
+    if configuration is None:
+        return False
+    return any(
+        is_the_same_install(home, interpreter, in_environment) for _, home in sdk_entries(configuration)
+    )
+
+
+def _resolved_pair(
+    pair: Tuple[str, Tuple[int, ...], Path], candidates: Sequence[Path]
+) -> Tuple[Optional[Tuple[str, Tuple[int, ...], Path]], Optional[Tuple[str, str]]]:
+    """Return the pair when its configuration is readable, or the stop that names the missing one."""
+    configuration = configuration_for(pair, candidates)
+    if configuration is None:
+        return None, (
+            NEEDS_ACTION,
+            "no IntelliJ configuration exists at the default location for the installed IDE yet.\n"
+            "\n"
+            f"  {pair[2]} names {pair[0]}.\n"
+            "  Open IntelliJ once so it writes that configuration, then re-run.\n"
+            "\n"
+            "  " + IDE_CONFIG_HINT + ".",
+        )
+    return pair, None
+
+
 def python_stage(
     project_dir: Path,
     idea_config_dir: Optional[Path] = None,
     roots: Optional[Sequence[Path]] = None,
     probe: Optional[Callable[[Path], Tuple[Path, str, bool]]] = None,
+    platform: Optional[str] = None,
+    bundle_roots: Optional[Sequence[Path]] = None,
+    idea_bundle: Optional[Path] = None,
 ) -> Tuple[str, str]:
     """Reconcile the Python analysis module and report one outcome with its message."""
     probe = probe or probe_interpreter
@@ -401,60 +563,121 @@ def python_stage(
             f"    {interpreter} ({version})"
         )
 
-    matches: List[Tuple[Path, str]] = []
-    registered: List[Tuple[Path, str, Path]] = []
-    for config_dir in readable:
+    platform_name = platform or sys.platform
+    pair: Optional[Tuple[str, Tuple[int, ...], Path]] = None
+    stop: Optional[Tuple[str, str]] = None
+    if idea_config_dir is None:
+        pair, stop = target_configuration(
+            readable, platform_name, bundle_roots, idea_bundle, interpreter, in_environment
+        )
+        if stop is not None:
+            return stop
+    identified = configuration_for(pair, readable) if pair is not None else None
+    bundle_note = ""
+    if identified is not None:
         try:
-            entries = sdk_entries(config_dir)
+            entries = sdk_entries(identified)
         except MergeError as error:
             return ERROR, str(error)
-        registered.extend((config_dir, name, home) for name, home in entries)
-        for name, home in entries:
-            if is_the_same_install(home, interpreter, in_environment):
-                matches.append((config_dir, name))
-    if not matches:
-        if registered:
-            inventory = "\n".join(
-                f"    {config_dir.name}:\n      {name} -> {home}" for config_dir, name, home in registered
+        selected = [name for name, home in entries if is_the_same_install(home, interpreter, in_environment)]
+        if not selected:
+            inventory = "\n".join(f"      {name} -> {home}" for name, home in entries) or "      none"
+            return NEEDS_ACTION, (
+                "the installed IDE's configuration registers no Python SDK for this tree's interpreter.\n"
+                "\n"
+                f"  {identified}\n"
+                f"    {interpreter} ({version})\n"
+                "\n"
+                "  Register it there in File -> Project Structure -> SDKs -> Add SDK -> Python SDK,\n"
+                "  save the IDE settings, and re-run ./scripts/setup-idea.sh.\n"
+                "\n"
+                "  That configuration's Python SDKs:\n"
+                f"{inventory}\n"
+                "\n"
+                "  " + IDE_CONFIG_HINT + "."
             )
-        else:
-            inventory = "    none"
-        searched = "\n".join(f"    {candidate}" for candidate in readable)
-        return NEEDS_ACTION, (
-            "this tree's interpreter is not registered as a Python SDK.\n"
-            "\n"
-            "  Register it in IntelliJ:\n"
-            f"    {interpreter} ({version})\n"
-            "    File -> Project Structure -> SDKs -> Add SDK -> Python SDK\n"
-            "    Save the IDE settings, then re-run ./scripts/setup-idea.sh.\n"
-            "\n"
-            "  Or run this tree on an interpreter that is already registered:\n"
-            "    If pyenv supplies one: pyenv local <installed-version>\n"
-            "    Then re-run ./scripts/setup-idea.sh.\n"
-            "\n"
-            "  Registered Python SDKs:\n"
-            f"{inventory}\n"
-            "\n"
-            "  Searched configurations:\n"
-            f"{searched}"
+        if len(selected) > 1:
+            listed = "\n".join(f"      {name}" for name in selected)
+            return NEEDS_ACTION, (
+                "several Python SDK entries match this tree's interpreter in the installed IDE's configuration.\n"
+                "\n"
+                f"  {identified}\n"
+                f"    {interpreter} ({version})\n"
+                "\n"
+                "  Keep one: delete all but one in File -> Project Structure -> SDKs, then re-run\n"
+                "  ./scripts/setup-idea.sh.\n"
+                "\n"
+                "  Matching SDKs:\n"
+                f"{listed}"
+            )
+        config_dir, sdk_name = identified, selected[0]
+        prefix, pair_version, bundle = pair
+        detail_prefix = (
+            "selected " + identified.name + " for the installed " + bundle.name
+            + " (" + prefix + " " + ".".join(str(part) for part in pair_version) + ")"
         )
-    if len(matches) > 1:
-        listed = "\n".join(f"    {name} in {config_dir}" for config_dir, name in matches)
-        return NEEDS_ACTION, (
-            "several Python SDK entries match this tree's interpreter.\n"
-            "\n"
-            f"  {interpreter} ({version})\n"
-            "\n"
-            "  Keep one match:\n"
-            "    Several configurations qualify: select one with --idea-config-dir <path>.\n"
-            "    Several entries qualify inside one configuration: delete all but one in\n"
-            "    File -> Project Structure -> SDKs, then re-run ./scripts/setup-idea.sh.\n"
-            "\n"
-            "  Matching SDKs:\n"
-            f"{listed}"
+    else:
+        bundle_note = (
+            "\n\n  No installed IntelliJ IDEA bundle resolved"
+            + (" on this platform" if platform_name != "darwin" else "")
+            + ", so the configuration search decided."
         )
+        matches: List[Tuple[Path, str]] = []
+        registered: List[Tuple[Path, str, Path]] = []
+        for config_dir in readable:
+            try:
+                entries = sdk_entries(config_dir)
+            except MergeError as error:
+                return ERROR, str(error)
+            registered.extend((config_dir, name, home) for name, home in entries)
+            for name, home in entries:
+                if is_the_same_install(home, interpreter, in_environment):
+                    matches.append((config_dir, name))
+        if not matches:
+            if registered:
+                inventory = "\n".join(
+                    f"    {config_dir.name}:\n      {name} -> {home}" for config_dir, name, home in registered
+                )
+            else:
+                inventory = "    none"
+            searched = "\n".join(f"    {candidate}" for candidate in readable)
+            return NEEDS_ACTION, (
+                "this tree's interpreter is not registered as a Python SDK.\n"
+                "\n"
+                "  Register it in IntelliJ:\n"
+                f"    {interpreter} ({version})\n"
+                "    File -> Project Structure -> SDKs -> Add SDK -> Python SDK\n"
+                "    Save the IDE settings, then re-run ./scripts/setup-idea.sh.\n"
+                "\n"
+                "  Or run this tree on an interpreter that is already registered:\n"
+                "    If pyenv supplies one: pyenv local <installed-version>\n"
+                "    Then re-run ./scripts/setup-idea.sh.\n"
+                "\n"
+                "  Registered Python SDKs:\n"
+                f"{inventory}\n"
+                "\n"
+                "  Searched configurations:\n"
+                f"{searched}"
+                + bundle_note
+            )
+        if len(matches) > 1:
+            listed = "\n".join(f"    {name} in {config_dir}" for config_dir, name in matches)
+            return NEEDS_ACTION, (
+                "several Python SDK entries match this tree's interpreter.\n"
+                "\n"
+                f"  {interpreter} ({version})\n"
+                "\n"
+                "  Keep one match:\n"
+                "    Several configurations qualify: select one with --idea-config-dir <path>.\n"
+                "    Several entries qualify inside one configuration: delete all but one in\n"
+                "    File -> Project Structure -> SDKs, then re-run ./scripts/setup-idea.sh.\n"
+                "\n"
+                "  Matching SDKs:\n"
+                f"{listed}"
+                + bundle_note
+            )
 
-    config_dir, sdk_name = matches[0]
+        config_dir, sdk_name = matches[0]
     try:
         written = ensure_module_file(sdk_name)
         registered = ensure_module_registration()
@@ -462,6 +685,10 @@ def python_stage(
         return ERROR, f"cannot reconcile the Python module: {error}"
     changes = [what for what, happened in (("module", written), ("registration", registered)) if happened]
     detail = "wrote " + " and ".join(changes) if changes else "already in place"
+    if identified is not None:
+        detail = detail_prefix + "; " + detail
+    else:
+        detail = detail + bundle_note.replace("\n\n  ", "; ")
     return CONFIGURED, f"{detail}; interpreter {interpreter} ({version}), SDK {sdk_name!r} from {config_dir}"
 
 
@@ -476,6 +703,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         default=None,
         help="the IntelliJ configuration directory to read",
     )
+    parser.add_argument(
+        "--idea-bundle",
+        type=Path,
+        default=None,
+        help="the IntelliJ IDEA app bundle, or its launcher, whose configuration to prefer",
+    )
     arguments = parser.parse_args(argv)
 
     status = 0
@@ -487,7 +720,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"Settings: {ERROR} — {error}", file=sys.stderr)
         status = 1
 
-    outcome, message = python_stage(REPO_ROOT, arguments.idea_config_dir)
+    outcome, message = python_stage(REPO_ROOT, arguments.idea_config_dir, idea_bundle=arguments.idea_bundle)
     print(f"Python: {outcome} — {message}")
     if outcome in (NEEDS_ACTION, ERROR):
         status = 1

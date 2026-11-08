@@ -14,9 +14,10 @@ the authorization stops in `AGENTS.md` govern, and the owner's approval is the p
 
 Source: `AGENTS.md` "Workflow: The review gate".
 
-Read `docs/contracts/process-bindings.md` before using the review ledger it declares, and read the record format's owner
-— the `showcase/quality/commit-hygiene` requirement "The review-round record format is stated once" — before relying on
-its format.
+Read `docs/contracts/process-bindings.md` before using the records it declares, and read each record's format owner —
+the `showcase/quality/commit-hygiene` requirement "The review-round record format is stated once" for the review-round
+record, "The agent-session record is stated once" for the register, and `/review-thorough` for the unit's deep-review
+record — before relying on one's format.
 
 **Trigger** — you have finished a change's proposal (planning artifacts) or its implementation, or any non-OpenSpec unit
 (a docs refresh, a standalone fix, a dependency bump), and you are about to commit, push, open a PR, archive, or merge.
@@ -110,7 +111,15 @@ its format.
      produced one of the recovery cases the rule names, recording the concrete reason and both identifiers — the failed
      session and its replacement's — before you replace; and bound each invocation with a deadline your policy supplies,
      recording the invocation's hand-over **before** you wait on it, at `docs/units/<unit>/review-handover.md` — one
-     section per quick-review invocation appended to the unit's file.
+     section per quick-review invocation appended to the unit's file. Write that section's heading as `## Round <N>`,
+     with an optional descriptive suffix, then run `python3 scripts/commit-hygiene.py --handover <unit>:<round>`
+     immediately before the delegation; its failure stops the call. Where the session fields are recorded follows the
+     unit's form: for a unit whose first round is dated on or after `2026-11-09`, resolve the quick reviewer's session
+     from the unit's agent-session register and append its row when the round's outcome is known, while the round's
+     outcome goes to the review-round record alone; for a unit whose first round predates that date, the ledger row
+     carries the session fields, as before. A round stalled and replaced records each invocation's register row at its
+     own deadline, all sharing the round. The rows' fields and both records' continuity are
+     `showcase/quality/commit-hygiene`'s, not restated here.
    - A hand-over recorded before that location existed is read where it was recorded, in the change directory or its
      archive.
    - The unit's missing file is not evidence that no earlier invocation happened.
@@ -137,9 +146,11 @@ its format.
      its statement that none covers it), each record's cited evidence, and the `lesson-capture` definition where its
      gate is checked. captured: override-opencode-plugin-transitives
 2. When the report arrives — before applying a fix:
-   - Append each round's row with the session fields the review ledger declares — the identifier, the transition, and a
-     replacement's reason — supplying the identifier the invocation returned, never an invented one; an omission fails
-     `verifyReviewSessionContinuity`. captured: track-review-session-continuity
+   - Append each round's row with the fields its form carries — for a post-retirement unit the ledger row takes the
+     loop's outcome fields, and the session fields (the identifier, the transition, and a replacement's reason) go on
+     the register's quick row; for a pre-retirement one the ledger row takes both — supplying the identifier the
+     invocation returned, never an invented one; an omission fails `verifyReviewSessionContinuity` or the register's
+     `--agent-sessions`. captured: track-review-session-continuity
    - **Write the round's finding instances beside its row**, at `docs/units/<unit>/findings/round-<N>.md`: one entry per
      finding, `- [<class>] <location> — <claim>`, in the reviewer's order, or `- none` when the round raised none.
      - The entries' classes must equal the row's `classes raised` field, since `verifyFindingInstances` fails a
@@ -192,8 +203,10 @@ final edit). captured: decide-against-pre-review
 Route the deep review, once, from the completed implementation, the diff, the applicable artifacts, and the existing
 review evidence: derive the floor with `python3 scripts/review-routing.py`, passing `--unit <name>` — the name the
 unit's ledger rows record, defaulting to `--change` — and `--change <name>` when the unit has a change dir; decide at or
-above it (`REQUIRED`, `RECOMMENDED`, or `NOT_NEEDED`), and record the outcome and its signals on the change's review
-task in `tasks.md` (or on the pull-request checklist line for a unit with no change dir).
+above it (`REQUIRED`, `RECOMMENDED`, or `NOT_NEEDED`), and record the outcome and its signals in the unit's deep-review
+record, `docs/units/<unit>/deep-review.md` — including a `NOT_NEEDED` outcome — while the change's review task in
+`tasks.md`, or the pull-request checklist line for a unit with no change dir, carries the planned obligation and a
+pointer to that record.
 
 - A unit with no change dir passes `--unit <name>` and omits `--change`; a change unit passes `--unit` as well when its
   ledger rows are recorded under another name (a continued cloud branch). Naming a directory that does not exist fails
@@ -204,16 +217,18 @@ task in `tasks.md` (or on the pull-request checklist line for a unit with no cha
 - A `REQUIRED` outcome runs before completion; a `NOT_NEEDED` one creates no deep-review session, prepares no hand-over,
   and spends no expensive-model invocation.
 - **A `RECOMMENDED` outcome runs only on the owner's explicit run-or-skip decision** — when it is absent, ask the owner
-  and end the turn, and record the answer on the review task before proceeding. captured: hand-over-unfinished-work
+  and end the turn, and record the answer in the unit's deep-review record before proceeding. captured:
+  hand-over-unfinished-work
 - A missing, malformed, or failed derivation is `REQUIRED` — never a silent skip.
 - The outcomes and the procedure are specified in `showcase/quality/agent-skills` and `/review-thorough`.
 
 ## 4. Deep review
 
 When the routing outcome selects it, run the pass through `/review-thorough`: its procedure, session, hand-over, pass
-budget, and finding statuses are that command's and the reviewer definition's, and the routed pass's status is recorded
-on the change's review task. The deep reviewer verifies the current state independently on every pass — session
-continuity is not proof that a fix is correct.
+budget, the unit's deep-review record, and its format are that command's and the reviewer definition's, and the routed
+pass's status is recorded in the unit's deep-review record. The change's review task or pull-request checklist line
+points at the record rather than carrying the statuses. The deep reviewer verifies the current state independently on
+every pass — session continuity is not proof that a fix is correct.
 
 ## 5. Manual review pass
 
@@ -349,6 +364,7 @@ were compared. Staging is not committing: the approval stop is unchanged.
 
 **Completion criteria** — the quick review reports no new observations (the loop is clean, and the closing round is
 recorded with no class), the pre-write pass and claims table are recorded as required, the deep-review routing decision
-is recorded with its outcome, any `REQUIRED` deep review has completed, and the manual review pass has been requested. A
-clean closing round, the recorded pre-write pass, any required deep review, and — at the implementation stage — the
-process-defect record mean _ask the user now_; none of them is the owner's approval.
+is recorded in the unit's deep-review record with its outcome, any `REQUIRED` deep review has completed and its result
+is recorded there, and the manual review pass has been requested. A clean closing round, the recorded pre-write pass,
+any required deep review, and — at the implementation stage — the process-defect record mean _ask the user now_; none of
+them is the owner's approval.

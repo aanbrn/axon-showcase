@@ -1,0 +1,9 @@
+2026-11-08	unify-review-event-history	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	proposal-readiness	primary	1	-	ses_e46e7bee6ffeTd3OP71pqnjY7N	created	-	advisor-proposal-1	report
+2026-11-08	unify-review-event-history	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	proposal-readiness	primary	2	ses_e46e7bee6ffeTd3OP71pqnjY7N	ses_e46e7bee6ffeTd3OP71pqnjY7N	continued	-	advisor-proposal-2	report
+2026-11-08	unify-review-event-history	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	final-readiness	primary	1	-	ses_e4694d5e0ffeA4ducQ8B9n4iZ7	created	-	advisor-final-1	report
+2026-11-08	unify-review-event-history	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	final-readiness	primary	2	ses_e4694d5e0ffeA4ducQ8B9n4iZ7	ses_e4694d5e0ffeA4ducQ8B9n4iZ7	continued	-	advisor-final-2	report
+2026-11-08	unify-review-event-history	ses_e4add21daffe0vW0OISMmtQS3i	review-thorough	unify-review-event-history	-	1	-	ses_e4657a696ffeegP2sczNmpFZjZ	created	-	deep-1	report
+2026-11-08	unify-review-event-history	ses_e4add21daffe0vW0OISMmtQS3i	review-thorough	unify-review-event-history	-	2	ses_e4657a696ffeegP2sczNmpFZjZ	ses_e4657a696ffeegP2sczNmpFZjZ	continued	-	deep-2	report
+2026-11-08	unify-review-event-history	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	impl-readiness	primary	1	-	ses_e463be878ffeLUlqyS3wxjeiB7	created	-	advisor-impl-1	report
+2026-11-08	unify-review-event-history	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	impl-readiness	primary	2	ses_e463be878ffeLUlqyS3wxjeiB7	ses_e463be878ffeLUlqyS3wxjeiB7	continued	-	advisor-impl-2	report
+2026-11-08	unify-review-event-history	ses_e4add21daffe0vW0OISMmtQS3i	technical-advisor	impl-readiness	primary	3	ses_e463be878ffeLUlqyS3wxjeiB7	ses_e463be878ffeLUlqyS3wxjeiB7	continued	-	advisor-impl-3	report

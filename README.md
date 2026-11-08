@@ -333,7 +333,10 @@ new) precedes your **manual review**; the review gate decides whether a deep `re
 You review the proposal before implementation and the finished work before delivery; the lifecycle's named-direct-edit
 route skips the proposal review and keeps the implementation one. Before your manual review the agent refreshes the
 branch against `origin/main` so you read the diff against current `main`, and stages the unit's new files so they appear
-in your IDE's Changes panel.
+in your IDE's Changes panel. What the reviews produce stays in the unit's own record as one event sequence:
+`sessions.tsv` orders every stateful review invocation, `rounds.tsv` and `findings/` beside it keep the quick loop's
+outcome and what each round found, and `deep-review.md` holds the deep review's routing decision, its passes, and its
+findings' statuses.
 
 The unit is intended to ship in one **PR**; a draft PR can share the plan after the proposal review. Implementation
 approval alone does not start delivery — the owner must also request it. During **Deliver**, the agent publishes the
@@ -464,13 +467,18 @@ whether it consumed included usage or additional credits. See
   later, from that session or a new one: the named unit is resolved across the repository's worktrees, and a bare
   invocation finds the paused units itself, continuing the only one and offering you the choice when there are several.
   Either way it verifies the recorded and live state, hands the writer role over, and restores whatever the unit was
-  waiting on. Continuing the same main session keeps the unit's recorded reviewer and consultation sessions; a new
-  session records each one's `parent-session-changed` replacement and restarts it from the recorded hand-over.
+  waiting on; the session's title becomes the unit's name, as it does when `/begin-unit` establishes a unit. Continuing
+  the same main session keeps the unit's recorded reviewer and consultation sessions; a new session records each one's
+  `parent-session-changed` replacement and restarts it from the recorded hand-over.
 - **Code review**: every unit is auto-reviewed after its proposal and after its implementation; the quick-review loop is
-  a bounded screen that repeats until it finds nothing new. After implementation one routing decision selects a deep
-  `review-thorough` pass — required, recommended for an explicit resolution, or not needed — and a manual
-  `/review-thorough` run is always available. Each deep pass and unit-bound consultation is recorded in the unit's
-  agent-session register and reused across passes, with its hand-over written before the call.
+  a bounded screen that repeats until it finds nothing new, and each delegation is preceded by a presence check of the
+  round's hand-over section (`commit-hygiene.py --handover <unit>:<round>`), which stops the call when the section is
+  missing. After implementation one routing decision selects a deep `review-thorough` pass — required, recommended for
+  an explicit resolution, or not needed — and a manual `/review-thorough` run is always available. Each deep pass and
+  unit-bound consultation is recorded in the unit's agent-session register and reused across passes, with its hand-over
+  written before the call; that register is the unit's review-event spine, the review ledger keeps the quick loop's
+  outcome, and the unit's `deep-review.md` holds the deep decision, its passes, and its findings' statuses. The quick
+  gates still read the ledger as before; the deep budget's full passes moved to the unit's record, and no gate widened.
 - **Recording, then generalizing**: every unit records the process defects it observes in
   `docs/units/<unit>/process-defects.md` as it works, and `/flag-process-defect` adds one you report only after the
   agent verifies the episode, rather than taking the report on trust; `/generalize-process-defects` later turns those
@@ -619,39 +627,39 @@ notices a change.
 
 ### Slash Commands
 
-| Command                       | What it does                                                                                                                                                                                      |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/opsx-propose`               | Scaffolds a new change: proposal, design, tasks, and spec delta                                                                                                                                   |
-| `/opsx-apply`                 | Implements the change's tasks                                                                                                                                                                     |
-| `/opsx-archive`               | Archives a completed change and syncs the main spec                                                                                                                                               |
-| `/opsx-sync`                  | Syncs a change's delta spec to the main spec — internal to `/opsx-archive`, not run standalone                                                                                                    |
-| `/opsx-update`                | Revises a change's planning artifacts                                                                                                                                                             |
-| `/opsx-explore`               | Explores an idea before proposing it                                                                                                                                                              |
-| `/setup-agent-tools`          | Sets up the GitHub MCP, and offers the optional connection to IntelliJ IDEA's built-in MCP server                                                                                                 |
-| `/reconnect-mcp`              | Reports every MCP server's status, or reconnects one named server or the whole failed set, verifying each reached `connected` — without restarting OpenCode                                       |
-| `/setup-idea`                 | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier + Python analysis)                                                                                         |
-| `/begin-unit`                 | Establishes a unit's workspace — the primary checkout or a prepared sibling worktree — and writes its record and claim before the first content edit                                              |
-| `/check-tooling`              | Checks whether this machine has the prerequisites (Java, Docker, Python, and the optional tools)                                                                                                  |
-| `/review-thorough`            | Deep risk-routed review of a change (the review gate's routing decision, or this explicit run)                                                                                                    |
-| `/pause-unit`                 | Records the current unit's `Resume checkpoint` and ends the turn: no commit, stash, push, or teardown                                                                                             |
-| `/resume-unit [unit]`         | Continues an unfinished unit — by name, or the only paused unit it finds, or a choice among several: verifies the available state, hands the writer role over, restores what it awaited           |
-| `/consult`                    | Asks the technical advisor for an independent recommendation on a question, the current objective, or the next step                                                                               |
-| `/audit-agents`               | Audits the project-owned agent tooling for drift, duplication, and the always-loaded instruction budget (pro-model auditor)                                                                       |
-| `/audit-specs`                | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                          |
-| `/audit-architecture`         | Audits the architecture for recorded-decision drift, unrecorded intent, and a deferral whose condition is due (pro-model auditor)                                                                 |
-| `/audit-readme`               | Audits the human-facing README for accuracy, design-intent fidelity, grammar, and human-visible-capability coverage (pro-model auditor)                                                           |
-| `/apply-audit-reductions`     | Applies an audit report's reduction candidates under the review gate, routing a content move to the change workflow                                                                               |
-| `/diagram`                    | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer, then visually reviews a Mermaid render with `vision`                                                                    |
-| `/generalize-process-defects` | Turns the accumulated process-defect records into rules and improvements, recording a decision per record                                                                                         |
-| `/flag-process-defect`        | Verifies a process defect the owner reports, and records it only when the episode evidence establishes it                                                                                         |
-| `/retrospective`              | Periodic retrospective that root-causes failures and proposes verified improvements                                                                                                               |
-| `/dependency-updates`         | Runs and summarizes the Gradle, web-UI, and build-logic pin dependency update reports                                                                                                             |
-| `/gradle-update`              | Updates the Gradle wrapper to the latest stable                                                                                                                                                   |
-| `/dependency-security-check`  | Runs the Snyk and web-UI npm dependency security scans                                                                                                                                            |
-| `/opsx-tool-update`           | Regenerates the OpenSpec command/skill files after an openspec CLI release                                                                                                                        |
-| `/ideas`                      | Manages `docs/ideas.md`: append a note, list the file, promote one entry (by name or `--top`), or clean up its oldest batch                                                                       |
-| `/seed-claims`                | Scans the unit's diff, and the saved draft body a unit with no change dir passes with `--include`, for claim shapes and hands the candidates to the pre-write pass's claims table                 |
-| `/sync-branch`                | Checks the current branch against `origin/main` and, on request, refreshes it by the rule `AGENTS.md` states — an open pull request's branch included — resolving a local conflict for both sides |
+| Command                       | What it does                                                                                                                                                                                                                             |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/opsx-propose`               | Scaffolds a new change: proposal, design, tasks, and spec delta                                                                                                                                                                          |
+| `/opsx-apply`                 | Implements the change's tasks                                                                                                                                                                                                            |
+| `/opsx-archive`               | Archives a completed change and syncs the main spec                                                                                                                                                                                      |
+| `/opsx-sync`                  | Syncs a change's delta spec to the main spec — internal to `/opsx-archive`, not run standalone                                                                                                                                           |
+| `/opsx-update`                | Revises a change's planning artifacts                                                                                                                                                                                                    |
+| `/opsx-explore`               | Explores an idea before proposing it                                                                                                                                                                                                     |
+| `/setup-agent-tools`          | Sets up the GitHub MCP, and offers the optional connection to IntelliJ IDEA's built-in MCP server                                                                                                                                        |
+| `/reconnect-mcp`              | Reports every MCP server's status, or reconnects one named server or the whole failed set, verifying each reached `connected` — without restarting OpenCode                                                                              |
+| `/setup-idea`                 | Sets up the project's IntelliJ configuration (settings + formatters incl. web Prettier + Python analysis)                                                                                                                                |
+| `/begin-unit`                 | Establishes a unit's workspace — the primary checkout or a prepared sibling worktree — writes its record and claim before the first content edit, and sets the session's title to the unit's name                                        |
+| `/check-tooling`              | Checks whether this machine has the prerequisites (Java, Docker, Python, and the optional tools)                                                                                                                                         |
+| `/review-thorough`            | Deep risk-routed review of a change (the review gate's routing decision, or this explicit run)                                                                                                                                           |
+| `/pause-unit`                 | Records the current unit's `Resume checkpoint` and ends the turn: no commit, stash, push, or teardown                                                                                                                                    |
+| `/resume-unit [unit]`         | Continues an unfinished unit — by name, or the only paused unit it finds, or a choice among several: verifies the available state, hands the writer role over, restores what it awaited, and sets the session's title to the unit's name |
+| `/consult`                    | Asks the technical advisor for an independent recommendation on a question, the current objective, or the next step                                                                                                                      |
+| `/audit-agents`               | Audits the project-owned agent tooling for drift, duplication, and the always-loaded instruction budget (pro-model auditor)                                                                                                              |
+| `/audit-specs`                | Audits the spec corpus for structure and consistency (pro-model auditor)                                                                                                                                                                 |
+| `/audit-architecture`         | Audits the architecture for recorded-decision drift, unrecorded intent, and a deferral whose condition is due (pro-model auditor)                                                                                                        |
+| `/audit-readme`               | Audits the human-facing README for accuracy, design-intent fidelity, grammar, and human-visible-capability coverage (pro-model auditor)                                                                                                  |
+| `/apply-audit-reductions`     | Applies an audit report's reduction candidates under the review gate, routing a content move to the change workflow                                                                                                                      |
+| `/diagram`                    | Draws or fixes an ASCII or Mermaid diagram with the pro-model diagrammer, then visually reviews a Mermaid render with `vision`                                                                                                           |
+| `/generalize-process-defects` | Turns the accumulated process-defect records into rules and improvements, recording a decision per record                                                                                                                                |
+| `/flag-process-defect`        | Verifies a process defect the owner reports, and records it only when the episode evidence establishes it                                                                                                                                |
+| `/retrospective`              | Periodic retrospective that root-causes failures and proposes verified improvements                                                                                                                                                      |
+| `/dependency-updates`         | Runs and summarizes the Gradle, web-UI, and build-logic pin dependency update reports                                                                                                                                                    |
+| `/gradle-update`              | Updates the Gradle wrapper to the latest stable                                                                                                                                                                                          |
+| `/dependency-security-check`  | Runs the Snyk and web-UI npm dependency security scans                                                                                                                                                                                   |
+| `/opsx-tool-update`           | Regenerates the OpenSpec command/skill files after an openspec CLI release                                                                                                                                                               |
+| `/ideas`                      | Manages `docs/ideas.md`: append a note, list the file, promote one entry (by name or `--top`), or clean up its oldest batch                                                                                                              |
+| `/seed-claims`                | Scans the unit's diff, and the saved draft body a unit with no change dir passes with `--include`, for claim shapes and hands the candidates to the pre-write pass's claims table                                                        |
+| `/sync-branch`                | Checks the current branch against `origin/main` and, on request, refreshes it by the rule `AGENTS.md` states — an open pull request's branch included — resolving a local conflict for both sides                                        |
 
 ## Getting Started
 
@@ -1015,15 +1023,22 @@ its own code style and would reformat files differently, so configure the IDE to
   still does not change what `./gradlew check` or the Git hooks run.
 
   Its Python line reports `CONFIGURED` when the module is in place, `SKIPPED` when no IntelliJ configuration was found,
-  and `NEEDS_ACTION` (exiting non-zero) in two cases. Its report is a short first line followed by an indented block
-  that puts the remedies first. When the tree's interpreter is not registered, the block says to register the printed
-  interpreter once per configuration (**Settings → Build, Execution, Deployment → Python Interpreter**, or **Project
-  Structure → SDKs**, _Add Interpreter_ → _System_, then save) or to run the tree on one that is already registered
-  (`pyenv local <installed-version>` where pyenv supplies it), and lists beneath them the registered SDKs with their
-  interpreter paths and the configurations searched. When several configurations or SDK entries match, the block names
-  the matching entries and that case's remedy: narrow the search with `--idea-config-dir <path>`, or delete all but one
-  entry. Re-run the setup afterwards: it reads the SDK name IntelliJ recorded and references exactly that entry. A
-  different patch version per working tree is expected: `.python-version` is a personal, ignored setting.
+  and `NEEDS_ACTION` (exiting non-zero) when the contributor has to act. Its report is a short first line followed by an
+  indented block that puts the remedies first. When the tree's interpreter is not registered, the block says to register
+  the printed interpreter once per configuration (**Settings → Build, Execution, Deployment → Python Interpreter**, or
+  **Project Structure → SDKs**, _Add Interpreter_ → _System_, then save) or to run the tree on one that is already
+  registered (`pyenv local <installed-version>` where pyenv supplies it), and lists beneath them the registered SDKs
+  with their interpreter paths and the configurations searched. On macOS the script reads the installed IntelliJ IDEA
+  bundle's product and version and reads that configuration — an upgrade leaves the previous version's configuration
+  beside the new one, and the installed bundle names the live one; the line states which configuration and version it
+  matched. When the identified configuration registers no SDK for the interpreter, or no configuration exists for the
+  installed version yet, the block names that configuration and the registration it owes rather than reading another
+  one, since the module references an SDK name only that configuration can resolve. When several configurations or SDK
+  entries match with no installed bundle to choose between them, the block names the matching entries and that case's
+  remedy: narrow the search with `--idea-config-dir <path>`, or delete all but one entry. Automatic selection assumes
+  IntelliJ's default configuration location; a custom `idea.config.path` is not detected, so pass that flag. Re-run the
+  setup afterwards: it reads the SDK name IntelliJ recorded and references exactly that entry. A different patch version
+  per working tree is expected: `.python-version` is a personal, ignored setting.
 
 - Pyenv users may keep a personal `.python-version` (created with `pyenv local <installed-version>` for an installed
   Python 3.12+); it is ignored rather than a shared repository runtime pin. Verify `python3 --version` in the

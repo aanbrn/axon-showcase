@@ -1200,12 +1200,26 @@ class UniqueReviewRoundTests(unittest.TestCase):
         declared = sorted(action.option_strings[0] for action in parser._mutually_exclusive_groups[0]._group_actions)
         self.assertEqual(sorted(commit_hygiene.MODE_FLAGS), declared)
 
+        # A value-taking mode needs an operand, or the parser rejects the form before the guard the case tests runs.
+        actions = {
+            action.option_strings[0]: action for action in parser._mutually_exclusive_groups[0]._group_actions
+        }
+        operands = {"--handover": "unit-a:1"}
+        self.assertEqual(
+            sorted(flag for flag, action in actions.items() if action.nargs != 0),
+            sorted(operands),
+            "a value-taking mode was added without an operand for this control",
+        )
+
         for flag in commit_hygiene.MODE_FLAGS:
             if flag == "--unique-rounds":
                 continue
+            arguments = [flag] + ([operands[flag]] if flag in operands else [])
             stderr = io.StringIO()
             with contextlib.redirect_stderr(stderr):
-                self.assertEqual(commit_hygiene.main([flag, "--expect", "unit-a:1", "--repo", str(repo)]), 1)
+                self.assertEqual(
+                    commit_hygiene.main(arguments + ["--expect", "unit-a:1", "--repo", str(repo)]), 1
+                )
             self.assertIn("--expect needs --unique-rounds", stderr.getvalue())
 
         # The bare form, with no mode flag at all.
@@ -1951,6 +1965,11 @@ def dated_row(day: str, unit: str, round_number: int, session: str, transition: 
     return "\t".join([day, unit, str(round_number), "-", "-", "0", session, transition, reason])
 
 
+def six_field_row(unit: str, round_number: int, day: str = "2026-11-09") -> str:
+    """One six-field round row, the form a unit first rounded on or after the retirement date carries."""
+    return "\t".join([day, unit, str(round_number), "-", "-", "0"])
+
+
 class SessionContinuityTests(unittest.TestCase):
     def violations(self, lines: list[str]) -> list[str]:
         return commit_hygiene.find_session_continuity_violations(ledger_repo(self, lines))
@@ -2039,6 +2058,34 @@ class SessionContinuityTests(unittest.TestCase):
         violations = self.violations([row("unit-a", 1, "   ", CREATED)])
         self.assertEqual(1, len(violations))
         self.assertIn("no session identifier", violations[0])
+
+    def test_a_post_retirement_unit_records_six_field_rows(self):
+        self.assertEqual(
+            [],
+            self.violations([six_field_row("unit-a", 1), six_field_row("unit-a", 2)]),
+        )
+
+    def test_a_post_retirement_unit_carrying_session_fields_fails(self):
+        violations = self.violations([six_field_row("unit-a", 1), row("unit-a", 2, "ses_a", CONTINUED)])
+        self.assertEqual(1, len(violations))
+        self.assertIn("carries 9 field(s), not 6", violations[0])
+
+    def test_a_post_retirement_unit_without_a_register_fails_completeness(self):
+        violations = commit_hygiene.find_agent_session_violations(
+            {},
+            {"unit-a": POST_HANDOVER},
+            post_units={"unit-a"},
+            rounds_by_unit={"unit-a": ["1", "2"]},
+        )
+
+        self.assertEqual(2, len(violations))
+        self.assertIn("round 1 carries 0 quick `report` row(s)", violations[0])
+
+    def test_a_historical_six_field_unit_without_a_register_passes(self):
+        repo = ledger_repo(self, [six_field_row("unit-a", 1, "2026-10-15"), six_field_row("unit-a", 2, "2026-10-16")])
+
+        self.assertEqual([], commit_hygiene.find_session_continuity_violations(repo))
+        self.assertEqual(0, commit_hygiene.check_agent_sessions(repo))
 
     def test_a_row_below_the_boundary_with_too_few_fields_fails(self):
         repo = make_repo(self)
@@ -3872,6 +3919,7 @@ MODE_TEST_COVERAGE = {
     "--workspace-records": ("WorkspaceRecordTests", "check_workspace_records"),
     "--finding-instances": ("FindingInstancesTests", "check_finding_instances"),
     "--unit-layout": ("UnitLayoutTests", "check_unit_layout"),
+    "--handover": ("HandoverTests", "check_handover"),
 }
 
 
@@ -4099,6 +4147,158 @@ class UnitRecordTests(unittest.TestCase):
 
         self.assertEqual(1, code)
         self.assertIn("no reference to the unit record", stderr)
+
+
+class HandoverTests(unittest.TestCase):
+    def _repo_with_handover(self, text: str) -> Path:
+        repo = make_repo(self)
+        unit_dir = repo / "docs" / "units" / "unit-a"
+        unit_dir.mkdir(parents=True)
+        (unit_dir / "review-handover.md").write_text(text, encoding="utf-8")
+        return repo
+
+    def _check(self, repo: Path, argument: str = "unit-a:3") -> tuple[int, str]:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = commit_hygiene.main(["--handover", argument, "--repo", str(repo)])
+        return code, stderr.getvalue()
+
+    def test_a_present_heading_passes(self):
+        code, stderr = self._check(self._repo_with_handover("## Round 3\n"))
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
+
+    def test_a_descriptive_suffix_passes(self):
+        code, stderr = self._check(self._repo_with_handover("## Round 3 — proposal screen\n"))
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
+
+    def test_a_longer_round_token_does_not_match(self):
+        code, stderr = self._check(self._repo_with_handover("## Round 30\n"))
+
+        self.assertEqual(1, code)
+        self.assertIn("no `## Round 3` section", stderr)
+
+    def test_a_token_continuing_past_the_round_does_not_match(self):
+        code, _ = self._check(self._repo_with_handover("## Round 3x\n"))
+
+        self.assertEqual(1, code)
+
+    def test_a_backticked_token_does_not_match(self):
+        code, _ = self._check(self._repo_with_handover("## `Round 3` — proposal screen\n"))
+
+        self.assertEqual(1, code)
+
+    def test_a_heading_with_a_leading_zero_does_not_match(self):
+        code, _ = self._check(self._repo_with_handover("## Round 03\n"))
+
+        self.assertEqual(1, code)
+
+    def test_a_different_round_fails_naming_the_unit_and_the_round(self):
+        code, stderr = self._check(self._repo_with_handover("## Round 2\n"))
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/units/unit-a/review-handover.md", stderr)
+        self.assertIn("no `## Round 3` section", stderr)
+
+    def test_a_fenced_heading_is_not_a_section(self):
+        code, _ = self._check(self._repo_with_handover("```\n## Round 3\n```\n"))
+
+        self.assertEqual(1, code)
+
+    def test_a_fence_stays_open_past_a_pseudo_closer(self):
+        code, _ = self._check(self._repo_with_handover("```\n``` not a closer\n## Round 3\n```\n"))
+
+        self.assertEqual(1, code)
+
+    def test_an_indented_line_does_not_close_a_fence(self):
+        code, _ = self._check(self._repo_with_handover("```\n    ```\n## Round 3\n```\n"))
+
+        self.assertEqual(1, code)
+
+    def test_an_indented_line_does_not_open_a_fence(self):
+        code, stderr = self._check(self._repo_with_handover("    ```\n## Round 3\n"))
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
+
+    def test_a_heading_after_a_closed_fence_passes(self):
+        code, stderr = self._check(self._repo_with_handover("```\ncode\n```\n\n## Round 3\n"))
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
+
+    def test_a_heading_with_legal_markdown_spacing_passes(self):
+        for text in ("##  Round 3\n", "   ## Round 3\n", "##\tRound 3\n"):
+            with self.subTest(text=text):
+                code, stderr = self._check(self._repo_with_handover(text))
+                self.assertEqual(0, code)
+                self.assertEqual("", stderr)
+
+    def test_the_function_returns_the_failure_count(self):
+        repo = self._repo_with_handover("## Round 2\n")
+
+        with contextlib.redirect_stderr(io.StringIO()):
+            failures = commit_hygiene.check_handover(repo, "unit-a:3")
+
+        self.assertEqual(1, failures)
+
+    def test_a_third_level_heading_is_not_a_section(self):
+        code, _ = self._check(self._repo_with_handover("### Round 3\n"))
+
+        self.assertEqual(1, code)
+
+    def test_a_missing_file_fails_naming_it(self):
+        repo = make_repo(self)
+        (repo / "docs" / "units" / "unit-a").mkdir(parents=True)
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/units/unit-a/review-handover.md is missing", stderr)
+
+    def test_an_unreadable_file_fails_naming_it(self):
+        repo = make_repo(self)
+        unit_dir = repo / "docs" / "units" / "unit-a"
+        unit_dir.mkdir(parents=True)
+        (unit_dir / "review-handover.md").write_bytes(b"## Round 3\n\xff\xfe")
+
+        code, stderr = self._check(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("docs/units/unit-a/review-handover.md could not be read", stderr)
+
+    def test_a_malformed_argument_fails_naming_what_it_expected(self):
+        code, stderr = self._check(self._repo_with_handover("## Round 3\n"), "unit-a")
+
+        self.assertEqual(1, code)
+        self.assertIn("expects <unit>:<round>", stderr)
+
+    def test_a_non_canonical_round_fails_naming_the_round(self):
+        repo = self._repo_with_handover("## Round 3\n")
+
+        for argument in ("unit-a:", "unit-a:0", "unit-a:03", "unit-a:3.0", "unit-a:three"):
+            with self.subTest(argument=argument):
+                code, stderr = self._check(repo, argument)
+                self.assertEqual(1, code)
+                self.assertIn("canonical positive round number", stderr)
+
+    def test_a_unit_that_is_not_one_directory_name_fails(self):
+        repo = self._repo_with_handover("## Round 3\n")
+
+        for argument in ("a/b:3", "a\\b:3", "..:3", ".:3", "a b:3", ":3"):
+            with self.subTest(argument=argument):
+                code, stderr = self._check(repo, argument)
+                self.assertEqual(1, code)
+                self.assertIn("one unit directory name", stderr)
+
+    def test_a_second_colon_fails_naming_the_unit_it_received(self):
+        code, stderr = self._check(self._repo_with_handover("## Round 3\n"), "unit-a:3:4")
+
+        self.assertEqual(1, code)
+        self.assertIn("one unit directory name, got 'unit-a:3'", stderr)
 
 
 class ModeCoverageTests(unittest.TestCase):
@@ -4464,6 +4664,12 @@ class UnitLayoutTests(unittest.TestCase):
 
         self.assertEqual(2, commit_hygiene.check_unit_layout(repo))
 
+    def test_a_unit_holding_the_deep_review_record_passes(self):
+        code, stderr = self._mode(self._repo(("rounds.tsv", "deep-review.md")))
+
+        self.assertEqual(0, code)
+        self.assertEqual("", stderr)
+
     def test_a_unit_holding_only_rounds_and_its_instances_passes(self):
         code, stderr = self._mode(self._repo(("rounds.tsv", "findings/round-1.md", "findings/round-2.md")))
 
@@ -4497,6 +4703,45 @@ SESSION_FIELDS = (
 )
 
 
+SESSION_EVENT_FIELDS = SESSION_FIELDS + ("event", "round")
+
+
+def session_event_row(**overrides: str) -> str:
+    """One fifteen-field post-retirement agent-session row, defaulted to a deep pass's single event."""
+    fields = {
+        "date": "2026-11-09",
+        "unit": "unit-a",
+        "main": "ses_main",
+        "agent": "review-thorough",
+        "scope": "unit-a",
+        "opinion": "-",
+        "pass": "1",
+        "requested": "-",
+        "returned": "ses_child1",
+        "transition": CREATED,
+        "reason": "-",
+        "slug": "deep-1",
+        "outcome": "report",
+        "event": "1",
+        "round": "-",
+    }
+    fields.update(overrides)
+    if "pass_number" in fields:
+        fields["pass"] = fields.pop("pass_number")
+    return "\t".join(fields[key] for key in SESSION_EVENT_FIELDS)
+
+
+def quick_row(**overrides: str) -> str:
+    """One fifteen-field quick-review row on a post-retirement unit, defaulted to round 1's reporting pass."""
+    fields = {
+        "agent": "review-quick",
+        "slug": "round-1",
+        "round": "1",
+    }
+    fields.update(overrides)
+    return session_event_row(**fields)
+
+
 def session_row(**overrides: str) -> str:
     """One thirteen-field agent-session row, defaulted to a first deep-review pass."""
     fields = {
@@ -4521,6 +4766,8 @@ def session_row(**overrides: str) -> str:
 
 
 HANDOVER = "# Review hand-over — unit-a\n\n## `deep-1` — deep review, pass 1\n"
+
+POST_HANDOVER = HANDOVER + "\n## Round 1 — quick review\n\n## Round 2 — quick review\n"
 
 
 class AgentSessionTests(unittest.TestCase):
@@ -4598,8 +4845,11 @@ class AgentSessionTests(unittest.TestCase):
     def test_a_row_filed_under_another_unit_fails(self):
         self.assertIn("does not name 'unit-a'", self.violations(session_row(unit="unit-b"))[0])
 
-    def test_the_quick_reviewer_is_not_a_registered_agent(self):
-        self.assertIn("is not one of", self.violations(session_row(agent="review-quick"))[0])
+    def test_a_quick_row_on_a_pre_retirement_unit_fails(self):
+        self.assertIn(
+            "a quick row is recorded only for a unit whose first round is dated on or after 2026-11-09",
+            self.violations(session_row(agent="review-quick"))[0],
+        )
 
     def test_an_empty_scope_fails(self):
         self.assertIn("scope is empty", self.violations(session_row(scope="-"))[0])
@@ -4863,6 +5113,121 @@ class AgentSessionTests(unittest.TestCase):
     def test_a_removed_register_is_reported(self):
         self.assertIn("is removed", commit_hygiene.find_session_record_rewrites(session_row(), None)[0])
 
+    def post_violations(
+        self, *rows: str, handover: str = POST_HANDOVER, rounds: tuple[str, ...] = ("1",)
+    ) -> list[str]:
+        return commit_hygiene.find_agent_session_violations(
+            {"unit-a": "\n".join(rows) + "\n"},
+            {"unit-a": handover},
+            post_units={"unit-a"},
+            rounds_by_unit={"unit-a": list(rounds)},
+        )
+
+    def test_a_quick_row_on_a_post_retirement_unit_passes(self):
+        self.assertEqual([], self.post_violations(quick_row()))
+
+    def test_a_post_retirement_deep_row_carrying_its_event_passes(self):
+        self.assertEqual([], self.post_violations(session_event_row(), handover=HANDOVER, rounds=()))
+
+    def test_an_event_numbered_out_of_sequence_fails(self):
+        self.assertIn(
+            "is not the unit's next, 2",
+            self.post_violations(
+                session_event_row(event="1"),
+                session_event_row(
+                    pass_number="2",
+                    returned="ses_child2",
+                    transition=REPLACED,
+                    reason="expired",
+                    event="3",
+                ),
+                handover=HANDOVER,
+            )[0],
+        )
+
+    def test_a_fourteen_field_row_fails(self):
+        row = session_event_row()
+        self.assertIn("not 13 or 15", self.post_violations(row[: row.rfind("\t")])[0])
+
+    def test_a_fifteen_field_row_dated_before_the_event_boundary_fails(self):
+        self.assertIn("not the 13 its date gives", self.post_violations(quick_row(date="2026-11-08"))[0])
+
+    def test_a_thirteen_field_row_dated_after_the_event_boundary_fails(self):
+        self.assertIn(
+            "not the 15 its date gives",
+            self.post_violations(session_row(date="2026-11-09"), handover=HANDOVER, rounds=())[0],
+        )
+
+    def test_a_fourteen_field_row_before_the_event_boundary_fails(self):
+        self.assertIn("not 13 or 15", self.violations(session_row() + "\t-")[0])
+
+    def test_a_quick_row_without_its_round_fails(self):
+        self.assertIn("as its round", self.post_violations(quick_row(round="-"), rounds=())[0])
+
+    def test_a_quick_row_with_a_non_canonical_round_fails(self):
+        self.assertIn(
+            "as its round",
+            self.post_violations(quick_row(round="01", slug="round-01"), rounds=("01",))[0],
+        )
+
+    def test_a_quick_row_resolves_the_heading_the_hand_over_check_accepts(self):
+        for heading in (" ## Round 1 — quick review", "##\tRound 1 — quick review"):
+            with self.subTest(heading=heading):
+                handover = "# Review hand-over — unit-a\n\n" + heading + "\n"
+                self.assertEqual([], self.post_violations(quick_row(), handover=handover))
+
+    def test_a_non_quick_row_carrying_a_round_fails(self):
+        self.assertIn(
+            "non-quick row's round",
+            self.post_violations(session_event_row(round="1"), handover=HANDOVER)[0],
+        )
+
+    def test_a_quick_row_whose_link_names_another_round_fails(self):
+        self.assertIn("a quick row's link must be 'round-1'", self.post_violations(quick_row(slug="deep-1"))[0])
+
+    def test_a_quick_row_whose_round_has_no_hand_over_section_fails(self):
+        self.assertIn(
+            "resolve to a `Round 2` section",
+            self.post_violations(quick_row(round="2", slug="round-2"), handover=HANDOVER, rounds=("2",))[0],
+        )
+
+    def test_several_stalled_quick_attempts_then_the_reporting_pass(self):
+        self.assertEqual(
+            [],
+            self.post_violations(
+                quick_row(event="1", pass_number="1", returned="-", transition="-", outcome="stalled"),
+                quick_row(event="2", pass_number="2", returned="-", transition="-", outcome="stalled"),
+                quick_row(event="3", pass_number="3"),
+            ),
+        )
+
+    def test_a_post_retirement_round_without_a_quick_report_row_fails(self):
+        self.assertIn(
+            "round 2 carries 0 quick `report` row(s)",
+            self.post_violations(quick_row(), rounds=("1", "2"))[0],
+        )
+
+    def test_a_post_retirement_round_with_two_quick_report_rows_fails(self):
+        self.assertIn(
+            "round 1 carries 2 quick `report` row(s)",
+            self.post_violations(
+                quick_row(event="1"),
+                quick_row(
+                    event="2",
+                    pass_number="2",
+                    requested="ses_child1",
+                    returned="ses_child1",
+                    transition=CONTINUED,
+                ),
+            )[0],
+        )
+
+    def test_a_quick_report_row_naming_an_unrecorded_round_fails(self):
+        self.assertIn(
+            "which the ledger does not record",
+            self.post_violations(quick_row(round="2", slug="round-2"), rounds=())[0],
+        )
+
 
 def register_repo(test: unittest.TestCase, row: str | None = None) -> Path:
     """A repository whose committed unit directory carries a hand-over and, when given, one register row."""
@@ -4945,6 +5310,99 @@ class AgentSessionStagedTests(unittest.TestCase):
         self.assertEqual(1, code)
         self.assertIn("the committed register is removed", stderr)
 
+    def test_the_staged_round_record_decides_the_completeness_rule(self):
+        repo = make_repo(self)
+        unit = repo / "docs" / "units" / "unit-a"
+        unit.mkdir(parents=True)
+        (unit / "review-handover.md").write_text(
+            "# Review hand-over\n\n## Round 1 — quick review\n\n## Round 2 — quick review\n", encoding="utf-8"
+        )
+        (unit / "rounds.tsv").write_text(six_field_row("unit-a", 1) + "\n", encoding="utf-8")
+        (unit / "sessions.tsv").write_text(quick_row(event="1") + "\n", encoding="utf-8")
+        (unit / "findings").mkdir()
+        (unit / "findings" / "round-1.md").write_text("- none\n", encoding="utf-8")
+        subprocess.run(("git", "add", "docs/units/unit-a"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-qm", "records"), cwd=repo, check=True)
+
+        (unit / "rounds.tsv").write_text(
+            six_field_row("unit-a", 1) + "\n" + six_field_row("unit-a", 2) + "\n", encoding="utf-8"
+        )
+        (unit / "findings" / "round-2.md").write_text("- none\n", encoding="utf-8")
+        (unit / "sessions.tsv").write_text(
+            quick_row(event="1")
+            + "\n"
+            + quick_row(
+                event="2",
+                round="2",
+                slug="round-2",
+                pass_number="2",
+                requested="ses_child1",
+                returned="ses_child1",
+                transition=CONTINUED,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        subprocess.run(("git", "add", "docs/units/unit-a"), cwd=repo, check=True)
+
+        code, stderr = self._run(repo)
+
+        self.assertEqual("", stderr)
+        self.assertEqual(0, code)
+
+    def test_a_staged_ledger_alone_is_judged_against_its_register(self):
+        repo = post_fixture(self)
+        (repo / "docs" / "units" / "unit-a" / "rounds.tsv").write_text(
+            POST_UNIT_ROUNDS + "2026-11-09\tunit-a\t4\t-\t-\t0\n", encoding="utf-8"
+        )
+        (repo / "docs" / "units" / "unit-a" / "findings" / "round-4.md").write_text("- none\n", encoding="utf-8")
+        subprocess.run(("git", "add", "docs/units/unit-a"), cwd=repo, check=True)
+
+        code, stderr = self._run(repo)
+
+        self.assertEqual(1, code)
+        self.assertIn("round 4 carries 0 quick `report` row(s)", stderr)
+
+    def test_a_staged_ledger_cannot_take_its_evidence_from_an_untracked_register(self):
+        repo = post_fixture(self)
+        unit = repo / "docs" / "units" / "unit-a"
+        (unit / "review-handover.md").write_text(
+            POST_UNIT_HANDOVER + "\n## Round 4 — quick review\n", encoding="utf-8"
+        )
+        subprocess.run(("git", "add", "docs/units/unit-a/review-handover.md"), cwd=repo, check=True)
+        subprocess.run(("git", "rm", "--cached", "-q", "docs/units/unit-a/sessions.tsv"), cwd=repo, check=True)
+        subprocess.run(("git", "commit", "-qm", "register untracked"), cwd=repo, check=True)
+        (unit / "rounds.tsv").write_text(
+            POST_UNIT_ROUNDS + "2026-11-09\tunit-a\t4\t-\t-\t0\n", encoding="utf-8"
+        )
+        (unit / "findings" / "round-4.md").write_text("- none\n", encoding="utf-8")
+        # The working-tree register carries a valid round-4 report row, which an index-only read must not accept as
+        # evidence for the commit that omits the register.
+        (unit / "sessions.tsv").write_text(
+            POST_UNIT_REGISTER
+            + quick_row(
+                event="5",
+                round="4",
+                slug="round-4",
+                pass_number="5",
+                requested="ses_child2",
+                returned="ses_child2",
+                transition=CONTINUED,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        subprocess.run(
+            ("git", "add", "docs/units/unit-a/rounds.tsv", "docs/units/unit-a/findings/round-4.md"),
+            cwd=repo,
+            check=True,
+        )
+
+        code, stderr = self._run(repo)
+
+        self.assertNotEqual(0, code)
+        self.assertIn("round 4 carries 0 quick `report` row(s)", stderr)
+
     def test_the_staged_copy_is_judged_not_the_working_tree(self):
         repo = register_repo(self, session_row())
         stage_register(repo, session_row() + "\n" + session_row(pass_number="2") + "\n")
@@ -4959,6 +5417,144 @@ class AgentSessionStagedTests(unittest.TestCase):
 
         self.assertNotEqual(0, code)
         self.assertIn("Agent-session continuity", stderr)
+
+
+POST_UNIT_ROUNDS = "".join(
+    ["2026-11-09\tunit-a\t{0}\t-\t-\t0\n".format(number) for number in (1, 2, 3)]
+)
+
+POST_UNIT_REGISTER = "".join(
+    [
+        quick_row(event="1", pass_number="1") + "\n",
+        quick_row(
+            event="2",
+            round="2",
+            slug="round-2",
+            pass_number="2",
+            requested="ses_child1",
+            returned="ses_child1",
+            transition=CONTINUED,
+        )
+        + "\n",
+        quick_row(
+            event="3",
+            round="3",
+            slug="round-3",
+            pass_number="3",
+            returned="-",
+            transition="-",
+            outcome="stalled",
+        )
+        + "\n",
+        quick_row(
+            event="4",
+            round="3",
+            slug="round-3",
+            pass_number="4",
+            returned="ses_child2",
+            transition=REPLACED,
+            reason="stopped-responding",
+        )
+        + "\n",
+    ]
+)
+
+POST_UNIT_HANDOVER = (
+    "# Review hand-over — unit-a\n\n## Round 1 — quick review\n\n## Round 2 — quick review\n\n"
+    "## Round 3 — quick review\n"
+)
+
+
+def post_fixture(test, *, rounds=None, sessions=None, findings=("round-1.md", "round-2.md", "round-3.md")):
+    """A repository holding one committed post-retirement unit and its three-round history."""
+    repo = make_repo(test)
+    unit = repo / "docs" / "units" / "unit-a"
+    unit.mkdir(parents=True)
+    (unit / "rounds.tsv").write_text(POST_UNIT_ROUNDS if rounds is None else rounds, encoding="utf-8")
+    (unit / "sessions.tsv").write_text(POST_UNIT_REGISTER if sessions is None else sessions, encoding="utf-8")
+    (unit / "review-handover.md").write_text(POST_UNIT_HANDOVER, encoding="utf-8")
+    (unit / "findings").mkdir()
+    for name in findings:
+        (unit / "findings" / name).write_text("- none\n", encoding="utf-8")
+    subprocess.run(("git", "add", "docs/units/unit-a"), cwd=repo, check=True)
+    subprocess.run(("git", "commit", "-qm", "unit"), cwd=repo, check=True)
+    return repo
+
+
+class PostRetirementFixtureTests(unittest.TestCase):
+    """The post-retirement form through each real mode, on a disposable unit with created, continued, and a
+    stalled-then-replaced round."""
+
+    def test_the_fixture_passes_every_record_mode(self):
+        repo = post_fixture(self)
+
+        self.assertEqual(0, commit_hygiene.check_agent_sessions(repo))
+        self.assertEqual(0, commit_hygiene.check_session_continuity(repo))
+        self.assertEqual(0, commit_hygiene.check_unit_layout(repo))
+        self.assertEqual(0, commit_hygiene.check_unique_review_rounds(repo))
+        self.assertEqual(0, commit_hygiene.check_finding_instances(repo))
+        self.assertEqual(0, commit_hygiene.check_handover(repo, "unit-a:3"))
+
+    def test_a_post_retirement_unit_with_no_register_fails_the_register_mode(self):
+        repo = post_fixture(self)
+        (repo / "docs" / "units" / "unit-a" / "sessions.tsv").unlink()
+        subprocess.run(("git", "add", "docs/units/unit-a"), cwd=repo, check=True)
+
+        self.assertEqual(3, commit_hygiene.check_agent_sessions(repo))
+
+    def test_a_round_without_its_quick_report_row_fails_the_register_mode(self):
+        sessions = POST_UNIT_REGISTER.replace(
+            quick_row(
+                event="2",
+                round="2",
+                slug="round-2",
+                pass_number="2",
+                requested="ses_child1",
+                returned="ses_child1",
+                transition=CONTINUED,
+            ),
+            quick_row(
+                event="2",
+                round="2",
+                slug="round-2",
+                pass_number="2",
+                returned="-",
+                transition="-",
+                outcome="stalled",
+            ),
+        )
+        repo = post_fixture(self, sessions=sessions)
+
+        self.assertEqual(1, commit_hygiene.check_agent_sessions(repo))
+
+    def test_a_nine_field_ledger_row_fails_the_continuity_mode(self):
+        rounds = "2026-11-09\tunit-a\t1\t-\t-\t0\tses_a\tcreated\t-\n"
+        repo = post_fixture(self, rounds=rounds, findings=("round-1.md",))
+
+        self.assertEqual(1, commit_hygiene.check_session_continuity(repo))
+
+    def test_a_stray_file_fails_the_layout_mode(self):
+        repo = post_fixture(self)
+        (repo / "docs" / "units" / "unit-a" / "notes.md").write_text("lane\n", encoding="utf-8")
+        subprocess.run(("git", "add", "docs/units/unit-a/notes.md"), cwd=repo, check=True)
+
+        self.assertEqual(1, commit_hygiene.check_unit_layout(repo))
+
+    def test_a_missing_round_fails_the_round_mode(self):
+        rounds = "".join(line + "\n" for line in POST_UNIT_ROUNDS.splitlines() if "\t2\t" not in line)
+        repo = post_fixture(self, rounds=rounds, findings=("round-1.md", "round-3.md"))
+
+        self.assertEqual(1, commit_hygiene.check_unique_review_rounds(repo))
+
+    def test_a_round_without_a_finding_file_fails_the_instances_mode(self):
+        repo = post_fixture(self, findings=("round-1.md", "round-2.md"))
+
+        self.assertEqual(1, commit_hygiene.check_finding_instances(repo))
+
+    def test_a_round_without_a_hand_over_section_fails_the_hand_over_mode(self):
+        repo = post_fixture(self)
+
+        self.assertEqual(1, commit_hygiene.check_handover(repo, "unit-a:9"))
 
 
 if __name__ == "__main__":

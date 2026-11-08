@@ -45,7 +45,11 @@ Source: `AGENTS.md` "Workflow: Unit lifecycle" → Workspace.
    branch, and the writing session's own identifier, and the state `active`.
 7. Write the claim at `git rev-parse --git-path axon-showcase-change` when the branch's name is not a change name; a
    change-named branch may omit it.
-8. Report the established stage, the pending decision, and the next permitted operation — the proposal for a two-pass
+8. Set the session's title to the unit's record directory name with `opencode_session_rename` on the current main
+   session, then read the title back. This applies whether the session began this unit or worked on another unit before.
+   A failed rename or a readback that does not match is reported and does not block the unit; an explicit owner
+   instruction to keep a different title is honoured.
+9. Report the established stage, the pending decision, and the next permitted operation — the proposal for a two-pass
    unit, the implementation for a unit whose authorization names each direct edit.
 
 ## Decision points
@@ -68,10 +72,13 @@ Source: `AGENTS.md` "Workflow: Unit lifecycle" → Workspace.
 
 - The workspace's path and branch (`git -C <workspace> rev-parse --abbrev-ref HEAD`) name the unit's branch.
 - The record carries its four fields and the state `active`.
+- The session's title, read back after the rename, is the unit's record directory name; the owner's explicit title
+  preference was honoured instead; or the rename's failure is reported.
 - On the sibling route, the wrapper's report also carries the readiness line, and — when the primary carries `.idea/` —
   the `Settings:` and `Python:` lines.
 
 ## Completion criteria
 
-The workspace is established and prepared, the record and the applicable claim are written, and the next permitted
-operation is stated.
+The workspace is established and prepared, the record and the applicable claim are written, the session's title names
+the unit, the owner's explicit title preference was honoured, or the rename's failure is reported, and the next
+permitted operation is stated.

@@ -165,7 +165,10 @@ alone):
   none), and how many findings were a compliance miss of an existing rule (`AGENTS.md`, the subject packs, the specs, or
   this definition). The calling agent appends it to the review ledger verbatim — the role
   `docs/contracts/process-bindings.md` declares — so keep it one line with no wrapping.
-- The calling agent appends three further fields when it writes that row — the reviewer's session identifier, the
-  session's transition (`created`, `continued`, or `replaced`), and a replacement's reason — from the invocation it
-  performed and the identifier that invocation returned. Never invent a session identifier: you are not given your own,
-  so the caller supplies it.
+- The calling agent appends the session fields when it writes the row — the reviewer's session identifier, the session's
+  transition (`created`, `continued`, or `replaced`), and a replacement's reason — from the invocation it performed and
+  the identifier that invocation returned. Where they go follows the unit's form: for a unit whose first round is dated
+  on or after `2026-11-09` they go on the agent-session register's quick row, which also carries the unit-wide event
+  number and the round this record line names, while the ledger row keeps the loop's outcome fields alone; for a unit
+  whose first round predates that date they go on the ledger row, as before. Never invent a session identifier: you are
+  not given your own, so the caller supplies it.

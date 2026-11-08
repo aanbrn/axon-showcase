@@ -405,6 +405,9 @@ stops Begin: report it rather than reconstructing the procedure here.
   checkout the IDE project is attached to.
 - The session's cwd follows the workspace: after a creation or a `session_move`, verify the absolute path and branch
   before writing. `git worktree list --porcelain` is the registry; a directory name is a hint, never the identification.
+- **A session's title names the unit it is working on.** The `begin-unit` and `pause-resume-unit` steps set it when they
+  establish a unit; the outcome and its conditions are `showcase/quality/agent-skills`'s requirement "A session's title
+  names the unit it works on".
 - **Pause and resume are the skill's procedure.** Before pausing a unit — the owner announced it, the agent judges it
   cannot reliably continue the unit in this session, or one was left unfinished, whether or not a pause was announced —
   load `.opencode/skills/pause-resume-unit/SKILL.md`, which owns the pause's `Resume checkpoint` and the resume's
@@ -2258,8 +2261,9 @@ changing an image or buildpack pin.
   `gh run watch` it — one blocking call, no manual polling. A docs/build change's `build` check typically completes in
   about a minute; check once shortly after pushing, then confirm green before archiving/merging. Verify the run itself
   (`gh run view <run-id> --json conclusion`), never a pipeline's exit code — `gh run watch … | tail -6; echo $?` reports
-  `tail`'s, so a failed run reads as green. Idle sleep loops only waste time and add no information. captured:
-  fix-timeout-load-flakes
+  `tail`'s, so a failed run reads as green. A check's conclusion is not its finding: read the artifact it produced — its
+  annotation, bot comment, or report — before reporting the outcome, since a check can pass its status while its comment
+  flags uncovered code. captured: record-upstream-helm-defects captured: fix-timeout-load-flakes
 
 - **A PR whose base advanced after its CI ran fails to merge with "Required status check 'build' is expected" and
   `mergeStateStatus` BEHIND.** When two PRs merge close together (a code PR followed by a docs PR), the second PR's

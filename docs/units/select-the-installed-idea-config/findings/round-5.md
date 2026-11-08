@@ -1,0 +1,3 @@
+- [test-control] tasks.md — the stop had no case for a pair that applies when no other configuration registers the SDK
+- [missing-task] tasks.md:12-14 — `scripts/test-setup-idea.sh` was not updated for the launcher-before-stage wiring
+- [over-claim] design.md:125-127 — "keeps no unresolvable reference" overstated a stop that writes no new module

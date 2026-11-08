@@ -29,7 +29,9 @@ the tree and branch the record names; and
 digest script's canonical boundary is one the reviewer's definition names, reading both rather than restating either,
 and exempting only a label a class-acknowledgement comment names on that row; `--finding-instances` verifies each
 round recorded after the finding store's boundary carries its instances file; and `--unit-layout` verifies a unit's
-directory holds only the record kinds the layout admits, at its two levels.
+directory holds only the record kinds the layout admits, at its two levels; and `--handover <unit>:<round>` verifies the
+named round's hand-over section is present in the unit's permanent hand-over file, the pre-delegation check the review
+gate's preflight runs.
 
 No mode reads a failed read as a clean result — a git invocation or a tracked file's size: a read whose failure would
 look like an empty offender list raises, and `main` reports it as the check having failed. The exits that answer a
@@ -111,6 +113,13 @@ UNIT_RECORD_DIR = "docs/units"
 UNIT_RECORD_BASENAME = "unit.md"
 # Each unit's review-round rows live beside its record, in the same directory.
 ROUND_RECORD_BASENAME = "rounds.tsv"
+# A `--handover` argument's unit is one directory name: no separator, no dot component, no whitespace, no second colon.
+HANDOVER_UNIT_RE = re.compile(r"[^/\\\s:]+")
+# A `--handover` argument's round is a canonical positive decimal, so `0` and a leading zero are rejected.
+HANDOVER_ROUND_RE = re.compile(r"[1-9][0-9]*")
+# The heading the quick loop writes, at Markdown's legal ATX form; the token is matched exactly, so `Round 30` and
+# `Round 3x` are not round 3.
+HANDOVER_HEADING_RE = re.compile(r"^ {0,3}##[ \t]+Round[ \t]+(?P<token>[0-9]+)(?=[ \t]|$)")
 UNIT_RECORD_SINCE = "2026-11-03"
 ACKNOWLEDGED_UNIT_RECORD_ARCHIVES: dict[str, str] = {
     directory: "landed before the unit record existed; its inline record stands"
@@ -178,6 +187,10 @@ SESSION_REPLACEMENT_REASONS = (
 # identifier, the transition, the reason, the hand-over slug, and the outcome.
 AGENT_SESSION_RECORD_BASENAME = "sessions.tsv"
 AGENT_SESSION_ROW_FIELDS = 13
+AGENT_SESSION_EVENT_ROW_FIELDS = 15
+# The unit-level retirement: a unit whose first round is dated on or after this day records its quick rows in the
+# register, and its ledger carries the six-field form. The event and round fields arrive on the register on that day.
+REVIEW_RECORD_RETIREMENT_SINCE = date(2026, 11, 9)
 REGISTERED_AGENTS = ("review-thorough", "technical-advisor")
 AGENT_SESSION_OPINIONS = ("primary", "independent")
 AGENT_SESSION_OUTCOMES = ("report", "stalled", "failed", "mismatch")
@@ -1092,11 +1105,25 @@ def check_staged(repo: Path, formatter: list[str]) -> int:
         index += 3 if code.startswith(("R", "C")) else 2
         if source.endswith("/" + AGENT_SESSION_RECORD_BASENAME):
             removed_sessions.add(source.split("/")[-2])
-    if session_paths or removed_sessions:
-        staged_sessions = {unit: staged_file_text(repo, path) for unit, path in sorted(session_paths.items())}
-        handovers = {unit: staged_or_tree_text(repo, handover_label(unit)) for unit in staged_sessions}
-        failures += check_agent_sessions(repo, records=staged_sessions, handovers=handovers)
-        affected_sessions = sorted(set(staged_sessions) | removed_sessions)
+    staged_sessions = {unit: staged_file_text(repo, path) for unit, path in sorted(session_paths.items())}
+    affected_sessions = sorted(set(staged_sessions) | removed_sessions)
+    # A ledger-only change judges the unit's register too, since a post-retirement round's report row must exist
+    # whether or not the register itself was touched by this commit.
+    judged_units = sorted(set(affected_sessions) | set(record_paths) | removed_records)
+    if judged_units:
+        handovers = {unit: index_or_empty(repo, handover_label(unit)) for unit in judged_units}
+        staged_ledgers = {unit: index_or_empty(repo, record_label(unit)) for unit in judged_units}
+        judged_sessions = {
+            unit: (
+                staged_sessions[unit]
+                if unit in staged_sessions
+                else index_or_empty(repo, agent_session_label(unit))
+            )
+            for unit in judged_units
+        }
+        failures += check_agent_sessions(
+            repo, records=judged_sessions, handovers=handovers, ledgers=staged_ledgers
+        )
         before_sessions = (
             predecessor_records(repo, affected_sessions, basename=AGENT_SESSION_RECORD_BASENAME) or {}
         )
@@ -1231,7 +1258,29 @@ def check_large_files(repo: Path) -> int:
     return len(offenders)
 
 
-FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})")
+FENCE_OPEN_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
+FENCE_CLOSE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})[ \t]*$")
+
+
+def fence_opener(line: str) -> Optional[tuple[str, int]]:
+    """The (character, length) a fence line opens with, or `None` when the line is not a fence line."""
+    marker = FENCE_OPEN_RE.match(line)
+    if marker is None:
+        return None
+    delimiter = marker.group(1)
+    return (delimiter[0], len(delimiter))
+
+
+def fence_after(line: str, fence: Optional[tuple[str, int]]) -> Optional[tuple[str, int]]:
+    """The fence state after reading the line: opened by an opener, closed by a legal closer, else unchanged."""
+    opener = fence_opener(line)
+    if fence is None:
+        return opener
+    if opener is None:
+        return fence
+    if FENCE_CLOSE_RE.match(line) is not None and opener[0] == fence[0] and opener[1] >= fence[1]:
+        return None
+    return fence
 BLOCK_START_RE = re.compile(r"^\s*(?:#{1,6}\s|>|[-*+]\s|\d+\.\s|<)")
 THEMATIC_BREAK_RE = re.compile(r"^\s*([-*_])\s*(?:\1\s*){2,}$")
 DELIMITER_CELL_RE = re.compile(r"^\s*:?-+:?\s*$")
@@ -1294,16 +1343,8 @@ def find_table_row_offenders(path: str, text: str) -> list[tuple[str, int, int |
     index = 0
     while index < len(lines):
         line = lines[index]
-        marker = FENCE_RE.match(line)
-        if marker:
-            closing = marker.group(1)
-            if fence is None:
-                fence = (closing[0], len(closing))
-            elif closing[0] == fence[0] and len(closing) >= fence[1]:
-                fence = None
-            index += 1
-            continue
-        if fence is not None:
+        if fence is not None or fence_opener(line) is not None:
+            fence = fence_after(line, fence)
             index += 1
             continue
         if (
@@ -1319,7 +1360,7 @@ def find_table_row_offenders(path: str, text: str) -> list[tuple[str, int, int |
                 current = lines[row]
                 if row > index and (
                     not current.strip()
-                    or FENCE_RE.match(current)
+                    or fence_opener(current)
                     or BLOCK_START_RE.match(current)
                     or THEMATIC_BREAK_RE.match(current)
                 ):
@@ -1635,6 +1676,19 @@ def find_session_continuity_violations(
     violations: list[str] = []
     for unit, source in sorted(round_records(repo, records).items()):
         label = record_label(unit)
+        first_round = first_round_date(source)
+        if first_round is not None and first_round >= REVIEW_RECORD_RETIREMENT_SINCE:
+            for number, line in enumerate(source.splitlines(), start=1):
+                if not line.strip() or line.lstrip().startswith("#"):
+                    continue
+                fields = line.split("\t")
+                if len(fields) != SESSION_PRE_FIELDS:
+                    violations.append(
+                        "{0}:{1}: a post-retirement unit's row carries {2} field(s), not {3}".format(
+                            label, number, len(fields), SESSION_PRE_FIELDS
+                        )
+                    )
+            continue
         present = False
         above: list[tuple[int, list[str]]] = []
         below: list[tuple[int, list[str]]] = []
@@ -1829,33 +1883,75 @@ def handover_slugs(text: str) -> set[str]:
     return slugs
 
 
+def handover_rounds(text: str) -> set[str]:
+    """The rounds the unit's hand-over file carries a `## Round <N>` section for, by the `--handover` predicate."""
+    return round_heading_tokens(text)
+
+
+def first_round_date(source: str) -> date | None:
+    """The date of a round record's first data row, or None when it carries none."""
+    for line in source.splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        return ledger_date(line.split("\t")[0])
+    return None
+
+
+def round_record_rounds(source: str) -> list[str]:
+    """A round record's round column, in order."""
+    rounds: list[str] = []
+    for line in source.splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        fields = line.split("\t")
+        if len(fields) > 2 and fields[2].isdigit():
+            rounds.append(fields[2])
+    return rounds
+
+
 def find_agent_session_violations(
-    records: Mapping[str, str], handovers: Mapping[str, str] | None = None
+    records: Mapping[str, str],
+    handovers: Mapping[str, str] | None = None,
+    post_units: set[str] | None = None,
+    rounds_by_unit: Mapping[str, list[str]] | None = None,
 ) -> list[str]:
     """Each agent-session register's violations, naming the unit and the row.
 
-    The rules are the record format's and its continuity requirement's: a thirteen-field row naming its directory's
-    unit and a registered agent; the outcome and transition shapes; the per-key pass; the requested/returned identity
-    each transition establishes; the parentage a `parent-session-changed` replacement claims; and the hand-over slug
-    resolving to a section. The verification validates the recorded fields only; it does not attest a stated cause.
+    The rules are the record format's and its continuity requirement's: a row naming its directory's unit and a
+    registered agent; the width the row's date gives (thirteen fields before the event boundary, fifteen after it, the
+    last two being the unit-wide event and a quick row's round); the outcome, transition, and identity shapes; the
+    requested/returned identity each transition establishes; the parentage a `parent-session-changed` replacement
+    claims; a quick row's round and its `Round <N>` link; the per-key pass; and, for a post-retirement unit, exactly one
+    quick `report` row per recorded round. The verification validates the recorded fields only; it does not attest a
+    stated cause.
     """
     violations: list[str] = []
-    for unit, source in sorted(records.items()):
+    post = post_units or set()
+    ledgers = rounds_by_unit or {}
+    for unit in sorted(set(records) | post):
+        source = records.get(unit, "")
         label = agent_session_label(unit)
-        resolved_slugs = handover_slugs((handovers or {}).get(unit, ""))
+        hand_overs = (handovers or {}).get(unit, "")
+        resolved_slugs = handover_slugs(hand_overs)
+        resolved_rounds = handover_rounds(hand_overs)
         last_resolved: dict[tuple[str, str, str, str], tuple[str, str]] = {}
         passes: dict[tuple[str, str, str, str], int] = {}
+        events = 0
+        quick_reports: list[str] = []
         for number, line in enumerate(source.splitlines(), start=1):
             if not line.strip() or line.lstrip().startswith("#"):
                 continue
             fields = line.split("\t")
-            if len(fields) != AGENT_SESSION_ROW_FIELDS:
+            where = "{0}:{1}".format(label, number)
+            if len(fields) not in (AGENT_SESSION_ROW_FIELDS, AGENT_SESSION_EVENT_ROW_FIELDS):
                 violations.append(
-                    "{0}:{1}: a row carries {2} field(s), not {3}".format(
-                        label, number, len(fields), AGENT_SESSION_ROW_FIELDS
+                    "{0}: a row carries {1} field(s), not {2} or {3}".format(
+                        where, len(fields), AGENT_SESSION_ROW_FIELDS, AGENT_SESSION_EVENT_ROW_FIELDS
                     )
                 )
                 continue
+            event = fields[13] if len(fields) == AGENT_SESSION_EVENT_ROW_FIELDS else None
+            round_text = fields[14] if len(fields) == AGENT_SESSION_EVENT_ROW_FIELDS else "-"
             (
                 date_text,
                 row_unit,
@@ -1870,20 +1966,46 @@ def find_agent_session_violations(
                 reason,
                 slug,
                 outcome,
-            ) = fields
-            where = "{0}:{1}".format(label, number)
-            if ledger_date(date_text) is None:
+            ) = fields[:13]
+            row_date = ledger_date(date_text)
+            if row_date is None:
                 violations.append("{0}: the date '{1}' is not YYYY-MM-DD".format(where, date_text))
+            expected_width = (
+                AGENT_SESSION_EVENT_ROW_FIELDS
+                if row_date is not None and row_date >= REVIEW_RECORD_RETIREMENT_SINCE
+                else AGENT_SESSION_ROW_FIELDS
+            )
+            if len(fields) != expected_width:
+                violations.append(
+                    "{0}: a row dated '{1}' carries {2} field(s), not the {3} its date gives".format(
+                        where, date_text, len(fields), expected_width
+                    )
+                )
+                continue
+            if event is not None:
+                events += 1
+                if not event.isdigit() or int(event) != events:
+                    violations.append(
+                        "{0}: the event '{1}' is not the unit's next, {2}".format(where, event, events)
+                    )
             if row_unit != unit:
                 violations.append("{0}: the unit column '{1}' does not name '{2}'".format(where, row_unit, unit))
-            if agent not in REGISTERED_AGENTS:
+            if agent not in REGISTERED_AGENTS and agent != "review-quick":
                 violations.append(
-                    "{0}: the agent '{1}' is not one of {2}".format(where, agent, ", ".join(REGISTERED_AGENTS))
+                    "{0}: the agent '{1}' is not one of {2}".format(
+                        where, agent, ", ".join(REGISTERED_AGENTS + ("review-quick",))
+                    )
+                )
+                continue
+            if agent == "review-quick" and unit not in post:
+                violations.append(
+                    "{0}: a quick row is recorded only for a unit whose first round is dated on or after "
+                    "{1}".format(where, REVIEW_RECORD_RETIREMENT_SINCE.isoformat())
                 )
                 continue
             if not scope.strip() or scope.strip() == "-":
                 violations.append("{0}: the scope is empty".format(where))
-            elif agent == "review-thorough" and scope != unit:
+            elif agent in ("review-thorough", "review-quick") and scope != unit:
                 violations.append("{0}: a reviewer's scope '{1}' is not the unit".format(where, scope))
             elif agent == "technical-advisor" and not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", scope):
                 violations.append("{0}: a consultation's scope '{1}' is not a kebab-case slug".format(where, scope))
@@ -1898,6 +2020,15 @@ def find_agent_session_violations(
                 )
             if not main.strip() or main.strip() == "-":
                 violations.append("{0}: the main session is empty".format(where))
+            if agent == "review-quick":
+                if not HANDOVER_ROUND_RE.fullmatch(round_text):
+                    violations.append(
+                        "{0}: a quick row carries '{1}' as its round, not the round it attempts or reports".format(
+                            where, round_text
+                        )
+                    )
+            elif round_text != "-":
+                violations.append("{0}: a non-quick row's round must be '-', not '{1}'".format(where, round_text))
             if not pass_text.isdigit() or int(pass_text) < 1:
                 violations.append("{0}: the pass '{1}' is not a positive number".format(where, pass_text))
                 continue
@@ -1908,7 +2039,15 @@ def find_agent_session_violations(
                     "{0}: pass {1} is not the key's next pass, {2}".format(where, pass_text, expected_pass)
                 )
             passes[key] = expected_pass
-            if slug not in resolved_slugs:
+            if agent == "review-quick":
+                expected_slug = "round-" + round_text
+                if slug != expected_slug or round_text not in resolved_rounds:
+                    violations.append(
+                        "{0}: a quick row's link must be '{1}' and resolve to a `Round {2}` section in {3}".format(
+                            where, expected_slug, round_text, handover_label(unit)
+                        )
+                    )
+            elif slug not in resolved_slugs:
                 violations.append(
                     "{0}: the hand-over slug '{1}' has no matching section in {2}".format(
                         where, slug, handover_label(unit)
@@ -1926,8 +2065,7 @@ def find_agent_session_violations(
                 if transition != "-" or reason != "-" or returned != "-":
                     violations.append(
                         "{0}: a {1} row carries transition '{2}', reason '{3}', returned '{4}': it reports "
-                        "nothing".format(where, outcome, transition, reason, returned
-                        )
+                        "nothing".format(where, outcome, transition, reason, returned)
                     )
                 continue
             if outcome == "mismatch":
@@ -1981,9 +2119,7 @@ def find_agent_session_violations(
                 if previous is None:
                     violations.append("{0}: a replaced row has no session to replace".format(where))
                 elif returned == previous[0]:
-                    violations.append(
-                        "{0}: a replaced row returns the identifier it replaces".format(where)
-                    )
+                    violations.append("{0}: a replaced row returns the identifier it replaces".format(where))
                 if requested != "-":
                     violations.append("{0}: a replaced row requests '{1}', not '-'".format(where, requested))
                 if reason not in SESSION_REPLACEMENT_REASONS:
@@ -1997,6 +2133,25 @@ def find_agent_session_violations(
                         "{0}: 'parent-session-changed' names the same main session as the replaced row".format(where)
                     )
             last_resolved[key] = (returned, main)
+            if agent == "review-quick" and outcome == "report":
+                quick_reports.append(round_text)
+        if unit in post:
+            recorded = ledgers.get(unit, [])
+            for round_number in recorded:
+                count = quick_reports.count(round_number)
+                if count != 1:
+                    violations.append(
+                        "{0}: round {1} carries {2} quick `report` row(s), not exactly one".format(
+                            label, round_number, count
+                        )
+                    )
+            for round_number in quick_reports:
+                if round_number not in recorded:
+                    violations.append(
+                        "{0}: a quick `report` row names round {1}, which the ledger does not record".format(
+                            label, round_number
+                        )
+                    )
     return violations
 
 
@@ -2004,8 +2159,11 @@ def check_agent_sessions(
     repo: Path,
     records: Mapping[str, str] | None = None,
     handovers: Mapping[str, str] | None = None,
+    ledgers: Mapping[str, str] | None = None,
 ) -> int:
     """Name each agent-session register's violations; return their count."""
+    if ledgers is None:
+        ledgers = round_records(repo)
     if records is None:
         try:
             records = {
@@ -2022,7 +2180,15 @@ def check_agent_sessions(
                 handovers[unit] = path.read_text(encoding="utf-8") if path.exists() else ""
             except (OSError, UnicodeDecodeError):
                 handovers[unit] = ""
-    violations = find_agent_session_violations(records, handovers)
+    post_units = {
+        unit
+        for unit, text in ledgers.items()
+        if (first_round_date(text) or date.min) >= REVIEW_RECORD_RETIREMENT_SINCE
+    }
+    rounds_by_unit = {unit: round_record_rounds(ledgers.get(unit, "")) for unit in post_units}
+    violations = find_agent_session_violations(
+        records, handovers, post_units=post_units, rounds_by_unit=rounds_by_unit
+    )
     for violation in violations:
         print("Agent-session continuity: {0}".format(violation), file=sys.stderr)
     return len(violations)
@@ -2200,6 +2366,19 @@ def index_text(repo: Path, path: str) -> str:
         raise ValueError("cannot read the index copy of {0}".format(path))
 
 
+def index_or_empty(repo: Path, path: str) -> str:
+    """`path`'s index content, or an empty string when the index does not track it.
+
+    The staged guard judges the commit, so a working-tree file the commit omits is not evidence for it.
+    """
+    if not git_output(repo, "ls-files", "--cached", "--", path).strip():
+        return ""
+    try:
+        return index_text(repo, path)
+    except ValueError:
+        return ""
+
+
 def staged_or_tree_text(repo: Path, path: str) -> str:
     """`path`'s staged content when it is staged, otherwise its working-tree content, or an empty string."""
     if git_output(repo, "ls-files", "--cached", "--", path).strip():
@@ -2214,7 +2393,14 @@ def staged_or_tree_text(repo: Path, path: str) -> str:
         return ""
 
 
-UNIT_LAYOUT_FILES = ("unit.md", "rounds.tsv", "review-handover.md", "process-defects.md", "sessions.tsv")
+UNIT_LAYOUT_FILES = (
+    "unit.md",
+    "rounds.tsv",
+    "review-handover.md",
+    "process-defects.md",
+    "sessions.tsv",
+    "deep-review.md",
+)
 
 
 def layout_stray_paths(repo: Path) -> list[str]:
@@ -2255,6 +2441,70 @@ def check_finding_instances(repo: Path) -> int:
     return len(problems)
 
 
+def parse_handover_argument(value: str) -> tuple[str, str]:
+    """The unit and the round token a `--handover` argument names; raise `ValueError` on a malformed one."""
+    unit, separator, round_token = value.rpartition(":")
+    if not separator:
+        raise ValueError("Hand-over: --handover expects <unit>:<round>, got {0!r}".format(value))
+    if not HANDOVER_UNIT_RE.fullmatch(unit) or unit in (".", ".."):
+        raise ValueError("Hand-over: --handover expects one unit directory name, got {0!r}".format(unit))
+    if not HANDOVER_ROUND_RE.fullmatch(round_token):
+        raise ValueError(
+            "Hand-over: --handover expects a canonical positive round number, got {0!r}".format(round_token)
+        )
+    return unit, round_token
+
+
+def round_heading_tokens(text: str) -> set[str]:
+    """The round token of each `Round <N>` heading, outside every fenced block.
+
+    This is the one predicate the `--handover` check and the register's quick-row link both read, so the two cannot
+    drift apart: a heading the check accepts is the heading a quick row resolves to, and the token matched is one that
+    check's own argument grammar accepts.
+    """
+    tokens: set[str] = set()
+    fence: Optional[tuple[str, int]] = None
+    for line in text.splitlines():
+        if fence is not None or fence_opener(line) is not None:
+            fence = fence_after(line, fence)
+            continue
+        match = HANDOVER_HEADING_RE.match(line)
+        if match:
+            tokens.add(match.group("token"))
+    return tokens
+
+
+def carries_round_section(text: str, round_token: str) -> bool:
+    """Whether the file carries a second-level heading naming that round, outside every fenced block."""
+    return round_token in round_heading_tokens(text)
+
+
+def check_handover(repo: Path, value: str) -> int:
+    """Name the malformed argument, missing file, or absent section; return the failure count."""
+    try:
+        unit, round_token = parse_handover_argument(value)
+    except ValueError as error:
+        print(str(error), file=sys.stderr)
+        return 1
+    relative = handover_label(unit)
+    path = repo / relative
+    if not path.is_file():
+        print("Hand-over: {0} is missing".format(relative), file=sys.stderr)
+        return 1
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as error:
+        print("Hand-over: {0} could not be read: {1}".format(relative, error), file=sys.stderr)
+        return 1
+    if carries_round_section(text, round_token):
+        return 0
+    print(
+        "Hand-over: {0} carries no `## Round {1}` section".format(relative, round_token),
+        file=sys.stderr,
+    )
+    return 1
+
+
 # The mode group's flags, declared beside their registration so the mode-combination control can derive its
 # forms from this list rather than repeating them.
 MODE_FLAGS = (
@@ -2276,6 +2526,7 @@ MODE_FLAGS = (
     "--workspace-records",
     "--finding-instances",
     "--unit-layout",
+    "--handover",
 )
 
 
@@ -2751,7 +3002,7 @@ def build_parser() -> argparse.ArgumentParser:
             "Check commit hygiene over the staged set, the unit's readiness for the manual review pass, AGENTS.md "
             "markers, the tracked set, the workflow cron schedules, the archived change names, the review-round "
             "ledger, a file's size, the given markdown files' table rows, the ideas file's dated sections, the "
-            "review-round classes, or a change's workspace record."
+            "review-round classes, or a change's workspace record, or a round's hand-over section."
         )
     )
     mode = parser.add_mutually_exclusive_group()
@@ -2816,6 +3067,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--unit-layout",
         action="store_true",
         help="check a unit's directory holds only the record kinds the layout admits",
+    )
+    mode.add_argument(
+        "--handover",
+        metavar="UNIT:ROUND",
+        help="check the named round's hand-over section is present before the quick-review delegation",
     )
     parser.add_argument(
         "--expect",
@@ -2893,6 +3149,8 @@ def dispatch(args: argparse.Namespace, repo: Path) -> int:
         return 1 if check_finding_instances(repo) else 0
     if args.unit_layout:
         return 1 if check_unit_layout(repo) else 0
+    if args.handover is not None:
+        return check_handover(repo, args.handover)
     return 1 if check_staged(repo, args.formatter) else 0
 
 

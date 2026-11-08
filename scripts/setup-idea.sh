@@ -101,13 +101,17 @@ find_idea() {
 echo "Applying the project IDE configuration (config/idea/ -> .idea/, plus the Python analysis module)..."
 
 status=0
+# The launcher is resolved before the Python stage so one run targets one IDE: the plugin installation and the
+# configuration the Python stage reads must belong to the same installation.
+idea_bin="$(find_idea "${launcher_argument:-}" 2>/dev/null || true)"
 if [ "$idea_config_dir_given" = true ]; then
     python3 "$SCRIPT_DIR/ensure-idea-settings.py" --idea-config-dir "$idea_config_dir" || status=1
+elif [ -n "$idea_bin" ]; then
+    python3 "$SCRIPT_DIR/ensure-idea-settings.py" --idea-bundle "$idea_bin" || status=1
 else
     python3 "$SCRIPT_DIR/ensure-idea-settings.py" || status=1
 fi
 
-idea_bin="$(find_idea "${launcher_argument:-}" 2>/dev/null || true)"
 if [ -z "$idea_bin" ]; then
     echo "IntelliJ IDEA launcher not found — skipped the plugin install."
     echo "Pass its path as the first argument, set IDEA_HOME, or install the plugins from the IDE."

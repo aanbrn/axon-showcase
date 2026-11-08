@@ -1865,8 +1865,8 @@ The repository SHALL run the bounded quick review after a unit's proposal and af
 manual-pass boundary after a refresh that changed a file the closing round reviewed, repeating until it reports no new
 observations before the manual review is requested again. The reviewer's screen, finding classes, evidence rules, report
 contract, and capture challenge are its definition's; the caller's steps — the pre-write record, the claims table, the
-session preflight, the ledger row and its checkpoint — are the review-gate skill's; the ledger row's format and
-verification are `showcase/quality/commit-hygiene`'s.
+session preflight, the round's row and its checkpoint, and the register's quick row for a unit whose rounds carry six
+fields — are the review-gate skill's; both records' formats and verifications are `showcase/quality/commit-hygiene`'s.
 
 Each round's finding instances SHALL be written to the unit's store (`docs/units/<unit>/findings/round-<N>.md`) when its
 report arrives, so a round's classes and counts in the record have the instances beside them rather than only in the
@@ -1893,8 +1893,8 @@ continuity violation rather than as a permitted replacement.
   the caller raising it — rather than absorbed by widening the pass
 - **AND** the screen, the finding classification, each class's evidence requirement, the report contract, and the review
   of a capture's proposals against the capture contract are `review-quick.md`'s, while the caller's steps — the
-  pre-write record, the claims table, the session preflight, the ledger row, and its checkpoint — are the `review-gate`
-  skill's
+  pre-write record, the claims table, the session preflight, the round's row, its checkpoint, and the register's quick
+  row for a post-retirement unit — are the `review-gate` skill's
 - **AND** a defect the applying command rewrites — `spotlessApply`, or the web module's `npmFormat` — is routed to that
   command rather than reported, so what the command leaves alone stays reportable
 - **AND** for a record artifact (a retrospective, a load-test record, or a process-defect record), a later round raising
@@ -1904,8 +1904,12 @@ continuity violation rather than as a permitted replacement.
 #### Scenario: A stalled reviewer is replaced from a recorded handover
 
 - **WHEN** a reviewer invocation has not responded by the deadline the caller's policy supplies
-- **THEN** the caller records the failure as `stopped-responding`, naming the stalled session's identifier and its
-  replacement's, and creates the replacement session only after that record
+- **THEN** for a unit whose first round is dated on or after `2026-11-09` the caller records each invocation in the
+  register — the stalled attempt's row when the deadline passes, before the replacement starts, and the replacement's
+  row when its own report arrives with the reason `stopped-responding` — and for a pre-retirement unit the attempt
+  evidence stays in the round's hand-over and the ledger keeps its single row for the completed round, carrying that
+  round's final session and the replacement's reason; repeated stalled attempts are recorded the same way, and every
+  attempt's context remains in the hand-over
 - **AND** the only cases that justify a replacement are: a session that expired, a reviewer's definition that changed
   after the session began, a reviewer that stopped responding mid-round (the loop has observed a session stall with no
   reply, which no wait resolves), or a reviewer session the unit's new main session cannot continue; a recorded
@@ -1963,8 +1967,9 @@ continuity violation rather than as a permitted replacement.
 - **WHEN** a quick-review round's report arrives
 - **THEN** the caller writes its finding instances to `docs/units/<unit>/findings/round-<N>.md`, one entry per finding
   with its class, its location, and its claim, in the reviewer's order
-- **AND** the round's `rounds.tsv` row keeps its fixed fields, so the instances live beside the record rather than
-  inside it, and the record format stays as `showcase/quality/commit-hygiene` states it
+- **AND** the round's row keeps the loop's outcome fields, and a pre-retirement unit's keeps its session fields too, so
+  the instances live beside the record rather than inside it, and each record's format stays as
+  `showcase/quality/commit-hygiene` states it
 - **AND** the review gate's hand-over and a resumed unit's checkpoint read that store, so an instance is not carried
   only in a checkpoint field
 - **AND** a round recorded before the store existed falls back to the checkpoint or the hand-over, and a unit holding
@@ -1975,8 +1980,9 @@ continuity violation rather than as a permitted replacement.
 The repository SHALL make one routing decision per unit before any deep-review session is created, resolving to
 `REQUIRED`, `RECOMMENDED`, or `NOT_NEEDED`, and SHALL run the `review-thorough` subagent on an outcome that selects it.
 The decision's deterministic floor is `scripts/review-routing.py`'s; the pass's procedure and hand-over are
-`/review-thorough`'s; the reviewer's dimensions, evidence, and grouping are its definition's; the routed pass's status
-is recorded on the change's review task.
+`/review-thorough`'s; the reviewer's dimensions, evidence, and grouping are its definition's; the routing decision and
+the routed pass's status are recorded on the unit's deep-review record (`docs/units/<unit>/deep-review.md`), whose
+format `/review-thorough` owns, while the change's review task carries the planned obligation and a pointer to it.
 
 #### Scenario: Thorough review is available on demand
 
@@ -2022,6 +2028,8 @@ is recorded on the change's review task.
 - **AND** the rationale is that such a unit ships no behavior to converge on, so a repeated class is not by itself
   evidence of an unreviewed defect
 - **AND** the decision is reassessed only when material new evidence changes the risk
+- **AND** the decision and the signals it relied on are recorded in the unit's deep-review record, including a
+  `NOT_NEEDED` outcome
 
 #### Scenario: A missing or failed routing decision cannot skip mandatory review
 
@@ -2033,7 +2041,8 @@ is recorded on the change's review task.
 
 - **WHEN** the routing decision resolves to `NOT_NEEDED`
 - **THEN** no deep-review session is created, no hand-over is prepared, and no expensive-model invocation is made, while
-  the mandatory quick review, the tests, and the manual approval still run
+  the mandatory quick review, the tests, and the manual approval still run, and the unit's deep-review record states the
+  `NOT_NEEDED` outcome and its signals
 
 #### Scenario: A routed deep review runs in its own session with a task-relevant hand-over
 
@@ -2073,8 +2082,29 @@ is recorded on the change's review task.
   description, and location mapping, and its status is distinguished as `OPEN`, `FIXED_AND_VERIFIED`, `REJECTED` with
   the evidence for the rejection, or `ACCEPTED` only by an explicit owner decision recorded with the reason and what it
   accepts
-- **AND** the status has one authoritative record rather than a copy in several artifacts, and the quick loop's round
-  ledger stays its own record, so a deep pass does not change the population the loop's trend is read from
+- **AND** the status has one authoritative record, the unit's deep-review record, rather than a copy in several
+  artifacts, and the quick loop's round ledger stays its own record, so a deep pass does not change the population the
+  loop's trend is read from
+
+#### Scenario: The deep-review record is the unit's, with or without a change directory
+
+- **WHEN** a unit needs a routing decision or a deep-review pass
+- **THEN** the decision and each pass's findings and statuses are recorded at `docs/units/<unit>/deep-review.md`,
+  whether or not the unit carries a change directory, and the change's review task or the pull-request checklist carries
+  the planned obligation and a pointer to it rather than the statuses themselves
+
+#### Scenario: Full passes, targeted verifications, and failed attempts are distinguished
+
+- **WHEN** a deep-review invocation is recorded
+- **THEN** the record states whether it was a full pass, a targeted verification, or a failed attempt, and the pass
+  budget counts full passes only, never the record's rows
+
+#### Scenario: An earlier unit's deep-review record stays where it was recorded
+
+- **WHEN** a unit carried a deep pass before this record's activation
+- **THEN** its change-task record stands as recorded, and a unit without a prior pass records in its unit file even when
+  its quick rounds began earlier; an earlier routing-only record is linked from the new record rather than copied, and a
+  missing historical record is unrecovered context rather than proof that no pass occurred
 
 #### Scenario: Deep review exhausts a class it raises
 
@@ -3246,8 +3276,9 @@ section that publishes the model.
 A unit's registered invocations — the deep review's, and a consultation the unit binds to itself — SHALL each resolve a
 session from the unit's agent-session record, continue it by its recorded identifier while the main session that
 recorded it runs, and replace it only on an evidenced reason. The registered agents are `review-thorough` and
-`technical-advisor`. The quick reviewer's session SHALL NOT be registered here: its continuity and its replacement
-reasons are the review-round record's.
+`technical-advisor` for a unit whose first round predates `2026-11-09`; for a unit whose first round is dated on or
+after it, those agents and `review-quick`. A unit whose first round predates it SHALL NOT record the quick reviewer
+here: its continuity is that record's.
 
 A forced replacement — an expired session, an unresponsive one, or a main session that cannot continue the child — SHALL
 be recorded with its reason and reported to the owner. A discretionary one — a definition that changed after the session
@@ -3289,11 +3320,13 @@ the invocation, the row after it.
 ### Requirement: A registered invocation's hand-over is written before it is awaited
 
 A registered invocation SHALL write its hand-over section at `docs/units/<unit>/review-handover.md` before the
-invocation is awaited, so a stall or a replacement costs a wait rather than the work the section holds. The section
-SHALL carry the fields the invocation's own command declares for its hand-over, plus the agent, the scope, the opinion,
-the expected session identifier, and — for a discretionary replacement — the owner's approval, and SHALL NOT restate
-those fields as a second list. Its heading SHALL begin with the slug the agent-session row records, so the row and the
-section resolve to each other.
+invocation is awaited, so a stall or a replacement costs a wait rather than the work the section holds. A quick row's
+section is the round's `## Round <N>` heading, which the hand-over check already requires before the delegation. The
+section SHALL carry the fields the invocation's own command declares for its hand-over, plus the agent, the scope, the
+opinion, the expected session identifier, and — for a discretionary replacement — the owner's approval, and SHALL NOT
+restate those fields as a second list. A non-quick row's heading SHALL begin with the slug the agent-session row
+records, so the row and the section resolve to each other; a quick row's slug is `round-<round>` and resolves to the
+round's `Round <N>` heading.
 
 A registered invocation that ran before this requirement existed in the unit whose change introduced the mechanism SHALL
 have its section written from its reports, and the section SHALL state that it was written after the invocation. An
@@ -3361,3 +3394,70 @@ authorization.
 
 - **WHEN** the resumed stage would consult the technical advisor
 - **THEN** the consultation still requires the owner's authorization, and the recorded session does not supply it
+
+### Requirement: A session's title names the unit it works on
+
+A session that works on a unit SHALL carry that unit's name as its title once the unit is established.
+
+The name SHALL be the unit's record directory name, alone, with no prefix, stage, or status marker.
+
+The title SHALL be synchronized when a unit becomes the session's current unit: at Begin once the unit's workspace and
+record exist and its applicable claim step has run — a change-named branch may omit the claim — and at Resume once the
+unit is verified and any writer handover or migration is done.
+
+The title SHALL be updated when a later unit becomes the session's current unit, including when the session worked on a
+different unit before.
+
+An attachment that does not resolve SHALL leave the session's title unchanged.
+
+A session that is not working on a unit SHALL NOT be renamed: tangential discussion, a consultation, a review, and a
+delegate's session keep their titles.
+
+A pause or a settlement SHALL keep the last title.
+
+A rename that fails SHALL be reported and SHALL NOT block the unit's work.
+
+An explicit instruction from the owner to keep a particular title SHALL override this requirement.
+
+`AGENTS.md`'s Workspace rules point at this requirement, and the `begin-unit` and `pause-resume-unit` skills run the
+steps.
+
+#### Scenario: Begin names a fresh session after the unit
+
+- **WHEN** a unit is begun in a session, its workspace and record are established, and its applicable claim step has run
+- **THEN** the session's title is the unit's record directory name
+
+#### Scenario: Begin renames a session that worked on another unit
+
+- **WHEN** a session that previously worked on another unit begins a new unit
+- **THEN** the session's title becomes the new unit's name
+
+#### Scenario: Resume names the session after the resumed unit
+
+- **WHEN** an unfinished unit is resumed, verified, and any writer handover or migration is done
+- **THEN** the session's title is the resumed unit's name
+
+#### Scenario: An unresolved attachment leaves the title alone
+
+- **WHEN** a resume stops at selection, verification, or a required handover
+- **THEN** the session's title is unchanged
+
+#### Scenario: A session outside a unit is not renamed
+
+- **WHEN** the session handles tangential discussion, a consultation, a review, or a delegate's task
+- **THEN** its title is unchanged
+
+#### Scenario: A pause and a settlement keep the last title
+
+- **WHEN** a unit is paused or settled
+- **THEN** the session keeps the title of the unit it last established
+
+#### Scenario: A failed rename is reported and does not block
+
+- **WHEN** the rename cannot be performed or its readback does not match
+- **THEN** the failure is reported and the unit's work continues
+
+#### Scenario: The owner's preference overrides the convention
+
+- **WHEN** the owner asks for a particular title to be kept
+- **THEN** the automatic convention does not replace it

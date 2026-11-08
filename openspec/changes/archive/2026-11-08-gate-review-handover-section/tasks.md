@@ -44,12 +44,12 @@ The unit record — its `Workspace:`, state, and pause checkpoint — is `docs/u
       on `[requirement-block-added]` for the delta. Deep-review pass 1 (session `ses_e474f80fcffezjtWW97dpdXLyW`,
       recorded as `deep-1`) reported `nothing remains`, so no fix-verification pass was owed and no finding carries a
       status.
-- [ ] 3.4 Ask the owner for the manual review pass and end the turn there.
+- [x] 3.4 Ask the owner for the manual review pass and end the turn there.
 - [x] 3.5 Write `docs/units/gate-review-handover-section/process-defects.md`, or state that none was observed.
 
 ## 4. Archive
 
-- [ ] 4.1 Refresh the `showcase/quality/commit-hygiene` Purpose in the archive commit — it enumerates the checks and now
+- [x] 4.1 Refresh the `showcase/quality/commit-hygiene` Purpose in the archive commit — it enumerates the checks and now
       gains this one — and tick this task in the archived `tasks.md`.
-- [ ] 4.2 Run `openspec archive gate-review-handover-section --yes` and stage both the change-dir move and the
+- [x] 4.2 Run `openspec archive gate-review-handover-section --yes` and stage both the change-dir move and the
       `openspec/specs/**` sync.

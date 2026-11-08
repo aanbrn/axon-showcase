@@ -3,7 +3,7 @@
 Workspace:
 `unit=gate-review-handover-section; path=/Users/afanasyev/Development/axon-showcase; branch=gate-review-handover-section; writer=ses_e4960ba02ffeSVwO2K6w3UICYO`
 
-State: active
+State: closed
 
 A change unit: its planning artifacts live under `openspec/changes/gate-review-handover-section/`.
 

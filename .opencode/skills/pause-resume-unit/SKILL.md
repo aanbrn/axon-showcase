@@ -114,22 +114,25 @@ pause, and it blocks the automatic choice until the unit mints its record.
    verify the tree, establish the handover, write `docs/units/<unit>/unit.md`, carry its checkpoint across unchanged,
    remove the fields from `tasks.md` leaving the reference, and verify both sides with no second live record. A resume
    that stops before the handover migrates nothing.
-7. Reclassify the resumed work's decisions and state the `Packs:` line, per `AGENTS.md`'s subject-pack table.
-8. Read the records the stage needs: the review rounds in the review ledger the bindings declare, the agent-session
+7. Set the session's title to the unit's record directory name with `opencode_session_rename` on the current main
+   session, then read the title back: an explicit owner instruction to keep a different title is honoured; a failed
+   rename or a readback that does not match is reported and does not block the work.
+8. Reclassify the resumed work's decisions and state the `Packs:` line, per `AGENTS.md`'s subject-pack table.
+9. Read the records the stage needs: the review rounds in the review ledger the bindings declare, the agent-session
    register's rows the checkpoint names, the change dir's artifacts, and the finding instances the checkpoint preserves
    from the prior round's report.
-9. For each operation the record lists as in flight — or one the live state shows as interrupted — establish its outcome
-   before relying on it or re-running it.
-10. Continue the recorded sessions only when the stage's next step warrants the invocation, and only from the main
+10. For each operation the record lists as in flight — or one the live state shows as interrupted — establish its
+    outcome before relying on it or re-running it.
+11. Continue the recorded sessions only when the stage's next step warrants the invocation, and only from the main
     session that recorded each row: equal, continue it by the recorded identifier and verify the identifier the
     invocation returns; different, start the replacement from the recorded hand-over and record its
     `parent-session-changed` row when the outcome is known, without attempting the refused continuation. An unresolved
     operation's outcome is established before any invocation, and a consultation still needs the owner's authorization.
-11. Restore what the unit was waiting on: a decision the owner has not answered stays open, and an answer the request
+12. Restore what the unit was waiting on: a decision the owner has not answered stays open, and an answer the request
     carries is applied rather than asked for again.
-12. Set the record's `State:` line to `active` only at the point the work continues, after the verification and the
+13. Set the record's `State:` line to `active` only at the point the work continues, after the verification and the
     handover; the checkpoint is frozen there as the pause's snapshot, and a later pause replaces it.
-13. Continue at the recorded next step, or end the turn with the question the unit is waiting on.
+14. Continue at the recorded next step, or end the turn with the question the unit is waiting on.
 
 **Decision points**
 
@@ -149,6 +152,8 @@ pause, and it blocks the automatic choice until the unit mints its record.
 - A resume does not lift an approval its continuation request does not answer.
 - A bare resume request is neither a writer confirmation nor an answer to a pending decision.
 - A closed record with no tree assigning it is not reopened.
+- An unresolved attachment leaves the title unchanged: a stop at selection, verification, or a required handover renames
+  nothing.
 
 **Failure handling**
 
@@ -169,5 +174,6 @@ the tree, and no delivery state changed.
 
 A resume is complete when the unit is established; the state has been verified; the writer handover is established,
 already held because this session is the recorded writer, or asked of the owner; a legacy record is migrated or the
-resume stopped before the handover; the packs are reloaded; and the work has continued with the record `active`, or the
-unit's question is back with the owner.
+resume stopped before the handover; the session's title is the unit's name, the owner's explicit title preference was
+honoured, or the rename's failure is reported; the packs are reloaded; and the work has continued with the record
+`active`, or the unit's question is back with the owner.

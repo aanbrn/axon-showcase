@@ -405,6 +405,9 @@ stops Begin: report it rather than reconstructing the procedure here.
   checkout the IDE project is attached to.
 - The session's cwd follows the workspace: after a creation or a `session_move`, verify the absolute path and branch
   before writing. `git worktree list --porcelain` is the registry; a directory name is a hint, never the identification.
+- **A session's title names the unit it is working on.** The `begin-unit` and `pause-resume-unit` steps set it when they
+  establish a unit; the outcome and its conditions are `showcase/quality/agent-skills`'s requirement "A session's title
+  names the unit it works on".
 - **Pause and resume are the skill's procedure.** Before pausing a unit — the owner announced it, the agent judges it
   cannot reliably continue the unit in this session, or one was left unfinished, whether or not a pause was announced —
   load `.opencode/skills/pause-resume-unit/SKILL.md`, which owns the pause's `Resume checkpoint` and the resume's

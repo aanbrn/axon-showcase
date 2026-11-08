@@ -3,7 +3,7 @@
 Workspace:
 `unit=select-the-installed-idea-config; path=/Users/afanasyev/Development/axon-showcase; branch=select-the-installed-idea-config; writer=ses_e4add21daffe0vW0OISMmtQS3i`
 
-State: active
+State: closed
 
 A change unit: its planning artifacts live under `openspec/changes/select-the-installed-idea-config/`.
 

@@ -66,12 +66,12 @@ The unit's record is `docs/units/select-the-installed-idea-config/unit.md`.
 - [x] 3.2 Run the implementation quick review and fix every finding until it reports no new observations.
 - [x] 3.3 Derive the routing decision with `python3 scripts/review-routing.py`, record it and the pass's result in
       `docs/units/select-the-installed-idea-config/deep-review.md`, and run the pass it selects.
-- [ ] 3.4 Ask the owner for the manual review pass and end the turn there.
+- [x] 3.4 Ask the owner for the manual review pass and end the turn there.
 - [x] 3.5 Write `docs/units/select-the-installed-idea-config/process-defects.md`, or state that none was observed.
 
 ## 4. Archive
 
 - [x] 4.1 Refresh the `showcase/quality/ide-config` Purpose if the change falsifies it, and tick this task in the
       archived `tasks.md`.
-- [ ] 4.2 Run `openspec archive select-the-installed-idea-config --yes` and stage both the change-dir move and the
+- [x] 4.2 Run `openspec archive select-the-installed-idea-config --yes` and stage both the change-dir move and the
       `openspec/specs/**` sync.

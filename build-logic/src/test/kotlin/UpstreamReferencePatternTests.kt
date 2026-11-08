@@ -47,4 +47,27 @@ class UpstreamReferencePatternTests {
         assertThat(extract("both Fission-AI/OpenSpec#1891 and Fission-AI/OpenSpec#1892 apply"))
             .containsExactly("Fission-AI/OpenSpec#1891", "Fission-AI/OpenSpec#1892")
     }
+
+    @Test
+    @DisplayName("A local record anchor is not extracted as an upstream reference")
+    fun localRecordAnchorIsNotExtracted() {
+        val line =
+            "docs/units/bump-kps-chart-2026-11-01/process-defects.md#2, " +
+                "docs/units/record-approval-scope-defect/process-defects.md#6, and " +
+                "docs/units/split-the-review-ledger/process-defects.md#3"
+
+        assertThat(extract(line)).isEmpty()
+    }
+
+    @Test
+    @DisplayName("A reference used as a path tail is not extracted")
+    fun pathTailReferenceIsNotExtracted() {
+        assertThat(extract("the clone at vendor/anomalyco/opencode#50247")).isEmpty()
+    }
+
+    @Test
+    @DisplayName("A reference adjacent to punctuation is still extracted")
+    fun punctuationAdjacentReferenceIsExtracted() {
+        assertThat(extract("(`anomalyco/opencode#50247`)")).containsExactly("anomalyco/opencode#50247")
+    }
 }

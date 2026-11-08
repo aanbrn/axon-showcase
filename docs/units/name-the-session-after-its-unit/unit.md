@@ -3,7 +3,7 @@
 Workspace:
 `unit=name-the-session-after-its-unit; path=/Users/afanasyev/Development/axon-showcase-name-the-session-after-its-unit; branch=name-the-session-after-its-unit; writer=ses_e4960ba02ffeSVwO2K6w3UICYO`
 
-State: active
+State: closed
 
 A change unit: its planning artifacts live under `openspec/changes/name-the-session-after-its-unit/`.
 

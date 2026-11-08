@@ -48,7 +48,7 @@ The unit record — its `Workspace:`, state, and pause checkpoint — is
 
 ## 3. Review gate
 
-- [ ] 3.1 Run the proposal quick review and fix every finding until it reports no new observations.
+- [x] 3.1 Run the proposal quick review and fix every finding until it reports no new observations.
 - [x] 3.2 Run the implementation quick review and fix every finding until it reports no new observations.
 - [x] 3.3 Derive the routing decision with `python3 scripts/review-routing.py`, record it, and run any selected deep
       review through the normal procedure. - **Done** —
@@ -56,12 +56,15 @@ The unit record — its `Workspace:`, state, and pause checkpoint — is
       `REQUIRED` on `[requirement-block-added]` for the delta. Deep-review pass 1 (session
       `ses_e45b28fb8ffeao3f5E1jtYBFca`, recorded as `deep-1`) reported 0 findings, so no fix-verification pass was owed
       and no finding carries a status.
-- [ ] 3.4 Ask the owner for the manual review pass and end the turn there.
+- [x] 3.4 Ask the owner for the manual review pass and end the turn there.
 - [x] 3.5 Write `docs/units/name-the-session-after-its-unit/process-defects.md`, or state that none was observed.
 
 ## 4. Archive
 
-- [ ] 4.1 Refresh the `showcase/quality/agent-skills` Purpose in the archive commit if this requirement falsifies it,
+- [x] 4.1 Refresh the `showcase/quality/agent-skills` Purpose in the archive commit if this requirement falsifies it,
       and tick this task in the archived `tasks.md`.
-- [ ] 4.2 Run `openspec archive name-the-session-after-its-unit --yes` and stage both the change-dir move and the
+      - **Done** — the Purpose inventories the capability's components (skill sets, procedures, the lifecycle,
+        the standards and contracts, the subagents, the commands, MCP recovery) and states no behaviour this
+        requirement contradicts, so no refresh is owed.
+- [x] 4.2 Run `openspec archive name-the-session-after-its-unit --yes` and stage both the change-dir move and the
       `openspec/specs/**` sync.

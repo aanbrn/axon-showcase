@@ -157,7 +157,7 @@ coordinates keep the leading-integer major comparison.
   add-a-markdown-table-integrity-check captured: bump-dependencies-2026-11-01
 
 - **IF a Gradle run under `--warning-mode all` emits a gradle-helm-plugin deprecation or a `Configuration.visible`
-  warning, THEN treat it as upstream and leave it: there is no repo-side fix.** gradle-helm-plugin 3.3.0 still calls the
+  warning, THEN treat it as upstream and leave it: there is no repo-side fix.** gradle-helm-plugin 3.3.1 still calls the
   deprecated `Project.getProperties()` (a hard error in Gradle 10), from its
   `HelmPlugin.createRepositoriesFromProjectProperties` once per helm project, and only on a run whose
   configuration-cache entry is not reused (so probe with `--no-configuration-cache`;

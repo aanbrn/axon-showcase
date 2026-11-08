@@ -178,18 +178,24 @@ half. Do not hard-code a machine-specific local context name (like `colima`) in 
 
 **Chart validation**: the chart is linted as part of packaging (`helmPackageMainChart` → `helmLintMainChart`), and
 `check` depends on that packaging — the members the `helm-chart` requirement names — so a chart that cannot bundle its
-declared dependency fails the pull request rather than only in the nightly deployment smoke's install. The Bitnami
-`common` dependency is fetched by the repository's `FetchChartDependenciesTask`, registered as
-`fetchMainChartDependencies` in `helm/chart/build.gradle.kts`: it registers and refreshes the chart's repository and
-runs `helm dependency update`, retrying each network step a bounded number of times. The plugin's
-`helmUpdateMainChartDependencies` is a disabled bridge the packaging tasks still depend on, so its cache-dependent skip
-and the `setOnlyIf { true }` workaround it needed no longer apply; both are recorded in `docs/ideas.md`. When the
-dependency is missing, the strict lint reports "chart directory is missing these dependencies: common" and the install
-reports "found in Chart.yaml, but missing in charts/ directory: common". The chart module's packaging path registers and
-refreshes only the Bitnami repository — its sole dependency — while the root project's release-install path keeps every
-declared repository; the chart publication runs this same packaging, and `verifyInfraImageVersions` derives its
-repositories from the charts its checks name. Lint runs strict (warnings are errors) and lints the Bitnami `common`
-subchart, rendering two extra value sets:
+declared dependency fails the pull request rather than only in the nightly deployment smoke's install.
+
+- **The dependency fetch is the plugin's `helmUpdateMainChartDependencies`**, which depends on the chart module's
+  `helmAddBitnamiRepository` and `helmUpdateRepositories`.
+- **The retry is explicit**: the add, the update and the dependency fetch each carry `attempts = 3` and a two-second
+  `retryDelay`.
+- **The update is scoped to Bitnami** through `repositoryNames` and `extraArgs`.
+- **The update refreshes on every run**: `repositoryCacheTtl = Duration.ZERO`, since a chart bumped inside the default
+  hour would be missing from the cached index.
+- **The packaging registers only the chart's sole repository**: the chart module disables the other three add tasks. The
+  root project's release-install path keeps every declared one, the chart publication runs this same packaging, and
+  `verifyInfraImageVersions` derives its repositories from the charts its checks name.
+- **The configuration-cache skip is fixed in plugin 3.3.0**, which reads the chart model at execution instead of a
+  provider the cache entry carries.
+- **A missing dependency is reported by both gates**: the strict lint reports "chart directory is missing these
+  dependencies: common" and the install reports "found in Chart.yaml, but missing in charts/ directory: common".
+
+Lint runs strict (warnings are errors) and lints the Bitnami `common` subchart, rendering two extra value sets:
 
 ```bash
 ./gradlew :helm:chart:helmLintMainChartFull :helm:chart:helmLintMainChartMinimal
@@ -488,17 +494,22 @@ migration, not an automatic update. The observability charts (kps, tempo) carry 
 surface as actionable; verify them with a live install + smoke test (pods ready, Prometheus targets up, Grafana
 datasources wired), since `verifyInfraImageVersions` covers only the bitnami infra charts.
 
-- **The install path's repository setup retries the per-repository add/update pair — a repository that stays unreachable
-  still fails the install.** The release-install targets depend on the plugin's `helmUpdateRepositories`, now a disabled
-  bridge to the root `updateHelmRepositories` task (`UpdateHelmRepositoriesTask`, built on
-  `AbstractHelmRepositoriesTask`), with the plugin's own `helmAdd*` and `helmUpdateRepositories` tasks disabled: the
-  add/update pair per repository runs inside `BoundedRetry` (three attempts, a two-second pause, a warning per retry),
-  while `verifyInfraImageVersions` also retries each chart's `helm show values` fetch. A failure that survives the
-  attempts still fails the build, so a real version gap is still reported — confirm the repository's `index.yaml`
-  answers a `curl` before re-resolving or reverting the chart version, since the manual retry this rule came from
-  succeeded while `curl` reached the same index. Replacing the workaround with retries in the plugin's own tasks stays
-  parked in `docs/ideas.md` (2026-10-17) and reported upstream at `build-extensions-oss/gradle-helm-plugin#238`.
-  captured: bump-kps-chart-2026-10-25 captured: retry-install-path-fetches
+- **The install path's repository setup is the plugin's retried, scoped fetch — a repository that stays unreachable
+  still fails the install.** The release-install targets depend on the plugin's `helmUpdateRepositories`.
+  - Its `helmAdd*` and update tasks carry `attempts = 3` and a two-second `retryDelay`; the plugin's retry is opt-in and
+    defaults to one attempt.
+  - `extraArgs` scopes the executed `helm repo update` to the declared repositories; `repositoryNames` reaches only the
+    task's skip and up-to-date checks.
+  - `repositoryCacheTtl = Duration.ZERO` keeps every run refreshing, since a chart bumped inside the default hour would
+    be missing from the cached index.
+  - `verifyInfraImageVersions` keeps its own retry for each chart's `helm show values` fetch.
+  - The per-download timeout stays Helm's two-minute default, parked in `docs/ideas.md` (2026-11-09).
+  - The two API papercuts are reported on `build-extensions-oss/gradle-helm-plugin#238`. captured:
+    adopt-plugin-retried-fetches
+- **A fetch that survives the attempts still fails the build, so a real version gap is still reported.** Confirm the
+  repository's `index.yaml` answers a `curl` before re-resolving or reverting the chart version, since the manual retry
+  this rule came from succeeded while `curl` reached the same index. captured: bump-kps-chart-2026-10-25 captured:
+  retry-install-path-fetches
 
 ## DB scripts
 

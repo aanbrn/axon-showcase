@@ -1,0 +1,3 @@
+- [contradiction] `tasks.md:61-63` — task 3.2 still writes the withdrawn "affected by the same advisories" broker claim.
+- [incomplete-enumeration] `proposal.md:7-9` — the `## Why` probe parenthetical omits the gateway e2e run.
+- [over-claim] `proposal.md:56` — "The scan goes green" asserts the credentialed scan's outcome before it runs.

@@ -1,0 +1,12 @@
+2026-11-09	address-kafka-client-advisories	1	missing-task,claim-unreproducible,claim-missing,stale-base,formatting	-	5
+2026-11-09	address-kafka-client-advisories	2	contradiction,record-shape	-	3
+2026-11-09	address-kafka-client-advisories	3	impact-omission	-	1
+2026-11-09	address-kafka-client-advisories	4	-	-	0
+2026-11-09	address-kafka-client-advisories	5	contradiction,incomplete-enumeration,over-claim	contradiction	3
+2026-11-09	address-kafka-client-advisories	6	-	-	0
+2026-11-09	address-kafka-client-advisories	7	-	-	0
+2026-11-09	address-kafka-client-advisories	8	missing-task,wording	missing-task	2
+2026-11-09	address-kafka-client-advisories	9	-	-	0
+2026-11-09	address-kafka-client-advisories	10	single-sourcing	-	1
+2026-11-09	address-kafka-client-advisories	11	-	-	0
+2026-11-09	address-kafka-client-advisories	12	-	-	0

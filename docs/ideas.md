@@ -34,6 +34,13 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   a failure on a slow index and its own `extraArgs --timeout 15m` workaround, but neither the index size nor the flag's
   availability establishes a justified budget. Reopen with a measured run of a slow download and the budget that run
   needs.
+- Re-assess the deployed Kafka broker against the 2026-11-07 advisories (`SNYK-JAVA-ORGAPACHEKAFKA-22150240`,
+  `SNYK-JAVA-ORGAPACHEKAFKA-22150295`) — parked; no change yet. The broker image is `kafka-image-tag = "3.9.0"`, which
+  is inside both advisories' affected ranges, and the newest Bitnami `kafka` chart (`32.4.3`) packages Kafka `4.0.0`,
+  also inside them, so no maintained chart clears it today. The client-side fix ships as
+  `address-kafka-client-advisories` (ADR-0031); the deployment's actual exposure was not assessed. Reopen when a
+  maintained Bitnami `kafka` chart or a pinned Kafka image tags `4.2.2` or newer, then bump the image and the chart
+  together.
 
 ## 2026-11-08
 

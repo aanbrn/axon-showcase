@@ -25,6 +25,16 @@ its existing section, since the day-section rule otherwise files a re-park as a 
 detail across two sections. Removing a section's last entry removes its heading too: an empty `## YYYY-MM-DD` section is
 not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the build on one.
 
+## 2026-11-09
+
+- Set a per-download timeout on every Helm repository fetch — parked; no change yet. `adopt-plugin-retried-fetches`
+  moves both fetch paths to the plugin's tasks, whose `repo update` and `repo add` run at Helm 4.3.1's two-minute
+  per-index default (`repoUpdateTimeout` is unset and the add task has no timeout property), and the shared helper's two
+  remaining callers keep the same default. The upstream report at `build-extensions-oss/gradle-helm-plugin#238` records
+  a failure on a slow index and its own `extraArgs --timeout 15m` workaround, but neither the index size nor the flag's
+  availability establishes a justified budget. Reopen with a measured run of a slow download and the budget that run
+  needs.
+
 ## 2026-11-08
 
 - Let the pre-commit guard admit a follow-up's edit of another unit's closed record — parked; no change yet. The guard's
@@ -125,13 +135,6 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   appending a reminder to the latest user message while the earlier prefix stays cacheable.
 
 ## 2026-10-27
-
-- Fix the gradle-helm-plugin's `failIfExists` repository-add option — parked; reported upstream at
-  `build-extensions-oss/gradle-helm-plugin#238`, and merged as `build-extensions-oss/gradle-helm-plugin#241` on
-  2026-11-07. The option emits `helm repo add --no-update`; the pinned Helm 4.3.1 rejects that flag
-  (`unknown flag: --no-update`), and Helm 3 declares it `Ignored.`, so the option cannot work with any client the plugin
-  supports. The proposal reads the registered repositories and fails the task instead. The build does not set the
-  option.
 
 - Read a changed procedure's narrative, not only its name — parked; no change yet. When `#706` added the branch-refresh
   step and `#707` added the base check, the README's manual-review paragraph kept saying only that the agent stages the
@@ -549,32 +552,6 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
   all four lists by hand, while `ci.yml`'s probe is shape-only. A check in the `allPropertiesHaveDocumentedDefaults`
   shape asserting a declared list of cross-artifact clauses appears verbatim in each artifact's `rules`, which the CLI
   returns byte-identical across `proposal`/`design`/`tasks`.
-
-## 2026-10-17
-
-- Replace the chart-packaging and install-path workarounds with the plugin's own retried fetches — parked; both
-  workarounds are in place and the retry merged upstream as `build-extensions-oss/gradle-helm-plugin#240` on 2026-11-07.
-  The gate's repository setup and dependency fetch run through the repository's `FetchChartDependenciesTask`
-  (`helm/chart/build.gradle.kts`) and the release-install path's through the root `UpdateHelmRepositoriesTask`, each
-  retrying its network steps a bounded number of times; the plugin's own `HelmAddRepository`, `HelmUpdateRepositories`
-  and `HelmUpdateDependencies` tasks have no retry and cannot be wrapped. The proposal covers the three fetch tasks and
-  a `repo update` timeout, and it follows issue `build-extensions-oss/gradle-helm-plugin#238`. Retire the install-path
-  workaround when a plugin release carries the retry and this build turns it on (`attempts`), since the proposal
-  defaults to one attempt; retire the chart-packaging workaround on such a release only once the plugin's dependency
-  task also stops skipping under the configuration cache (the 2026-10-16 entry).
-
-## 2026-10-16
-
-- Report the plugin's cache-dependent chart-dependency skip upstream — the build no longer runs the task's fetch; the
-  report stays. The `helmUpdateMainChartDependencies` task (which the plugin's docs equate with
-  `helm dependency update`) silently skips when the **configuration cache** (#581) stores its entry before the chart
-  sources are collected — a clean checkout or CI: its `onlyIf` resolves false there, so nothing fetches the chart's
-  external Bitnami `common` dependency, `helm/chart`'s packaging produces a chart with no `charts/`, and both the strict
-  lint and the deployed install fail. The repository's `FetchChartDependenciesTask` replaced the task in the packaging
-  path, so the workaround below is moot here. Measured on one commit with only the cache toggled: SKIPPED with the cache
-  on, fetches with `--no-configuration-cache`. The workaround was `setOnlyIf { true }` in `helm/chart/build.gradle.kts`
-  and was removed when the task became a disabled bridge; `build-extensions-oss/gradle-helm-plugin` has issues enabled
-  (`has_issues: true`, `has_discussions: false`), so a fix belongs there as an issue or a pull request.
 
 ## 2026-10-15
 

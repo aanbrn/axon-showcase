@@ -1,3 +1,5 @@
+import io.github.build.extensions.oss.gradle.plugins.helm.command.tasks.HelmAddRepository
+import io.github.build.extensions.oss.gradle.plugins.helm.command.tasks.HelmUpdateRepositories
 import io.github.build.extensions.oss.gradle.plugins.helm.dsl.HelmRepository
 import io.github.build.extensions.oss.gradle.plugins.helm.release.dsl.HelmRelease
 import java.time.Duration
@@ -567,7 +569,7 @@ listOf("Recreate", "RollingUpdate").forEach { strategy ->
             "--client-version",
             helmClientVersion,
         )
-        dependsOn(":helm:chart:fetchMainChartDependencies")
+        dependsOn(":helm:chart:helmUpdateMainChartDependencies")
     }
 }
 
@@ -1160,26 +1162,17 @@ helm {
     }
 }
 
-// The release install tasks depend on the plugin's repository update; run the repository setup through a task that
-// retries the per-repository add/update pair, and keep the plugin's task as a disabled bridge so every install target
-// keeps one entry point.
-val updateHelmRepositories =
-    tasks.register<UpdateHelmRepositoriesTask>("updateHelmRepositories") {
-        description = "Registers and refreshes the releases' Helm repositories, retrying each add/update pair"
-        repos.set(helmRepoUrls)
-    }
+// The release install tasks depend on the plugin's repository update. Its retry is opt-in, and `extraArgs` scopes the
+// executed `helm repo update` to the repositories this build declares, which `repositoryNames` alone does not do.
+tasks.withType<HelmAddRepository>().configureEach {
+    attempts.set(3)
+    retryDelay.set(Duration.ofSeconds(2))
+}
 
-tasks.named("helmAddBitnamiRepository") { enabled = false }
-
-tasks.named("helmAddGrafanaRepository") { enabled = false }
-
-tasks.named("helmAddPrometheusCommunityRepository") { enabled = false }
-
-tasks.named("helmAddIngressNginxRepository") { enabled = false }
-
-tasks.named("helmAddRepositories") { enabled = false }
-
-tasks.named("helmUpdateRepositories") {
-    enabled = false
-    dependsOn(updateHelmRepositories)
+tasks.named<HelmUpdateRepositories>("helmUpdateRepositories") {
+    attempts.set(3)
+    retryDelay.set(Duration.ofSeconds(2))
+    repositoryCacheTtl.set(Duration.ZERO)
+    repositoryNames.set(helmRepoUrls.map { it.keys.toList() })
+    extraArgs.addAll(helmRepoUrls.map { it.keys })
 }

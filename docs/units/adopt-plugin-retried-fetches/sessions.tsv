@@ -1,0 +1,9 @@
+2026-11-09	adopt-plugin-retried-fetches	ses_e44c24768ffekZbpH3Gi5YeGvN	technical-advisor	retire-install-path-fetch-workaround	primary	1	-	ses_e42eb5685ffePck39At4LlELtw	created	-	advisor-scope-1	report	1	-
+2026-11-09	adopt-plugin-retried-fetches	ses_e44c24768ffekZbpH3Gi5YeGvN	technical-advisor	retire-install-path-fetch-workaround	primary	2	ses_e42eb5685ffePck39At4LlELtw	ses_e42eb5685ffePck39At4LlELtw	continued	-	advisor-scope-2	report	2	-
+2026-11-09	adopt-plugin-retried-fetches	ses_e44c24768ffekZbpH3Gi5YeGvN	technical-advisor	retire-install-path-fetch-workaround	primary	3	ses_e42eb5685ffePck39At4LlELtw	ses_e42eb5685ffePck39At4LlELtw	continued	-	advisor-scope-3	report	3	-
+2026-11-09	adopt-plugin-retried-fetches	ses_e44c24768ffekZbpH3Gi5YeGvN	technical-advisor	retire-install-path-fetch-workaround	primary	4	ses_e42eb5685ffePck39At4LlELtw	ses_e42eb5685ffePck39At4LlELtw	continued	-	advisor-scope-4	report	4	-
+2026-11-09	adopt-plugin-retried-fetches	ses_e44c24768ffekZbpH3Gi5YeGvN	technical-advisor	retire-install-path-fetch-workaround	primary	5	ses_e42eb5685ffePck39At4LlELtw	ses_e42eb5685ffePck39At4LlELtw	continued	-	advisor-scope-5	report	5	-
+2026-11-09	adopt-plugin-retried-fetches	ses_e44c24768ffekZbpH3Gi5YeGvN	review-thorough	adopt-plugin-retried-fetches	-	1	-	ses_e42b94fa0ffeH4dRdXQjj8578i	created	-	deep-1	report	6	-
+2026-11-09	adopt-plugin-retried-fetches	ses_e44c24768ffekZbpH3Gi5YeGvN	review-thorough	adopt-plugin-retried-fetches	-	2	ses_e42b94fa0ffeH4dRdXQjj8578i	ses_e42b94fa0ffeH4dRdXQjj8578i	continued	-	deep-2	report	7	-
+2026-11-09	adopt-plugin-retried-fetches	ses_e44c24768ffekZbpH3Gi5YeGvN	technical-advisor	implementation-readiness	primary	1	-	ses_e42a9db61ffeMxuNfM1e7LtVYh	created	-	advisor-impl-1	report	8	-
+2026-11-09	adopt-plugin-retried-fetches	ses_e44c24768ffekZbpH3Gi5YeGvN	technical-advisor	implementation-readiness	primary	2	ses_e42a9db61ffeMxuNfM1e7LtVYh	ses_e42a9db61ffeMxuNfM1e7LtVYh	continued	-	advisor-impl-2	report	9	-

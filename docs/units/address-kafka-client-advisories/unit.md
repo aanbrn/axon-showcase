@@ -3,7 +3,7 @@
 Workspace:
 `unit=address-kafka-client-advisories; path=/Users/afanasyev/Development/axon-showcase-address-kafka-client-advisories; branch=address-kafka-client-advisories; writer=ses_e42e83c1dffegAuNLdVN2PMr8o`
 
-State: active
+State: closed
 
 The unit addresses the two high-severity `org.apache.kafka:kafka-clients@3.9.2` advisories that failed the 2026-11-07
 `Dependency Security` run: it verifies whether a `kafka-clients` 4.4.0 constraint is viable with the pinned Spring Kafka

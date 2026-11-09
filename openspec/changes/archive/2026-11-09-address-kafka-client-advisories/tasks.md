@@ -46,7 +46,7 @@ Unit record: `docs/units/address-kafka-client-advisories/unit.md`.
 - [x] 2.6 Run the gateway e2e suite against freshly built images: `./gradlew :showcase-api-gateway:e2eTest`; verify it
       passes. This is the only suite that exercises the command-service's Kafka publisher — its integration suites set
       `axon.kafka.publisher.enabled=false` — so the full command → Kafka → projection → query path runs here.
-- [ ] 2.7 Read the Snyk scan result for the change: dispatch `Dependency Security` against the pushed branch
+- [x] 2.7 Read the Snyk scan result for the change: dispatch `Dependency Security` against the pushed branch
       (`gh workflow run dependency-security.yml --ref address-kafka-client-advisories`) and verify its `snyk` job passes
       with no `kafka-clients` finding; if the Snyk plan's monthly quota blocks the run, record that in the change report
       and treat the next scheduled run as the confirmation. Until that run is green, the advisories' clearance is
@@ -66,7 +66,7 @@ Unit record: `docs/units/address-kafka-client-advisories/unit.md`.
 - [x] 3.3 Sweep the live docs that could name the coordinate or the old version — `AGENTS.md`, `README.md`, `docs/`,
       `openspec/config.yaml`, and the subject packs — for `kafka-clients` and `3.9.2`; verify every hit is a historical
       or unrelated statement, or is corrected, and record the sweep's result in the change report.
-- [ ] 3.4 Refresh the `showcase/quality/dependency-security` capability `## Purpose` to name `kafka-clients` among the
+- [x] 3.4 Refresh the `showcase/quality/dependency-security` capability `## Purpose` to name `kafka-clients` among the
       constrained coordinates in the archive commit, since a delta cannot carry a Purpose; verify the archived spec's
       Purpose names it.
 

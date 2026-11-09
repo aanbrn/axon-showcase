@@ -27,6 +27,7 @@ import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Session;
 import io.gatling.javaapi.core.Simulation;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
+import io.gatling.javaapi.http.SseMessageCheck;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
@@ -189,6 +190,16 @@ public class ShowcaseSimulation extends Simulation {
      * Whether the profile's write-lifecycle stream runs for the SSE connection's hold.
      */
     private static final boolean SSE_SUSTAINED_WRITES = !"smoke".equals(PROFILE) && RATIO < 1.0;
+
+    /**
+     * The showcases the deployment smoke published while waiting for the live-event stream, whose replayed events the
+     * SSE checks must not count, so a check measures the events this run produced.
+     */
+    private static final List<String> WARM_UP_SHOWCASE_IDS =
+            List.of(property("warmUpShowcaseIds", "").split(",")).stream()
+                    .map(String::trim)
+                    .filter(id -> !id.isEmpty())
+                    .toList();
 
     /**
      * The baseline reference's resource name.
@@ -413,25 +424,32 @@ public class ShowcaseSimulation extends Simulation {
      */
     private static ScenarioBuilder sseScenario() {
         val stream = scenario("Sse")
-                .exec(sse(SSE_REQUEST)
-                        .get("/events")
-                        .await(SSE_AWAIT)
-                        .on(sse.checkMessage(SSE_CHECK)
-                                .matching(jsonPath("$.data.showcaseId").exists())
-                                .check(jsonPath("$.data.type").exists())));
+                .exec(sse(SSE_REQUEST).get("/events").await(SSE_AWAIT).on(sseMessageCheck(true)));
         ScenarioBuilder held;
         if (SSE_SUSTAINED_WRITES) {
             held = stream.pause(SSE_HALF_HOLD)
-                    .exec(sse(SSE_REQUEST)
-                            .setCheck()
-                            .await(SSE_AWAIT)
-                            .on(sse.checkMessage(SSE_CHECK)
-                                    .matching(jsonPath("$.data.showcaseId").exists())))
+                    .exec(sse(SSE_REQUEST).setCheck().await(SSE_AWAIT).on(sseMessageCheck(false)))
                     .pause(SSE_HALF_HOLD);
         } else {
             held = stream.pause(SSE_HOLD);
         }
         return held.exec(sse(SSE_REQUEST).close());
+    }
+
+    /**
+     * Builds the SSE message check, excluding the warm-up showcases published before the run so their replayed events
+     * cannot satisfy it.
+     *
+     * @param checkType whether to assert the event's type beside matching it
+     * @return the SSE message check
+     */
+    private static SseMessageCheck sseMessageCheck(boolean checkType) {
+        var check = sse.checkMessage(SSE_CHECK)
+                .matching(jsonPath("$.data.showcaseId").exists());
+        for (val warmUpShowcaseId : WARM_UP_SHOWCASE_IDS) {
+            check = check.matching(jsonPath("$.data.showcaseId").not(warmUpShowcaseId));
+        }
+        return checkType ? check.check(jsonPath("$.data.type").exists()) : check;
     }
 
     {

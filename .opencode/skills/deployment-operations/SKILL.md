@@ -222,6 +222,20 @@ web UI image fails fast on that (see the Docker Images note), so the UI pod cras
 turns it into an install timeout — a target inherits nothing from another target's values. captured:
 trim-deployment-smoke-install
 
+**The `ci` values raise the JVM startup-probe budget.** The four JVM services take `timeoutSeconds: 3` and
+`failureThreshold: 20` there — a 63-second budget instead of the chart's 33 — because the runner boots four JVMs
+concurrently and a probe that expires mid-boot restarts a service that was still starting; the chart's default stays the
+one a person's machine uses, and requests and limits are untouched.
+
+**The deployment smoke waits for the live-event stream, and the load excludes what it published.** The gateway's Kafka
+consumer joins its group asynchronously and resets to `latest` when it has no committed offset, so events published
+before that join are never delivered; the smoke's pipeline step publishes a warm-up showcase, waits for `/events` to
+carry a `data:` frame, and passes every published showcase ID to the load as `warmUpShowcaseIds`. The simulation
+excludes those IDs from its SSE checks, because the gateway replays its buffer — the last 100 consumed events — to every
+new subscriber, so without the exclusion a warm-up event would satisfy a check and the assertion would measure the gate
+rather than the load. The step fails with the live-event stage named, and the failed-smoke diagnostics still dump the
+cluster before teardown.
+
 **The `*-client` pod labels belong to the targets that set `allowExternal: false` — keep them in those targets' values,
 never in the chart.** They sit in `helm/values/axon-showcase/values-local.yaml` for the local target and
 `helm/values/axon-showcase/values-ci.yaml` for the deployment smoke's. The labels (`axon-showcase-kafka-client`,

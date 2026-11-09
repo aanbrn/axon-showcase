@@ -1,0 +1,15 @@
+2026-11-09	stabilize-deployment-smoke-startup	1	claim-unreproducible,claim-missing,test-control	-	3
+2026-11-09	stabilize-deployment-smoke-startup	2	-	-	0
+2026-11-09	stabilize-deployment-smoke-startup	3	claim-unreproducible	claim-unreproducible	1
+2026-11-09	stabilize-deployment-smoke-startup	4	claim-unreproducible,formatting	claim-unreproducible	2
+2026-11-09	stabilize-deployment-smoke-startup	5	claim-unreproducible,stale-base	claim-unreproducible	2
+2026-11-09	stabilize-deployment-smoke-startup	6	claim-unreproducible	claim-unreproducible	1
+2026-11-09	stabilize-deployment-smoke-startup	7	-	-	0
+2026-11-09	stabilize-deployment-smoke-startup	8	coherence,stale-base,test-control	stale-base,test-control	3
+2026-11-09	stabilize-deployment-smoke-startup	9	test-control	test-control	1
+2026-11-09	stabilize-deployment-smoke-startup	10	-	-	0
+2026-11-09	stabilize-deployment-smoke-startup	11	stale-base,formatting	stale-base,formatting	2
+2026-11-09	stabilize-deployment-smoke-startup	12	-	-	0
+2026-11-09	stabilize-deployment-smoke-startup	13	test-control,missing-task	test-control	2
+2026-11-09	stabilize-deployment-smoke-startup	14	-	-	0
+2026-11-09	stabilize-deployment-smoke-startup	15	-	-	0

@@ -27,6 +27,17 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
 
 ## 2026-11-09
 
+- Record a consultation's report in the `/consult` procedure — parked; no change yet. The command's step 4 seeds the
+  unit's `review-handover.md` section before the invocation, and its step 7 presents the report and ends the turn, so
+  the seeded section reads as complete while the report survives only in the conversation until a quick round reports
+  `missing-task` (`bump-dependencies-2026-11-09`, round 6, after the advisor had answered). The recording obligation
+  already exists in `review-gate` §2 ("a pass that is not a review round records its findings in the unit's
+  `review-handover.md`"), but the command's own step order never completes the section it created; the same incomplete
+  section appears in `decouple-python-guidance-from-pyenv`'s `advisor-1` and `adopt-plugin-retried-fetches`'s
+  `advisor-scope-1`. Routes to `.opencode/commands/consult.md` (a step that completes the section with the returned
+  recommendation, its findings with classes, and what changed in the plan) and, because the spec describes the command's
+  behaviour, to a `showcase/quality/agent-skills` delta in the same change.
+
 - Make the audit workflow's dispatched run survive the auditor's `/tmp` scratch write — parked; no change yet. The
   tooling-pin bump's dispatch (`#874`) completed its `Install openspec CLI` step under `1.16.1` and then sat in
   `Run the audits` until it was cancelled: the auditor wrote `/tmp/sections.txt`, and the cloud binary asked for
@@ -770,7 +781,7 @@ The audit findings carry-forward work remains parked under the 2026-09-24 sectio
 
 - Revisit ADR-0003's Jackson-3 deferral gate — parked; no change yet. The 2026-10-04 architecture audit reports the
   recorded `Revisit when:` condition ("the pinned `org.axonframework` and the Elasticsearch Java client … resolve
-  Jackson 3") appears substantially met: `elasticsearch-client-java = 9.5.5` declares
+  Jackson 3") appears substantially met: `elasticsearch-client-java = 9.5.6` declares
   `tools.jackson.core:jackson-databind`/`jackson-core` as non-optional runtime dependencies, and
   `axon-framework = 4.13.2` now declares `tools.jackson.core:jackson-databind` as an **optional** dependency — Axon 4.13
   gained Jackson-3 support since the ADR (2026-08-18) characterized it as "targets Jackson 2". Open question: is the

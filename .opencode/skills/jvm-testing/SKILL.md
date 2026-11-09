@@ -152,7 +152,11 @@ run:
   runtime-path library is verified **here**: a same-major release can be binary-incompatible with another pinned library
   while compilation, the unit/component tests, and the Docker-free check all pass — `opensearch-java` `3.9.0`→`3.10.0`
   changed `Hit.matchedQueries()`'s return type, which `spring-data-opensearch` 2.x's `DocumentAdapters.from` calls — so
-  run the full `check` with integration tests before reporting such a bump done. captured: bump-dependencies-2026-09-25
+  run the full `check` with integration tests before reporting such a bump done. State what that run reaches: it
+  resolves the bumped coordinate and boots each service with it, and exercises a code path only where a configuration
+  selects that path — a bumped codec no integration configuration selects is resolved and booted, not exercised, so a
+  claim about its behavior names the configuration that drives it. captured: bump-dependencies-2026-09-25 captured:
+  bump-dependencies-2026-11-09
 - **End-to-end** (`src/e2eTest/java`, suffix `E2E`): a real deployed system is booted and exercised against all-real
   collaborators, transport-independent — HTTP for the gateway's client-facing API, gRPC for the gateway → query-service
   read path, the distributed command bus (JGroups) for the command-service. The gateway e2e boots the full four-service

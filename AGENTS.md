@@ -1185,8 +1185,10 @@ Key modules (libraries, not services):
     - A version sentence that is not a present-tense current value is not retargeted to the bumped version, since that
       re-stales at the next release: de-version an illustrative example (the `2025.0` train, "a later `2025.0.x`"), and
       widen a minimum requirement to `"<old> or newer"`, which a retarget would turn into a claim that the older release
-      was insufficient. captured: bump-dependencies-2026-10-12 captured: bump-dependencies-2026-10-25 captured:
-      bump-dependencies-2026-11-01
+      was insufficient. A row the change does not take carries no release number: a deferred update row names its
+      coordinate and major, never the release the next check re-publishes. A taken row states its current → wanted pair,
+      since the artifact must record the version the change takes. captured: bump-dependencies-2026-10-12 captured:
+      bump-dependencies-2026-10-25 captured: bump-dependencies-2026-11-01 captured: bump-dependencies-2026-11-09
   - **The change's idea**
     - Remove the change's idea from `docs/ideas.md` in this PR, not as a separate docs PR. An idea is removed once
       implemented (captured by a change) or once explored and decided against — the file's header owns where its durable

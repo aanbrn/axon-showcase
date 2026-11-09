@@ -1,0 +1,3 @@
+- [single-sourcing] `proposal.md:18-20` — restates ADR-0031's `Revisit when:` gate, drifted from the ADR's own wording.
+- [single-sourcing] `design.md:62-63` — the same restatement, in the ADR decision section.
+- [single-sourcing] `tasks.md:57-60` — the same restatement, in the task that writes the ADR.

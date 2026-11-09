@@ -120,10 +120,10 @@ still states the old behavior), `structured-writing` (prose that violates the St
 hiding several actionable statements, an implied condition, or the mandatory merged with its rationale),
 `proposal-schema` (the proposal breaks its schema), `concurrency` (a race or unsafe ordering between concurrent
 operations, callbacks, or lifecycle transitions), `stale-base` (the unit's tree is behind origin/main, so its diff
-against that ref deletes or re-adds work the unit did not touch). A finding that fits none of these: the calling agent
-adds a class here, in the same change, so the list stays canonical rather than drifting into a second long tail. The
-label is the finding's substantive kind: a repeated finding keeps its class and is marked as a repeat, never relabelled
-as a repeat.
+against that ref deletes or re-adds work the unit did not touch), `record-shape` (a unit record file violates the shape
+its checker enforces). A finding that fits none of these: the calling agent adds a class here, in the same change, so
+the list stays canonical rather than drifting into a second long tail. The label is the finding's substantive kind: a
+repeated finding keeps its class and is marked as a repeat, never relabelled as a repeat.
 
 **Support each finding with the evidence its class needs** — an enumeration against the corpus it summarizes, a
 contradiction against both statements, a missing scenario against the behavior and the delta that omits it, a

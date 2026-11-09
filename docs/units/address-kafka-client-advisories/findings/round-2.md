@@ -1,0 +1,3 @@
+- [contradiction] `tasks.md:85` — the follow-up points the dispatch at task 2.4, but the renumbering moved it to 2.6.
+- [contradiction] `design.md:106` — the arrival-path row inverted the arrow direction and omitted `kafka-clients`.
+- [record-shape] `findings/round-1.md:9` — the `[formatting]` entry carried two anchors on one instance line.

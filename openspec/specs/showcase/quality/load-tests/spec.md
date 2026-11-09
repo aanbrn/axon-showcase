@@ -156,7 +156,9 @@ The simulation SHALL hold `/events` connections open against the API gateway lik
 events arrive for the write lifecycle, and keep the connection open across a quiet period. For a profile whose
 write-lifecycle stream runs for the connection's hold, it SHALL also check for a further showcase event during the hold,
 and assert that failure for every profile that carries pass assertions, so a stream that stalls after its first event
-fails rather than passing silently.
+fails rather than passing silently. When the run is handed the identities of showcases published before it started — the
+deployment smoke's live-event wait — it SHALL NOT count those showcases' events toward either check, so a buffered event
+the run did not produce cannot satisfy one.
 
 #### Scenario: SSE stream connects to the event stream
 
@@ -185,6 +187,12 @@ fails rather than passing silently.
 - **WHEN** the SSE stream finishes
 - **THEN** it closes the connection
 
+#### Scenario: A pre-run showcase's event does not satisfy the checks
+
+- **WHEN** the run is given warm-up showcases' identities and the gateway replays only those showcases' events
+- **THEN** neither the initial check nor the mid-hold check counts them, and the check fails when no event the run
+  produced arrives
+
 ### Requirement: Configurable target, profile, rate, ratio, and duration
 
 The simulation SHALL be configurable via system properties: `baseUrl` for the target host, `profile` for the injection
@@ -193,15 +201,17 @@ fetch, and a showcase fetch for the configured detail share — or a write-lifec
 share of that rate, `duration` for the run's plateau or ramp length, `sseConnections` for the SSE connection count
 (default 10), `kneeRate` for the reference rate the performance profiles scale from, `thinkTime` for the pause between a
 stream's actions, `detailShare`, `startShare`, and `finishShare` for the mix, `hold` for the soak profile's plateau
-length, and `baselineFile` for the committed baseline reference the performance profiles derive their thresholds from.
-The default `baseUrl` SHALL be the local cluster's gateway ingress hostname, the default `profile` SHALL be `smoke`, the
-default `ratio` SHALL be three-quarters reads, the default `rate` SHALL be 100 workload units per second, the default
-`duration` SHALL be 10 minutes, the default `kneeRate` SHALL be 200 workload units per second, the default `thinkTime`
-SHALL be one second, the default `detailShare` SHALL be `0.15`, the default `startShare` SHALL be `0.6`, the default
-`finishShare` SHALL be `0.5`, the default `hold` SHALL be 2 hours, and the default `baselineFile` SHALL be the module's
-baseline reference, whose absence falls back to the absolute thresholds. The `gatlingRun` task exposes each property as
-a Gradle property of the same name (`-Pprofile=smoke`, `-PbaseUrl`, `-PsseConnections`, and so on), which
-`load-tests/build.gradle.kts` forwards into the simulation's system properties.
+length, `baselineFile` for the committed baseline reference the performance profiles derive their thresholds from, and
+`warmUpShowcaseIds` for a comma-separated list of showcases published before the run started, whose events neither SSE
+check counts (unset by default, which counts every event). The default `baseUrl` SHALL be the local cluster's gateway
+ingress hostname, the default `profile` SHALL be `smoke`, the default `ratio` SHALL be three-quarters reads, the default
+`rate` SHALL be 100 workload units per second, the default `duration` SHALL be 10 minutes, the default `kneeRate` SHALL
+be 200 workload units per second, the default `thinkTime` SHALL be one second, the default `detailShare` SHALL be
+`0.15`, the default `startShare` SHALL be `0.6`, the default `finishShare` SHALL be `0.5`, the default `hold` SHALL be 2
+hours, and the default `baselineFile` SHALL be the module's baseline reference, whose absence falls back to the absolute
+thresholds. The `gatlingRun` task exposes each property as a Gradle property of the same name (`-Pprofile=smoke`,
+`-PbaseUrl`, `-PsseConnections`, and so on), which `load-tests/build.gradle.kts` forwards into the simulation's system
+properties.
 
 #### Scenario: Default configuration targets the local gateway
 
@@ -254,6 +264,11 @@ a Gradle property of the same name (`-Pprofile=smoke`, `-PbaseUrl`, `-PsseConnec
 
 - **WHEN** the `hold` system property is provided
 - **THEN** the soak profile sustains its plateau for that duration
+
+#### Scenario: The warm-up showcases are configurable
+
+- **WHEN** the `warmUpShowcaseIds` system property is provided
+- **THEN** both SSE checks exclude those showcases' events, and with it unset the checks count every event as before
 
 ### Requirement: A baseline run reports its measurements
 

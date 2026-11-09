@@ -118,7 +118,46 @@ jobs:
             echo "The gateway is not reachable through the ingress hostname axon-showcase-api" >&2
             exit 1
           fi
-          ./gradlew :load-tests:gatlingRun -Pprofile=smoke -PbaseUrl=http://axon-showcase-api
+          # The gateway replays its buffer to every new subscriber, so the load's SSE check cannot tell the run's
+          # events from a warm-up's unless it is told which showcases were published before it started. Every
+          # attempt's ID is kept: an earlier attempt's event can still be in the buffer.
+          warm_up_ids=""
+          event_frame=$(mktemp)
+          response_body=$(mktemp)
+          response_headers=$(mktemp)
+          for attempt in $(seq 1 30); do
+            title="deployment-smoke-warm-up-${GITHUB_RUN_ID}-${attempt}"
+            start_time=$(date -u -d '+2 minutes' +%Y-%m-%dT%H:%M:%SZ)
+            payload=$(printf '{"title":"%s","startTime":"%s","duration":"PT5M"}' "$title" "$start_time")
+            : > "$response_body"
+            : > "$response_headers"
+            curl -fsS -X POST http://axon-showcase-api/showcases \
+              -H 'Content-Type: application/json' \
+              -d "$payload" -D "$response_headers" -o "$response_body" || true
+            showcase_id=$(sed -n 's/.*"showcaseId"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$response_body")
+            if [ -z "$showcase_id" ]; then
+              showcase_id=$(grep -i '^idempotency-key:' "$response_headers" | head -1 \
+                | sed 's/^[^:]*:[[:space:]]*//' | tr -d '\r')
+            fi
+            if [ -z "$showcase_id" ]; then
+              echo "The live-event gate published a showcase but read no showcaseId from the response" >&2
+              exit 1
+            fi
+            warm_up_ids="${warm_up_ids:+$warm_up_ids,}$showcase_id"
+            curl -fsS -N --max-time 5 http://axon-showcase-api/events > "$event_frame" 2>/dev/null || true
+            if grep -q '^data:' "$event_frame"; then
+              live_events_ready=true
+              break
+            fi
+            sleep 2
+          done
+          if [ "${live_events_ready:-}" != true ]; then
+            printf '%s %s\n' "The gateway's live-event stream delivered no event through the ingress" \
+              "hostname axon-showcase-api" >&2
+            exit 1
+          fi
+          ./gradlew :load-tests:gatlingRun -Pprofile=smoke -PbaseUrl=http://axon-showcase-api \
+            -PwarmUpShowcaseIds="$warm_up_ids"
 
       - name: Diagnose a failed smoke
         if: failure()

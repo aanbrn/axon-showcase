@@ -1105,6 +1105,12 @@ any `.opencode/` path (or the workflow itself) additionally checks that the conf
 Gradle cache is restored across runs via `gradle/actions/setup-gradle`. The `main-required-checks` ruleset requires the
 `build` check for all merges into `main`, with no bypass actors.
 
+**Scheduled runs are paused (2026-11-09).** The nine schedule-triggered workflows described below are disabled in the
+repository's Actions settings while active work on the project is paused, so none of them runs on its schedule — and a
+disabled workflow cannot be dispatched either. Re-enable one with `gh workflow enable <file>`; Dependabot's weekly
+version updates are suspended too, and `docs/ideas.md` carries the whole resume action. The CI gates above are not
+affected.
+
 `.github/workflows/e2e.yml` runs the end-to-end suites (`:showcase-api-gateway:e2eTest`, which builds all four service
 images and boots the full pipeline, and `:showcase-web-ui:e2eTest`, which drives the browser against the same pipeline
 with Playwright) on a nightly schedule and via `workflow_dispatch` — observational, never a merge gate, and no

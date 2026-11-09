@@ -121,7 +121,9 @@ The unit record — its `Workspace:`, state, and pause checkpoint — is `docs/u
 - [x] 3.6 Write `docs/units/bump-kps-chart-2026-11-09/process-defects.md` as defects are observed, or state that none
       was observed. **Done**: two records — the inline-code whitespace run and the reviewer invocation delegated without
       its hand-over and packs.
-- [ ] 3.7 Ask the owner for the manual review pass of the implementation, and end the turn there.
+- [x] 3.7 Ask the owner for the manual review pass of the implementation, and end the turn there. **Done**: the owner
+      approved the implementation and requested delivery on 2026-11-09, after the clean implementation loop (rounds
+      17–19), the completed deep review (passes 1–2) and the process-defect record.
 
 ## 4. Upstream report
 

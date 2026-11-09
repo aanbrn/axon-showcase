@@ -108,8 +108,11 @@ The unit's record is `docs/units/stabilize-deployment-smoke-startup/unit.md`.
 
 ## 5. At the PR (after the owner's approval, as part of the merge)
 
-- [ ] 5.1 Push the branch and dispatch the smoke against it
+- [x] 5.1 Push the branch and dispatch the smoke against it
       (`gh workflow run deployment-smoke.yml --ref stabilize-deployment-smoke-startup`); confirm the run completes green
       and record its URL and conclusion. This is the only environment that reproduces the runner's cold-start
       contention, so it is the end-to-end check of the change, and it completes inside the change's PR before the
-      archive commit.
+      archive commit. — verified: dispatch run
+      [42543906105](https://github.com/aanbrn/axon-showcase/actions/runs/42543906105) completed **success**: the
+      live-event gate passed inside the step and the smoke profile asserted no failed requests, with no startup-probe
+      restart in the run.

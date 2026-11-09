@@ -3,7 +3,7 @@
 Workspace:
 `unit=bump-dependencies-2026-11-09; path=/Users/afanasyev/Development/axon-showcase-bump-dependencies-2026-11-09; branch=bump-dependencies-2026-11-09; writer=ses_e42e73653ffeujhWjXVqjEPkCc`
 
-State: active
+State: closed
 
 The unit takes the stable catalog and web-UI updates the weekly dependency check reports: the minor and patch rows in
 `gradle/libs.versions.toml`, the in-range npm rows reconciled with `npm update`, and the `build-logic` plugin pin no

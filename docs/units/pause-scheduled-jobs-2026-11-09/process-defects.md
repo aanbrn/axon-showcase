@@ -26,3 +26,19 @@
   cannot show.
 - `docs/ideas.md` was read from local `main` before the branch was cut from a freshly fetched `origin/main`; the two
   revisions differed, but not in the section this unit edits. Nothing was written from the stale copy.
+
+### pause-scheduled-jobs-2026-11-09#2 — the commit-time guard did not run because the clone's hook was never installed
+
+- **Recorded** — 2026-11-09, by the unit's writing agent, during delivery.
+- **Stage** — ship.
+- **Expected** — `./scripts/install-git-hooks.sh` is run once per clone, so the pre-commit guard's checks run at commit
+  time (`AGENTS.md` → Prerequisites → Git hooks).
+- **Observed** — `.git/hooks/pre-commit` did not exist when the unit's first commit was made, so `git commit` ran no
+  guard and printed only its own summary.
+- **Evidence** — `ls -l .git/hooks/pre-commit` printed nothing, and the commit produced the usual
+  `[pause-scheduled-jobs-2026-11-09 296d3bc2] … 14 files changed` line with no guard output.
+- **Consequence** — the commit-time guard did not vet the staged set locally. The same verifications are `check`'s
+  `verify*` tasks, which the pull request's `build` gate ran green, so nothing shipped unverified; this clone still
+  lacks the hook.
+- **Knowledge boundary** — observed: the absent hook and the commit's output. Not established: whether the guard would
+  have reported anything about this staged set.

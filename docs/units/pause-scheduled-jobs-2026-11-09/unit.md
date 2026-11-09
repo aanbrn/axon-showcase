@@ -3,7 +3,7 @@
 Workspace:
 `unit=pause-scheduled-jobs-2026-11-09; path=/Users/afanasyev/Development/axon-showcase; branch=pause-scheduled-jobs-2026-11-09; writer=ses_e3f76a918ffe0COcr75OQjMoLE`
 
-State: active
+State: closed
 
 Stop the repository's recurring automation while active work on the project pauses: disable the nine schedule-triggered
 workflows in the repository's Actions settings, and stop Dependabot's weekly GitHub Actions version updates by lowering

@@ -40,6 +40,6 @@ The unit record — its `Workspace:`, state, and pause checkpoint — is
 
 ## 4. Archive
 
-- [ ] 4.1 Run `openspec archive apply-2026-11-07-audit-findings --yes`, stage both the change-dir move and the
+- [x] 4.1 Run `openspec archive apply-2026-11-07-audit-findings --yes`, stage both the change-dir move and the
       `openspec/specs/**` sync, and tick this task in the archived `tasks.md`. No Purpose refresh is owed: the
       capability's scope does not change.

@@ -603,8 +603,6 @@ parse, an expectation given without the mode, and a record row whose round colum
 than skip. The verification SHALL be a `commit-hygiene.py` mode run by a `check` task, reading the tracked records
 rather than the staged set.
 
-That input clause scopes the build's verification.
-
 When the caller also names the units whose loops must have converged (`--expect-clean <unit>`, repeatable, and valid
 only with `--unique-rounds`), the same verification SHALL fail unless each named unit's numerically highest recorded
 round carries no finding class, and SHALL fail when a named unit has no rows or its `classes` field is unreadable,
@@ -698,7 +696,8 @@ recovery case) — and that no row above it carries a field count other than the
 first round is dated on or after that date carries six-field rows: this mode SHALL judge its width, so a nine-field row
 in it fails, but SHALL NOT judge its session fields, whose continuity is the agent-session register's. A record carrying
 no boundary comment SHALL be read as having all its rows on the side its own rows show. The verification SHALL be a
-`commit-hygiene.py` mode run by a `check` task over the tracked records.
+`commit-hygiene.py` mode run by a `check` task over the tracked records. The verification SHALL validate the recorded
+fields, and passing it SHALL NOT attest that the stated cause occurred or authorize the review gate to continue.
 
 #### Scenario: A post-retirement unit's width is judged, its session fields are not
 
@@ -804,10 +803,6 @@ no boundary comment SHALL be read as having all its rows on the side its own row
 - **THEN** its row records `replaced` with `caller-restarted`
 - **AND** the record identifies the continuity violation and its correction
 - **AND** accepting that record does not authorize another restart
-
-`caller-restarted` SHALL record a continuity violation, not an additional permitted recovery case; the verification
-SHALL validate the recorded fields, and passing it SHALL NOT attest that the stated cause occurred or authorize the
-review gate to continue.
 
 ### Requirement: A unit's readiness for the manual review pass is verified at the boundary
 

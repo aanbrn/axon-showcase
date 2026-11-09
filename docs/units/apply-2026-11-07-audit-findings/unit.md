@@ -3,7 +3,7 @@
 Workspace:
 `unit=apply-2026-11-07-audit-findings; path=/Users/afanasyev/Development/axon-showcase-apply-2026-11-07-audit-findings; branch=apply-2026-11-07-audit-findings; writer=ses_e42e413a2ffeuPZ6Kvtwr9Pukg`
 
-State: active
+State: closed
 
 The unit applies the 2026-11-07 audit report's spec-corpus findings: the two structural defects in
 `openspec/specs/showcase/quality/commit-hygiene/spec.md`. The report's other findings are separate units — the

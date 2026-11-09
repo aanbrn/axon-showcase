@@ -3,7 +3,7 @@
 Workspace:
 `unit=bump-buildpacks-2026-11-09; path=/Users/afanasyev/Development/axon-showcase-bump-buildpacks-2026-11-09; branch=bump-buildpacks-2026-11-09; writer=ses_e42e5a9ffffeAigEgivK4Z3gVk`
 
-State: active
+State: closed
 
 A change unit: its planning artifacts live under `openspec/changes/bump-buildpacks-2026-11-09/`.
 

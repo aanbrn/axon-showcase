@@ -964,11 +964,11 @@ or a CI-failure diagnosis.
 
 - **The OpenSpec delta guard fails on content the CLI would drop, and retires with the CLI.** The `build` gate fails
   when `openspec validate --all` reports a delta section it does not recognise, or text outside any delta section,
-  because `archive` would drop that content while both commands exit 0 (reported upstream as
-  `Fission-AI/OpenSpec#2195`). `scripts/verify-openspec-delta-guard.py --probe` runs the pinned CLI over the
-  loss-producing fixtures and a fully valid control, so a reworded message, or a broken fixture environment, fails the
-  check instead of disarming it; retires when a pinned CLI rejects both loss-producing shapes itself, which the probe
-  reports.
+  because `archive` would drop that content while both commands exit 0 (reported upstream as `Fission-AI/OpenSpec#2195`,
+  which closed 2026-11-06 when `#2207` shipped in `v1.16.1`). `scripts/verify-openspec-delta-guard.py --probe` runs the
+  pinned CLI over the loss-producing fixtures and a fully valid control, so a reworded message, or a broken fixture
+  environment, fails the check instead of disarming it; retires when a pinned CLI rejects both loss-producing shapes
+  itself, which the probe reports.
 
 - **A check belongs in the pull-request gate only when the change that trips it can remediate it.** Drift in state no
   pull request causes would fail every unrelated PR, so it belongs in the observational scheduled pattern instead (and
@@ -2521,8 +2521,9 @@ changing an image or buildpack pin.
 - **Track the upstream reports that would retire this project's config guards.** `Fission-AI/OpenSpec#1892` (an
   unparseable config) closed 2026-10-30, fixed by PR `#2127` and shipped in `v1.16.0`, where `validate` exits 1 on a
   config it cannot read while the other commands still warn and carry on. `Fission-AI/OpenSpec#1891` (an unquoted `: `
-  in a rules item) closed 2026-09-29, but its fix `Fission-AI/OpenSpec#1894` is still open and unmerged, so that half is
-  live here. Each guard retires on its own condition:
+  in a rules item) closed 2026-09-29; its shipped fix `#1984` only names the offending item and leaves the drop behavior
+  unchanged, while the behavior fix `Fission-AI/OpenSpec#1894` is still open and unmerged, so that half is live here.
+  Each guard retires on its own condition:
   - the CI probe's `could not parse` arm — retired when this repository's pin reached `v1.16.0`, leaving
     `openspec validate --all` to fail the gate on that shape;
   - the CI probe's `must be an array of strings` arm, and with it the list-shape positive controls in

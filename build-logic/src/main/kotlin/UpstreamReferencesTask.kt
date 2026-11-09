@@ -125,9 +125,10 @@ abstract class UpstreamReferencesTask : DefaultTask() {
 internal object UpstreamReferencePattern {
 
     /**
-     * Matches `owner/repo#NNN`. It requires a `/` before the `#` and a digit after it, so the corpus's other id-shaped
-     * tokens (`ADR-0002`, `CVE-2021-44228`, `UTF-8`, `ISO-8601`, `KAFKA-18281`) and a bare `owner/repo` reference do
-     * not match.
+     * Matches `owner/repo#NNN` at a token boundary. It requires a `/` before the `#` and a digit after it, and a match
+     * cannot begin inside a path segment, so a local record anchor (`docs/units/<unit>/process-defects.md#2`) is not
+     * read as a repository reference. The corpus's other id-shaped tokens (`ADR-0002`, `CVE-2021-44228`, `UTF-8`,
+     * `ISO-8601`, `KAFKA-18281`) and a bare `owner/repo` reference do not match.
      */
-    val REFERENCE = Regex("[A-Za-z0-9._-]+/[A-Za-z0-9._-]+#[0-9]+")
+    val REFERENCE = Regex("(?<![A-Za-z0-9._/-])[A-Za-z0-9._-]+/[A-Za-z0-9._-]+#[0-9]+")
 }

@@ -239,13 +239,12 @@ gotcha's account of that signature. A planned task to "comment on `micromatch/br
 is locked (comments disabled); the actionable reference was the fix PR `micromatch/braces#72`, which later closed
 unmerged.
 
-**Closure tracking for the references moved here.** `#755` stays cited in ADR-0007, `README.md`, and `## Build & Test`;
-`#3334` in `docs/ideas.md` and the `projection-model` spec; `#1340` in the `deployment-operations` pack's
-`## Docker images` and `## Deployment, Helm & Kubernetes` sections, where its close-out clause lives;
-`micromatch/braces#72` in ADR-0014. `micromatch/braces#70` is cited only here: it is locked, its disposition is the
-unmerged fix PR. The acceptance that PR was meant to fix is **closed**: the advisory was withdrawn upstream on
-2026-10-23, the suppression entry was then removed (the list is empty), and ADR-0014 records both — no retirement
-condition remains live for either reference.
+**Closure tracking for the references moved here.** `#755` stays cited in ADR-0007 and the `gradle-build` pack; `#3334`
+in `docs/ideas.md` and the `projection-model` spec; `#1340` in the `deployment-operations` pack's `## Docker images` and
+`## Deployment, Helm & Kubernetes` sections, where its close-out clause lives; `micromatch/braces#72` in ADR-0014.
+`micromatch/braces#70` is cited only here: it is locked, its disposition is the unmerged fix PR. The acceptance that PR
+was meant to fix is **closed**: the advisory was withdrawn upstream on 2026-10-23, the suppression entry was then
+removed (the list is empty), and ADR-0014 records both — no retirement condition remains live for either reference.
 
 `captured: suppress-braces-npm-advisory`, `captured: refresh-upstream-references-2026-10-05`,
 `captured: record-gatling-report-block`, `captured: refresh-upstream-references-2026-10-19`

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Reject OpenSpec content the CLI would drop at archive.
 
-The pinned CLI reports two loss-producing shapes only as warnings while exiting 0, when the change also carries
-content it applies: a delta section that is not a recognised operation, and text outside any delta section. `archive`
-then applies the valid part and drops the rest, so an intended requirement can ship unchanged.
+Text outside any delta section is content the pinned CLI drops at archive while only warning and exiting 0, when the
+change also carries content it applies, so `archive` applies the valid part and leaves an intended requirement
+unchanged. A delta section the CLI does not recognise is no longer that shape under the pinned `1.16.1`: `validate`
+rejects it with its own error and a non-zero exit, and `archive` refuses. The guard therefore keeps failing on the
+stray-text warning, while the probe accepts the newer rejection only when the CLI's own diagnostic is present.
 
 Two modes:
 
@@ -29,7 +31,11 @@ from pathlib import Path
 
 DROP_PHRASES = ("not a delta section", "not carried into the main spec by archive")
 
-REJECTION_PHRASES = ("No delta sections found", "Delta parsing found no operations")
+REJECTION_PHRASES = (
+    "No delta sections found",
+    "Delta parsing found no operations",
+    "which is not a delta section, so it is ignored",
+)
 CLI = "openspec"
 
 VALID_SECTION = """## ADDED Requirements

@@ -37,6 +37,15 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   `advisor-scope-1`. Routes to `.opencode/commands/consult.md` (a step that completes the section with the returned
   recommendation, its findings with classes, and what changed in the plan) and, because the spec describes the command's
   behaviour, to a `showcase/quality/agent-skills` delta in the same change.
+
+- Make the audit workflow's dispatched run survive the auditor's `/tmp` scratch write — parked; no change yet. The
+  tooling-pin bump's dispatch (`#874`) completed its `Install openspec CLI` step under `1.16.1` and then sat in
+  `Run the audits` until it was cancelled: the auditor wrote `/tmp/sections.txt`, and the cloud binary asked for
+  `external_directory` on `/tmp/*` (`arg: "/tmp/sections.txt"`, `pattern: "/tmp/*"`, `action: "ask"`), which an
+  unattended run cannot answer. Scheduled runs on `main` have not hit it, so the trigger is the model's choice of
+  scratch path rather than the workflow. The stop is the unattended-`ask` gotcha's, whose remedy is upstream
+  (`anomalyco/opencode#48456`) or a grant scoped to a named scratch directory; `/tmp/*` is deliberately not granted, and
+  AGENTS.md's temp-scope rule keeps it that way.
 - Set a per-download timeout on every Helm repository fetch — parked; no change yet. `adopt-plugin-retried-fetches`
   moves both fetch paths to the plugin's tasks, whose `repo update` and `repo add` run at Helm 4.3.1's two-minute
   per-index default (`repoUpdateTimeout` is unset and the add task has no timeout property), and the shared helper's two

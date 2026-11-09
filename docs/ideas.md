@@ -50,6 +50,17 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   maintained Bitnami `kafka` chart or a pinned Kafka image tags `4.2.2` or newer, then bump the image and the chart
   together.
 
+- Hold `kube-prometheus-stack` on the `92.x` line until the operator publishes arm64 images — parked; no change yet.
+  `kube-prometheus-stack` `93.x` ships Prometheus Operator `v0.95.1`, whose `prometheus-operator`,
+  `prometheus-config-reloader` and `admission-webhook` images are published with a `linux/amd64`-only image index (the
+  `v0.94.2` images are multi-arch), so `93.x` cannot be installed on an arm64 cluster: the upgrade fails at the operator
+  pod with `no matching manifest for linux/arm64/v8`. `bump-kps-chart-2026-11-09` therefore pins the newest `92.x`
+  (`92.22.0`, operator `v0.94.2`) and leaves the `92.22.0 -> 93.1.0` row visible in the Helm update report. Reopen when
+  the chart's operator line publishes a `linux/arm64` image for `v0.95.1` or later — check the tag's image index — and
+  apply the `v0.95.1` CRDs server-side before that upgrade. Reported upstream at
+  `prometheus-operator/prometheus-operator#8953` (open; this unit's comment on it confirms all three images and the
+  chart impact); it retires when that issue closes with multi-arch images republished for `v0.95.1` or a later release.
+
 ## 2026-11-08
 
 - Let the pre-commit guard admit a follow-up's edit of another unit's closed record — parked; no change yet. The guard's

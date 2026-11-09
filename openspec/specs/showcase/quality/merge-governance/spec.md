@@ -584,11 +584,12 @@ every reference is open. It SHALL run on `ubuntu-latest` with the `GITHUB_TOKEN`
 The repository SHALL run a deployment smoke automatically on a nightly schedule and be manually triggerable, as its own
 job in a dedicated workflow separate from the merge gate. The smoke SHALL create a Kubernetes cluster in the runner,
 build the five images — the four service images and the web UI image — and load them into that cluster, install the
-application and its infrastructure releases — not the observability — with values whose requests fit the runner, since
-larger runners are not available to this repository, install an ingress controller and enable the deployment's ingress,
-and wait for them to become ready, then drive the smoke profile against the deployed gateway through that ingress,
-assert that no request fails, record no performance numbers, delete the cluster even when a step fails, and SHALL NOT be
-part of the merge-gate `build` check or a required check for merging into `main`.
+application and its infrastructure releases — not the observability — with values whose requests and startup-probe
+budgets fit the runner, since larger runners are not available to this repository, install an ingress controller and
+enable the deployment's ingress, wait for them to become ready and for the gateway's live-event stream to deliver an
+event, then drive the smoke profile against the deployed gateway through that ingress, assert that no request fails,
+record no performance numbers, delete the cluster even when a step fails, and SHALL NOT be part of the merge-gate
+`build` check or a required check for merging into `main`.
 
 #### Scenario: Nightly schedule triggers the deployment smoke
 
@@ -617,3 +618,15 @@ part of the merge-gate `build` check or a required check for merging into `main`
 
 - **WHEN** any step of the smoke fails
 - **THEN** the cluster is deleted before the job ends
+
+#### Scenario: The smoke waits for the live-event stream before driving the load
+
+- **WHEN** the smoke has installed the releases and the gateway answers its requests
+- **THEN** it confirms the gateway's live-event stream delivers an event before it drives the load, so a live-event
+  check does not fail because the stream's subscription had not attached when the load published its events
+
+#### Scenario: A slow cold start does not restart a service
+
+- **WHEN** a service on the runner takes longer to start than the chart's default startup-probe budget allows
+- **THEN** the `ci` values give it a budget that covers the cold start, so the install waits for the service instead of
+  the startup probe restarting the container

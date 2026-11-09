@@ -19,6 +19,7 @@ val loadTestProperties =
         "finishShare",
         "hold",
         "baselineFile",
+        "warmUpShowcaseIds",
     )
 
 gatling {

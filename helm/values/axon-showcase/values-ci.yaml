@@ -5,6 +5,9 @@ commandService:
   podLabels:
     axon-showcase-db-events-client: "true"
     axon-showcase-kafka-client: "true"
+  startupProbe:
+    timeoutSeconds: 3
+    failureThreshold: 20
   resources:
     requests:
       cpu: 250m
@@ -19,6 +22,9 @@ queryService:
     registry: ""
   podLabels:
     axon-showcase-os-views-client: "true"
+  startupProbe:
+    timeoutSeconds: 3
+    failureThreshold: 20
   resources:
     requests:
       cpu: 250m
@@ -34,6 +40,9 @@ projectionService:
   podLabels:
     axon-showcase-kafka-client: "true"
     axon-showcase-os-views-client: "true"
+  startupProbe:
+    timeoutSeconds: 3
+    failureThreshold: 20
   serviceMonitor:
     enabled: false
 
@@ -42,6 +51,9 @@ apiGateway:
     registry: ""
   podLabels:
     axon-showcase-kafka-client: "true"
+  startupProbe:
+    timeoutSeconds: 3
+    failureThreshold: 20
   ingress:
     enabled: true
     hostname: axon-showcase-api

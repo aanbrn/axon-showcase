@@ -31,5 +31,5 @@ The unit record — its `Workspace:`, state, and pause checkpoint — is
 
 ## 4. Archive
 
-- [ ] 4.1 Run `openspec archive apply-2026-11-07-audit-doc-findings --yes` (a `skip_specs` change carries no spec sync)
+- [x] 4.1 Run `openspec archive apply-2026-11-07-audit-doc-findings --yes` (a `skip_specs` change carries no spec sync)
       and tick this task in the archived `tasks.md`.

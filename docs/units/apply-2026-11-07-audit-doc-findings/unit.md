@@ -3,7 +3,7 @@
 Workspace:
 `unit=apply-2026-11-07-audit-doc-findings; path=/Users/afanasyev/Development/axon-showcase-apply-2026-11-07-audit-doc-findings; branch=apply-2026-11-07-audit-doc-findings; writer=ses_e42e413a2ffeuPZ6Kvtwr9Pukg`
 
-State: active
+State: closed
 
 The unit applies the 2026-11-07 audit report's agent-tooling finding: the stale config-guard tracking bullet in
 `AGENTS.md`. The owner's decision of 2026-11-09 split it from the spec-corpus fixes, which are the unit

@@ -2519,17 +2519,16 @@ changing an image or buildpack pin.
   writing it, never by adding a key. captured: bump-snyk-cli-pin
 
 - **Track the upstream reports that would retire this project's config guards.** `Fission-AI/OpenSpec#1892` (an
-  unparseable config) closed 2026-10-30, fixed by PR `#2127` and shipped in `v1.16.0`, where `validate` exits 1 on a
-  config it cannot read while the other commands still warn and carry on. `Fission-AI/OpenSpec#1891` (an unquoted `: `
-  in a rules item) closed 2026-09-29; its shipped fix `#1984` only names the offending item and leaves the drop behavior
-  unchanged, while the behavior fix `Fission-AI/OpenSpec#1894` is still open and unmerged, so that half is live here.
-  Each guard retires on its own condition:
-  - the CI probe's `could not parse` arm — retired when this repository's pin reached `v1.16.0`, leaving
-    `openspec validate --all` to fail the gate on that shape;
+  unparseable config) closed 2026-10-30, fixed by PR `#2127` and shipped in `v1.16.0`; the CI probe's `could not parse`
+  arm is now **retired** — the pin reached `v1.16.0` (`bump-openspec-cli-2026-11-01`), and `openspec validate --all`
+  fails the gate on that shape directly. `Fission-AI/OpenSpec#1891` (an unquoted `: ` in a rules item) closed
+  2026-09-29; its shipped fix `#1984` only names the offending item and leaves the drop behavior unchanged, while the
+  behavior fix `Fission-AI/OpenSpec#1894` is still open and unmerged, so that half is live here:
   - the CI probe's `must be an array of strings` arm, and with it the list-shape positive controls in
-    `/opsx-tool-update`, once a release carries `#1894` — the command's whole-file control stays, since it exercises the
-    `validate` failure the first arm handed over to. captured: inject-positive-control-task-rule (#375) captured:
-    widen-config-probe-to-guidance captured: record-openspec-1891-closure
+    `/opsx-tool-update`, retires once a release carries `#1894` — the command's whole-file control stays, since it
+    exercises the `validate` failure the retired arm handed over to. captured: inject-positive-control-task-rule (#375)
+    captured: widen-config-probe-to-guidance captured: record-openspec-1891-closure captured:
+    apply-2026-11-07-audit-doc-findings
 
 - **A hosted service is a third consumer class, verified by the service itself — its own check where it has one, else
   the event it produces.** A retired key can be accepted and ignored with no local signal — `dependabot.yml`'s

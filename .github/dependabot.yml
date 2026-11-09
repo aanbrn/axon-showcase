@@ -8,4 +8,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 10
+    # Version updates are suspended while active work on the project is paused (2026-11-09): `0` is the documented way
+    # to disable them for an ecosystem without deleting its entry. Restore `10` to resume — `docs/ideas.md` carries the
+    # whole resume action.
+    open-pull-requests-limit: 0

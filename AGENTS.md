@@ -960,7 +960,9 @@ major-only rows are filtered out of `npmOutdated` (`NpmOutdatedRules`), while th
 The CI gates and the observational scheduled workflows — what each runs, on which trigger, and what it reports — are
 specified in `showcase/quality/merge-governance`, and the release workflow's in `showcase/quality/releases`; each
 workflow's YAML is its mechanism's authoritative configuration. This section keeps the rules that bind a workflow edit
-or a CI-failure diagnosis.
+or a CI-failure diagnosis. **The scheduled workflows are currently disabled** (2026-11-09, while active work on the
+project is paused, along with Dependabot's version updates); `docs/ideas.md` carries the resume action, which re-checks
+the requirements whose scheduled run the pause suspends.
 
 - **The OpenSpec delta guard fails on content the CLI would drop, and retires with the CLI.** Under the pinned `1.16.1`,
   `openspec validate --all` rejects a delta section it does not recognise — a non-zero exit, so the gate stops there —
@@ -1085,13 +1087,15 @@ notify-owner-from-the-audit-report (#327) captured: expose-grafana-by-hostname c
 captured: fix-upstream-references-config-cache (#634)
 
 `.github/dependabot.yml` keeps the GitHub Actions versions current (weekly `github-actions` updates), so a major bump
-that targets a newer Node runtime surfaces as a reviewable PR instead of a silent CI deprecation warning. **The owner
-notification for those PRs comes from `.github/CODEOWNERS`, never a `reviewers` key in `dependabot.yml`** — GitHub
-retired that key and silently ignores it, so keep the notification path in `CODEOWNERS`; the gotcha below carries the
-probe with its base-branch and author caveats. The `opencode` workflow's `anomalyco/opencode/github@latest` and the Snyk
-workflow's `snyk/actions/setup@master` are deliberate floating refs Dependabot does not manage. The `opencode` workflow
-also logs a benign `Cache reservation failed: cache write denied` warning from the action's own cache step on the
-comment triggers; the run succeeds — do not chase it. Reported upstream as `anomalyco/opencode#49127`, which closed
+that targets a newer Node runtime surfaces as a reviewable PR instead of a silent CI deprecation warning. **Its version
+updates are suspended while active work on the project is paused** (`open-pull-requests-limit: 0`, 2026-11-09, with the
+nine scheduled workflows disabled too); restore both — see the dated `docs/ideas.md` entry carrying the resume action.
+**The owner notification for those PRs comes from `.github/CODEOWNERS`, never a `reviewers` key in `dependabot.yml`** —
+GitHub retired that key and silently ignores it, so keep the notification path in `CODEOWNERS`; the gotcha below carries
+the probe with its base-branch and author caveats. The `opencode` workflow's `anomalyco/opencode/github@latest` and the
+Snyk workflow's `snyk/actions/setup@master` are deliberate floating refs Dependabot does not manage. The `opencode`
+workflow also logs a benign `Cache reservation failed: cache write denied` warning from the action's own cache step on
+the comment triggers; the run succeeds — do not chase it. Reported upstream as `anomalyco/opencode#49127`, which closed
 `not_planned`, so no fix is coming from it; the note retires when the action's cache step skips cleanly (or drops to
 restore-only).
 
@@ -1485,10 +1489,10 @@ Key modules (libraries, not services):
   same holds for any audit, ignore, or lint scope). Trigger it with the `/audit-agents` command; the main agent applies
   the approved findings under the review gate, whose delivery routes — each unit scoped to its own artifacts and diff,
   split by fix type rather than run through one unit — are the `showcase/quality/agent-skills` requirement's. The
-  scheduled variant runs unattended in the `audit` workflow; the audit itself is on demand. A report's reduction
-  candidates are drained by the standing owner-gated unit `/apply-audit-reductions` (specified in
-  `showcase/quality/agent-skills`), run per report rather than left to age; the report's other findings go through the
-  normal change workflow. captured: record-agents-md-authoring-standard
+  scheduled variant runs unattended in the `audit` workflow when that workflow is enabled; the audit itself is on
+  demand. A report's reduction candidates are drained by the standing owner-gated unit `/apply-audit-reductions`
+  (specified in `showcase/quality/agent-skills`), run per report rather than left to age; the report's other findings go
+  through the normal change workflow. captured: record-agents-md-authoring-standard
 - **Specs-auditor subagent for spec-corpus maintenance**: the `specs-auditor` subagent
   (`.opencode/agent/specs-auditor.md`) audits `openspec/specs/` as a corpus for the cross-spec structural consistency
   `openspec validate` does not gate — title ↔ capability-path match, Purpose ↔ requirements fit, requirement
@@ -1501,7 +1505,7 @@ Key modules (libraries, not services):
   audit the corpus's capability decomposition (the `architecture-auditor` owns that), re-report an issue an existing
   gate enforces, or audit a proposed change's internal quality. Trigger it with the `/audit-specs` command. The main
   agent applies approved findings through the delivery routes the `showcase/quality/agent-skills` requirement states.
-  The scheduled variant runs unattended in the `audit` workflow.
+  The scheduled variant runs unattended in the `audit` workflow when it is enabled.
 - **Architecture-auditor subagent for design drift, unrecorded intent, and a record whose premise is due**: the
   `architecture-auditor` subagent (`.opencode/agent/architecture-auditor.md`) audits `docs/adr/` plus the architectural
   surface (the service boundaries, the module dependency graph, and the spec corpus's capability decomposition) for
@@ -1526,7 +1530,7 @@ Key modules (libraries, not services):
   change is parked as an idea until then; do not force the suggested correction into the audit-fix PR (the first audit's
   `query-api` boundary finding was verified drift, yet narrowing the dependency broke
   `:showcase-query-client:compileJava` — since landed as `narrow-query-api-dependency`). An advisory item needs the
-  user's decision first. The scheduled variant runs unattended in the `audit` workflow.
+  user's decision first. The scheduled variant runs unattended in the `audit` workflow when it is enabled.
 - **Readme-auditor subagent for the human-facing README**: the `readme-auditor` subagent
   (`.opencode/agent/readme-auditor.md`) audits `README.md` — the repository's human-facing showcase and onboarding
   guide, whose content no gate checks — on four axes: accuracy against the repository, design-intent fidelity (the

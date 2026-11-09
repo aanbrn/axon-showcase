@@ -71,6 +71,20 @@ not a grouping, and `./gradlew verifyIdeasSections` (part of `check`) fails the 
   apply the `v0.95.1` CRDs server-side before that upgrade. Reported upstream at
   `prometheus-operator/prometheus-operator#8953` (open; this unit's comment on it confirms all three images and the
   chart impact); it retires when that issue closes with multi-arch images republished for `v0.95.1` or a later release.
+- Resume the repository's recurring automation after the project pause — parked; no change yet. On 2026-11-09 the owner
+  paused active work on the project, so the nine schedule-triggered workflows are disabled in the repository's Actions
+  settings (`gh workflow disable <file>`; restore with `gh workflow enable <file>`) — `audit.yml`,
+  `buildpack-updates.yml`, `dependency-security.yml`, `dependency-updates.yml`, `deployment-smoke.yml`, `e2e.yml`,
+  `helm-updates.yml`, `tooling-updates.yml`, `upstream-references.yml` — and `.github/dependabot.yml` carries
+  `open-pull-requests-limit: 0`, which is GitHub's documented way to suspend version updates for an ecosystem (raise it
+  back to `10`). A disabled workflow cannot be dispatched either, so the first manual run needs the enable first. The
+  `pull_request`/`push` CI gates, the comment-triggered `opencode` workflow, and the dispatch-only `release` workflow
+  stayed active. Workflow state and the `dependabot.yml` edit live outside the changed files here, so resuming must also
+  restore the pre-pause text exactly: raise `open-pull-requests-limit` back to `10` and delete the three-line comment
+  beside it; in `AGENTS.md` drop the CI section's suspension sentence and the Dependabot paragraph's suspension, and
+  restore the three auditor bullets' plain run statements in place of their "when … enabled" qualifiers; in `README.md`
+  drop the paused-schedules note. Then re-check the nine `merge-governance` requirements and `agent-skills`'
+  scheduled-audit requirement, and revisit the `docs/ideas.md` entries those runs would surface again.
 
 ## 2026-11-08
 

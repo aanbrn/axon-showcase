@@ -23,3 +23,20 @@
   historical citations; `Fission-AI/OpenSpec#1894` is `OPEN`/`null`; `audit.yml`'s prompt invokes no `openspec` command.
 - **Limits** — the Snyk tag's installability and both dispatches are delivery-stage evidence.
 - **References** — register row `review-thorough` pass 1; hand-over section `` `deep-1` ``.
+
+### Pass 2 — full pass, verification of the re-plan
+
+- **Reviewed revision** — `caf72739` base with the implementation commit `46102b8` and the staged re-plan.
+- **Pass number and kind** — 2, independent verification after the CI discovery.
+- **Outcome** — one should-fix finding, `F1`: the unit checkpoint's revision line was stale by one rebase (`634bc3b5` /
+  `41e05ab` against the actual `caf72739` / `46102b8`). **Status `FIXED_AND_VERIFIED`** — the checkpoint now records the
+  actual base and `HEAD`.
+- **Disputed point adjudicated** — round 14's `[premise]` claim that `merge-governance` needs a `MODIFIED` delta for the
+  section shape: no delta is owed. The scenario's normative clause is its `THEN`, which the non-zero `validate` exit
+  strengthens for that shape, and the stale fragment is a mechanism description the growth-bound rule keeps out of a
+  spec unless it changes an outcome. The re-planned proposal wording is accurate.
+- **Verified** — the guard fix and its control reproduce against the real `1.16.1` (22/22 with the phrase, the new test
+  fails without it), and the `ci.yml` comment and `AGENTS.md` bullet state both shapes' current behavior.
+- **Why it runs** — pass 1 reviewed the pre-re-plan change set; the re-plan adds the delta-guard probe and its control,
+  the `ci.yml` guard-step comment, and `AGENTS.md`'s delta-guard bullet.
+- **References** — register row `review-thorough` pass 2; hand-over section `` `deep-2` ``.

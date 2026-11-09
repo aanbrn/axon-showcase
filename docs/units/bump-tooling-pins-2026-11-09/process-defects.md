@@ -28,8 +28,8 @@
   its pin edited and declares `workflow_dispatch`, and no task dispatched it. The owner's advisor consultation raised
   it.
 - **Evidence** — `.github/workflows/audit.yml`'s `on:` block lists `workflow_dispatch`, and its line 33 carries the pin.
-- **Consequence** — the audit workflow's edited body would have gone unexercised before the merge. Repaired: delivery
-  task 4.2 dispatches it and records the run's conclusion.
+- **Consequence** — the audit workflow's edited body would have gone unexercised before the merge. Repaired: the
+  audit-dispatch delivery task runs it and records the run's conclusion.
 - **Knowledge boundary** — whether the earlier bump analogues dispatched this workflow was not checked; the rule's
   requirement is read from `AGENTS.md`, and the dispatch itself still runs during delivery.
 
@@ -60,3 +60,20 @@
 - **Consequence** — two failed `check` runs before the file was corrected to a single record reference. Repaired.
 - **Knowledge boundary** — I did not check whether the older archived analogues still carry the copied line; the rule is
   read from `AGENTS.md` and the check.
+
+### bump-tooling-pins-2026-11-09#5 — a bump shipped with the probe's verification left to CI
+
+- **Recorded** — 2026-11-09, by the implementing session, after PR #874's `build` failed.
+- **Stage** — ship.
+- **Expected** — a CLI bump runs the delta guard's CLI-dependent check, which exists only in the `build` workflow,
+  before the pull request is opened.
+- **Observed** — the change ran `./gradlew check` (which wires only the predicate's unit test) and never
+  `scripts/verify-openspec-delta-guard.py --probe`, although the pinned CLI was installed and the script is runnable
+  locally; the probe failed in CI and then reproduced locally in seconds.
+- **Evidence** — the run's line
+  `openspec-delta-guard: mixed: validation exited 1 without the CLI's rejection diagnostic, so this is a broken fixture rather than the upstream fix: "## RENAMED Requirements".`,
+  and the same output from the local `python3 scripts/verify-openspec-delta-guard.py --probe`.
+- **Consequence** — one red CI run and a scope discovery (the probe's phrase list, the `ci.yml` comment, `AGENTS.md`)
+  after the pull request opened. Repaired in the same pull request.
+- **Knowledge boundary** — I did not check whether `check` could wire the probe; it deliberately does not, so the local
+  run is a manual step.

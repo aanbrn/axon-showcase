@@ -74,14 +74,15 @@ table therefore live here, as the review gate's §1 allows for a unit that write
       with every candidate resolved into a row or a class-level dismissal, and re-derive it after the last edit to this
       file. **Verification**: the table below and the dismissals beside it cover every candidate the final scan prints.
       **Done**: the table is re-derived after the implementation's last edit and after each base fast-forward — the
-      three rows about the pre-change state run against `0deca079`, and the generated-file row records what the skills
+      three rows about the pre-change state run against `caf72739`, and the generated-file row records what the skills
       carried there. The final scan prints four kinds, each with a class-level dismissal.
-- [ ] 3.2 Run the `review-quick` loop over the proposal and the implementation, writing each round's finding instances
+- [x] 3.2 Run the `review-quick` loop over the proposal and the implementation, writing each round's finding instances
       to `docs/units/<unit>/findings/round-<N>.md` as its report arrives, appending the round's six-field row to
       `docs/units/<unit>/rounds.tsv` and each quick invocation's row to `docs/units/<unit>/sessions.tsv`, then running
       the ledger checks after each append; repeat until a round reports nothing new. **Verification**: the instance
       file's classes equal the row's raised classes, `--unique-rounds --expect-clean` passes at the boundary, and
-      `--finding-instances` and `--session-continuity` are clean.
+      `--finding-instances` and `--session-continuity` are clean. **Done**: sixteen rounds recorded; rounds 14-16 cover
+      the CI discovery's re-plan, and round 16 reported nothing, so `--expect-clean` passes.
 - [x] 3.3 Derive the deep-review routing with `scripts/review-routing.py`, record its outcome and signals in
       `docs/units/<unit>/deep-review.md`, and run the routed pass when it is `REQUIRED`. **Verification**: the record
       carries an outcome, and a `RECOMMENDED` one has the owner's decision recorded. **Done**: the routing is `REQUIRED`
@@ -100,35 +101,56 @@ process-defect records in a unit the owner opens for it, so the inline capture a
 (`2026-10-27-separate-lesson-capture-from-implementation`, and the archived `2026-11-01-bump-openspec-cli-2026-11-01`
 recorded the inherited step as obsolete).
 
-## 4. Delivery
+## 4. The delta guard's compatibility
 
-- [ ] 4.1 Dispatch `dependency-security.yml` against the pushed branch and confirm the run is green — the bumped Snyk
+- [x] 4.1 Recognise the pinned CLI's new rejection diagnostic in `scripts/verify-openspec-delta-guard.py` and correct
+      the module docstring it falsified. **Verification**: `--probe` exits 0 under `1.16.1`, and no retirement note
+      fires, since the stray-text shape still only warns. **Done**: `"which is not a delta section, so it is ignored"`
+      joins `REJECTION_PHRASES`; the probe exits 0 and prints no retirement note.
+- [x] 4.2 Add the regression control for the new diagnostic and prove it fails without the phrase. **Verification**: the
+      suite is green with the phrase present, and the new test fails when the phrase is removed (observed:
+      `FAILED     (failures=1)`), then restored. **Done**: 22 tests pass with the phrase, and the removal reproduced the
+      failure.
+- [x] 4.3 Refresh the two descriptions the bump falsified — the `ci.yml` guard-step comment and `AGENTS.md`'s
+      delta-guard bullet. **Verification**: neither states that a non-delta section only warns with a zero exit.
+      **Done**: both now say the CLI rejects that section itself while stray text still only warns.
+- [x] 4.4 Confirm the spec position instead of assuming it: read `merge-governance`'s "Content the CLI would drop at
+      archive fails the fast gate" against `1.16.1`'s measured behavior. **Verification**: the scenario's premise is
+      checked against the measured outcomes and the `skip_specs` decision recorded either way. **Done**: the
+      requirement's outcome — the change fails the check even when it also carries valid content — holds for both shapes
+      under `1.16.1`, and the scenario still fires for the stray-text warning; the section shape now fails at
+      `openspec validate --all`, and `archive` aborts even with `--no-validate`. No delta is owed, so `skip_specs: true`
+      stands.
+
+## 5. Delivery
+
+- [ ] 5.1 Dispatch `dependency-security.yml` against the pushed branch and confirm the run is green — the bumped Snyk
       pin's first real execution — then keep the run's conclusion in the change's report. **Verification**: the
       dispatched run's conclusion is `success` (or its failure is analysed and reported), and the task is ticked before
       or in the archive commit.
-- [ ] 4.2 Dispatch `audit.yml` against the pushed branch and confirm the run is green, since this change edits that
+- [ ] 5.2 Dispatch `audit.yml` against the pushed branch and confirm the run is green, since this change edits that
       workflow's pin and it declares `workflow_dispatch`. **Verification**: the dispatched run completes, its install
       step uses `1.16.1`, and the run's conclusion is recorded; the report it opens is left for the owner rather than
       merged.
 
 ## Claims table
 
-Rows about the state before this change are anchored to the unit's base revision, `0deca079`; the two fast-forwards the
-readiness check required (`bfe30a08` → `2b4c9a00` → `0deca079`) left the OpenSpec, Snyk and workflow tool pins
-unchanged, and the rows' classes read the same there.
+Rows about the state before this change are anchored to the unit's base revision, `caf72739`; the fast-forwards and
+rebases the readiness check required (`bfe30a08` → `2b4c9a00` → `0deca079` → `634bc3b5` → `caf72739`) left the OpenSpec,
+Snyk and workflow tool pins unchanged, and the rows' classes read the same there.
 
-| Claim                                                                                 | Source or command                                                                                         | Result                                                                                                                                                                              |
-| ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Issue #308 names these four rows                                                      | `gh issue view 308 --repo aanbrn/axon-showcase`                                                           | the body lists the three OpenSpec rows and the Snyk row                                                                                                                             |
-| The OpenSpec CLI's latest release is `1.16.1`                                         | `npm view @fission-ai/openspec version`                                                                   | `1.16.1`                                                                                                                                                                            |
-| The Snyk CLI's latest release is `v1.1308.4`                                          | `gh api repos/snyk/cli/releases/latest --jq .tag_name`                                                    | `v1.1308.4`                                                                                                                                                                         |
-| The four reported rows were the only ones at the base                                 | `git grep -n -e "@fission-ai/openspec@1.16.0" -e "snyk-version: v1.1308.3" 0deca079 -- .github/workflows` | exactly four hits; `./gradlew toolingUpdates` reported the same four before the bumps                                                                                               |
-| The OpenSpec pin sits in three declared workflows                                     | `toolingUpdates` check's own `ToolingUpdateCheck` entries, `build.gradle.kts`                             | three `openspec-cli (<file>)` entries                                                                                                                                               |
-| No capability spec states either pin                                                  | `git grep -n -e "@fission-ai/openspec" -e "snyk-version" -- openspec/specs`                               | no match, so `skip_specs: true` is the correct marker                                                                                                                               |
-| The generated skills carried `generatedBy: "1.16.0"` at the base                      | `git grep -n "generatedBy:" 0deca079 -- .opencode/skills`                                                 | six matches at `1.16.0`; the `opsx-*` commands carry no stamp                                                                                                                       |
-| `Fission-AI/OpenSpec#1894` is still open and unmerged                                 | `gh pr view 1894 --repo Fission-AI/OpenSpec --json state,mergedAt`                                        | `"state":"OPEN"`, `"mergedAt":null`                                                                                                                                                 |
-| At the base the old pin strings appear as live pins, stamps, or historical statements | `git grep -n -e "1\.16\.0" -e "v1\.1308\.3" 0deca079 -- . ':!openspec/changes/archive'`                   | by class: four live pins, six generation stamps, historical citations (`AGENTS.md`, `docs/ideas.md`, one skill), a dated audit record's lines, and an unrelated lockfile coordinate |
-| The audit prompt invokes no `openspec` command                                        | `grep -n openspec .github/workflows/audit.yml`                                                            | the install step only, at lines 32-33; the prompt invokes none                                                                                                                      |
+| Claim                                                                                 | Source or command                                                                                         | Result                                                                                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Issue #308 names these four rows                                                      | `gh issue view 308 --repo aanbrn/axon-showcase`                                                           | the body lists the three OpenSpec rows and the Snyk row                                                                                                                                                                                  |
+| The OpenSpec CLI's latest release is `1.16.1`                                         | `npm view @fission-ai/openspec version`                                                                   | `1.16.1`                                                                                                                                                                                                                                 |
+| The Snyk CLI's latest release is `v1.1308.4`                                          | `gh api repos/snyk/cli/releases/latest --jq .tag_name`                                                    | `v1.1308.4`                                                                                                                                                                                                                              |
+| The four reported rows were the only ones at the base                                 | `git grep -n -e "@fission-ai/openspec@1.16.0" -e "snyk-version: v1.1308.3" caf72739 -- .github/workflows` | exactly four hits; `./gradlew toolingUpdates` reported the same four before the bumps                                                                                                                                                    |
+| The OpenSpec pin sits in three declared workflows                                     | `toolingUpdates` check's own `ToolingUpdateCheck` entries, `build.gradle.kts`                             | three `openspec-cli (<file>)` entries                                                                                                                                                                                                    |
+| No capability spec states either pin                                                  | `git grep -n -e "@fission-ai/openspec" -e "snyk-version" -- openspec/specs`                               | no match, so `skip_specs: true` is the correct marker                                                                                                                                                                                    |
+| The generated skills carried `generatedBy: "1.16.0"` at the base                      | `git grep -n "generatedBy:" caf72739 -- .opencode/skills`                                                 | six matches at `1.16.0`; the `opsx-*` commands carry no stamp                                                                                                                                                                            |
+| `Fission-AI/OpenSpec#1894` is still open and unmerged                                 | `gh pr view 1894 --repo Fission-AI/OpenSpec --json state,mergedAt`                                        | `"state":"OPEN"`, `"mergedAt":null`                                                                                                                                                                                                      |
+| At the base the old pin strings appear as live pins, stamps, or historical statements | `git grep -n -e "1\.16\.0" -e "v1\.1308\.3" caf72739 -- . ':!openspec/changes/archive'`                   | by class: four live pins, six generation stamps, historical citations (`AGENTS.md`, `docs/ideas.md`, one skill, the `action-upstream-references` unit's two records), a dated audit record's lines, and an unrelated lockfile coordinate |
+| The audit prompt invokes no `openspec` command                                        | `grep -n openspec .github/workflows/audit.yml`                                                            | the install step only, at lines 32-33; the prompt invokes none                                                                                                                                                                           |
 
 ### Dismissals
 

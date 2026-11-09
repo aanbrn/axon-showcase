@@ -11,3 +11,6 @@
 2026-11-09	bump-tooling-pins-2026-11-09	11	contradiction	contradiction	3
 2026-11-09	bump-tooling-pins-2026-11-09	12	over-claim	over-claim	1
 2026-11-09	bump-tooling-pins-2026-11-09	13	-	-	0
+2026-11-09	bump-tooling-pins-2026-11-09	14	contradiction,claim-unreproducible,missing-task,premise,docs-residue	contradiction,missing-task	4
+2026-11-09	bump-tooling-pins-2026-11-09	15	claim-unreproducible,docs-residue	claim-unreproducible,docs-residue	2
+2026-11-09	bump-tooling-pins-2026-11-09	16	-	-	0

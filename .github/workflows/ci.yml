@@ -101,9 +101,10 @@ jobs:
           else
             ./gradlew check
           fi
-          # A delta section the CLI does not recognise, or text outside any delta section, is dropped at archive when
-          # the change also carries content it applies; the CLI only warns, so the guard fails on that warning and the
-          # probe asserts the warning still exists for the pinned CLI.
+          # Text outside any delta section is dropped at archive when the change also carries content it applies, and
+          # the CLI only warns about it: the guard fails on that warning and the probe asserts it still exists for the
+          # pinned CLI. A delta section the CLI does not recognise is an error under the pinned CLI, so
+          # `openspec validate --all` fails first and the step exits.
           openspec_log="$RUNNER_TEMP/openspec-validate.log"
           if ! openspec validate --all 2>&1 | tee "$openspec_log"; then
             exit 1

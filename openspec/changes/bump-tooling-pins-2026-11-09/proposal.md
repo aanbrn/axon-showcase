@@ -15,6 +15,12 @@ run re-reports until it is bumped.
 - **`.opencode/skills/openspec-{apply-change,archive-change,explore,propose,sync-specs,update-change}/SKILL.md`** — the
   regeneration `openspec update` produces with `1.16.1`; a stamp-only change is the expected outcome. IF a template body
   changed, THEN its new instruction is read and reported before the gate runs.
+- **`scripts/verify-openspec-delta-guard.py`, `scripts/test-verify-openspec-delta-guard.py`, and the descriptions of the
+  guard's behavior** — the pinned CLI now rejects a delta section it does not recognise with its own error, so the probe
+  must recognise that diagnostic while it keeps guarding the stray-text warning, and the `ci.yml` step comment and the
+  `AGENTS.md` bullet must stop describing both shapes as warnings with a zero exit. The spec needs no change: its
+  requirement's outcome — the change fails the check even when it also carries valid content — holds for both shapes,
+  and its scenario still fires for the stray-text shape.
 
 ## Capabilities
 

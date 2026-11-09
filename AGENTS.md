@@ -962,13 +962,14 @@ specified in `showcase/quality/merge-governance`, and the release workflow's in 
 workflow's YAML is its mechanism's authoritative configuration. This section keeps the rules that bind a workflow edit
 or a CI-failure diagnosis.
 
-- **The OpenSpec delta guard fails on content the CLI would drop, and retires with the CLI.** The `build` gate fails
-  when `openspec validate --all` reports a delta section it does not recognise, or text outside any delta section,
-  because `archive` would drop that content while both commands exit 0 (reported upstream as `Fission-AI/OpenSpec#2195`,
-  which closed 2026-11-06 when `#2207` shipped in `v1.16.1`). `scripts/verify-openspec-delta-guard.py --probe` runs the
-  pinned CLI over the loss-producing fixtures and a fully valid control, so a reworded message, or a broken fixture
-  environment, fails the check instead of disarming it; retires when a pinned CLI rejects both loss-producing shapes
-  itself, which the probe reports.
+- **The OpenSpec delta guard fails on content the CLI would drop, and retires with the CLI.** Under the pinned `1.16.1`,
+  `openspec validate --all` rejects a delta section it does not recognise — a non-zero exit, so the gate stops there —
+  while text outside any delta section is still only a warning with a zero exit; `archive` would drop that text, so the
+  guard fails on the warning (reported upstream as `Fission-AI/OpenSpec#2195`, which closed 2026-11-06 when `#2207`
+  shipped in `v1.16.1`). `scripts/verify-openspec-delta-guard.py --probe` runs the pinned CLI over the loss-producing
+  fixtures and a fully valid control, so a reworded message, or a broken fixture environment, fails the check instead of
+  disarming it; it counts a non-zero exit as the upstream fix only when the CLI's own rejection diagnostic is present,
+  and retires when a pinned CLI rejects both loss-producing shapes itself, which the probe reports.
 
 - **A check belongs in the pull-request gate only when the change that trips it can remediate it.** Drift in state no
   pull request causes would fail every unrelated PR, so it belongs in the observational scheduled pattern instead (and

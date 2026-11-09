@@ -31,11 +31,15 @@ PROSE_WARNING = (
     "the main spec by archive."
 )
 LONG_REQUIREMENT_WARNING = '  \u26a0 [WARNING] requirements[9]: Requirement text is very long (>500 characters).'
+SECTION_ERROR = (
+    '  \u2717 [ERROR] probe/spec.md: Requirement "Ignored requirement" is under "## DEPRECATED Requirements", '
+    "which is not a delta section, so it is ignored."
+)
 CLEAN = "\u2713 change/probe\n\u2714 spec/showcase/quality/agent-skills\nTotals: 26 passed, 0 failed (26 items)"
 
 
 class DroppedLinesTests(unittest.TestCase):
-    """The predicate recognises the two loss-producing warnings and nothing else."""
+    """The predicate recognises the two loss-producing lines and nothing else."""
 
     def test_a_malformed_section_is_reported(self) -> None:
         self.assertEqual(guard.dropped_lines(SECTION_WARNING), [SECTION_WARNING.strip()])
@@ -104,6 +108,7 @@ class ProbeTests(unittest.TestCase):
         prose_code: int = 0,
         valid_code: int = 0,
         diagnose: bool = True,
+        diagnostic: str = "No delta sections found. Add headers such as '## ADDED Requirements'.",
         warn: bool = True,
         mixed_applied: str = "### Requirement: Probe requirement\n",
         prose_applied: str = "### Requirement: Probe requirement\n",
@@ -122,7 +127,7 @@ class ProbeTests(unittest.TestCase):
                 warnings = {"mixed": SECTION_WARNING, "prose": PROSE_WARNING}
                 output = warnings.get(shape, "") if warn else ""
                 if diagnose and codes[shape] != 0:
-                    output = "No delta sections found. Add headers such as '## ADDED Requirements'."
+                    output = diagnostic
                 return subprocess.CompletedProcess(args, codes[shape], stdout=output, stderr="")
             if archive_code == 0:
                 spec.parent.mkdir(parents=True, exist_ok=True)
@@ -155,6 +160,11 @@ class ProbeTests(unittest.TestCase):
     def test_one_rejected_shape_is_not_yet_a_retirement(self) -> None:
         code, out, _ = self._probe(self._runner(mixed_code=1))
         self.assertEqual(code, 0)
+        self.assertNotIn("the guard can retire", out)
+
+    def test_the_pinned_cli_section_error_counts_as_a_rejection(self) -> None:
+        code, out, error = self._probe(self._runner(mixed_code=1, diagnostic=SECTION_ERROR))
+        self.assertEqual(code, 0, error)
         self.assertNotIn("the guard can retire", out)
 
     def test_an_unexpected_validation_failure_is_not_a_retirement(self) -> None:

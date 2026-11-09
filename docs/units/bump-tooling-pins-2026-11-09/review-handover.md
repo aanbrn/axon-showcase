@@ -320,3 +320,96 @@ this record rather than from the session.
 - **Report** — agent-facing, English.
 - **Fresh or follow-up** — fresh, first deep pass.
 - **Deadline** — 30 minutes from this record's write.
+
+## `advisor-ci-scope` — consultation on folding the CI-discovered guard and spec work into the unit
+
+- **Authorization and question** — the owner's instruction "Уточни у советника" (2026-11-09); whether the delta-guard
+  probe fix and the consequent `merge-governance` delta and `AGENTS.md` refresh belong in this change (reopening its
+  proposal boundary) or split, and whether the delta is genuinely owed.
+- **Owner's objective and constraints** — ship the tooling-pin bump; keep scope honest; the unit is already at the
+  implementation-review boundary with CI red on a real, reproduced failure.
+- **Stage** — implementation review, after PR #874's `build` failed at the pre-merge gate.
+- **Supplied artifacts** — the failing run's log excerpt, `scripts/verify-openspec-delta-guard.py`,
+  `scripts/test-verify-openspec-delta-guard.py`, the `merge-governance` delta-guard scenario, `AGENTS.md`'s delta-guard
+  bullet, the change's `proposal.md`/`tasks.md`, and the unit record.
+- **Packs** — `gradle-build`.
+- **Report** — owner-facing, Russian.
+- **Fresh or follow-up** — fresh.
+
+## Round 14 — implementation stage, after the CI discovery and the re-plan
+
+- **Unit** — `bump-tooling-pins-2026-11-09`; base `origin/main` `634bc3b5ba17815ee9f83c467b7116dcd7eacc3a`, `HEAD`
+  `41e05abfc784a4c833b8f417c53a1c1dbb6d64ff` (the rebased implementation commit) plus the staged re-plan; the readiness
+  check is green.
+- **Workspace** — tree `/Users/afanasyev/Development/axon-showcase-bump-tooling-pins-2026-11-09`, branch
+  `bump-tooling-pins-2026-11-09`.
+- **Supplied diff** — the ten original targets plus the re-plan: `scripts/verify-openspec-delta-guard.py` (the new
+  rejection phrase and the corrected docstring), `scripts/test-verify-openspec-delta-guard.py` (the new control), the
+  `ci.yml` guard-step comment, `AGENTS.md`'s delta-guard bullet (rebased against the base's closure note for
+  `Fission-AI/OpenSpec#2195`), and the change's `proposal.md`/`tasks.md`.
+- **Scope** — implementation screen of the re-plan: the probe recognises the pinned CLI's new rejection diagnostic, the
+  control fails without it, no description still claims the section shape only warns, and the spec position is
+  re-derived rather than assumed.
+- **Prior findings** — quick rounds 1-13 closed, round 13 clean; the deep review's pass 1 returned `nothing remains`.
+- **Completed checks** — `--probe` exits 0 and prints no retirement note; the guard's suite is 22/22 with the phrase,
+  and the new test failed (`FAILED (failures=1)`) when the phrase was removed and restored;
+  `spotlessApply`/`spotlessCheck` green; `openspec validate --all` 27 passed;
+  `./gradlew check -PskipITs -Pcoverage.gate.enabled=false` green; `--review-ready` green.
+- **Subject packs** — `gradle-build`.
+- **Limitations** — the Snyk tag's installability and both dispatches remain delivery-stage evidence.
+- **Deadline** — 20 minutes from this record's write.
+
+## `deep-2` — the deep review's second pass, verification of the re-plan
+
+- **Unit** — `bump-tooling-pins-2026-11-09`; base `caf727397188546ab173e5b09f40146ab673f4e4`, `HEAD`
+  `46102b88ab58f558bcf8aae3094a706d81a7623e` plus the staged re-plan.
+- **Why this pass runs** — the routing stays `REQUIRED` (the four edited workflows), and pass 1 predates the re-plan.
+- **Supplied diff** — the original ten targets plus `scripts/verify-openspec-delta-guard.py` (the third
+  `REJECTION_PHRASES` entry and the corrected docstring), `scripts/test-verify-openspec-delta-guard.py` (the
+  `diagnostic` parameter and `test_the_pinned_cli_section_error_counts_as_a_rejection`), the `ci.yml` guard-step
+  comment, `AGENTS.md`'s delta-guard bullet, and the change's `proposal.md`/`tasks.md`.
+- **Measured CLI behavior** — under `1.16.1`: a mixed fixture prints
+  `✗ [ERROR] … which is not a delta section, so it is ignored` and exits 1; `archive` aborts even with `--no-validate`;
+  stray text still warns with exit 0.
+- **Prior findings** — pass 1 returned `nothing remains`; the quick loop's rounds 1-14 are recorded in
+  `findings/round-1..14.md`.
+- **Known limitations** — the Snyk tag's installability and both dispatches remain delivery-stage evidence.
+- **Packs** — `gradle-build`.
+- **Report** — agent-facing, English.
+- **Fresh or follow-up** — follow-up to pass 1, continuing `ses_e4276599effeiEnkl8zuQI688O`.
+
+## Round 15 — implementation stage, after round 14 and the deep review's pass 2
+
+- **Unit** — `bump-tooling-pins-2026-11-09`; base `origin/main` `caf727397188546ab173e5b09f40146ab673f4e4`, `HEAD`
+  `46102b88ab58f558bcf8aae3094a706d81a7623e` plus the staged fixes; the readiness check is green.
+- **Workspace** — tree `/Users/afanasyev/Development/axon-showcase-bump-tooling-pins-2026-11-09`, branch
+  `bump-tooling-pins-2026-11-09`.
+- **Supplied diff** — the re-plan plus round 14's fixes: the claims table re-anchored to `caf72739` and row 127's
+  classes widened, the unit checkpoint's revision line, `process-defects.md#2`'s repair note, the re-derived
+  `skip_specs` reason in `proposal.md` and task 4.4, and `deep-review.md`'s pass 2.
+- **Scope** — verification of round 14's five instances and of the deep review's `F1`; no plan change.
+- **Prior findings** — round 14's five: #1, #2, #3 and #5 applied as recorded; #4 (a `MODIFIED` delta alleged owed) is
+  adjudicated by the deep review's pass 2 as not owed — the scenario's `THEN` is unchanged and strengthened, and the
+  stale fragment is a mechanism description. The deep review's `F1` (checkpoint revision) is fixed.
+- **Completed checks** — `--probe` exits 0; the guard suite is 22/22; `spotlessApply`/`spotlessCheck`,
+  `openspec validate --all` (27), and `check -PskipITs -Pcoverage.gate.enabled=false` green; `--review-ready` green.
+- **Subject packs** — `gradle-build`.
+- **Limitations** — the Snyk tag's installability and both dispatches remain delivery-stage evidence.
+- **Deadline** — 20 minutes from this record's write.
+
+## Round 16 — implementation stage, after round 15's two findings
+
+- **Unit** — `bump-tooling-pins-2026-11-09`; base `origin/main` `caf727397188546ab173e5b09f40146ab673f4e4`, `HEAD`
+  `46102b88ab58f558bcf8aae3094a706d81a7623e` plus the staged fixes; the readiness check is green.
+- **Workspace** — tree `/Users/afanasyev/Development/axon-showcase-bump-tooling-pins-2026-11-09`, branch
+  `bump-tooling-pins-2026-11-09`.
+- **Supplied diff** — round 15's two fixes: the claims-table intro's base chain now names `634bc3b5`, row 127 describes
+  the `action-upstream-references` unit's two records, and the checkpoint's next step drops the recorded deep-review
+  action.
+- **Scope** — verification of round 15's two instances; no plan change.
+- **Prior findings** — round 14's five and the deep review's `F1` verified fixed in round 15; round 15's two applied.
+- **Completed checks** — `--probe` exits 0; the guard suite 22/22; `spotlessApply`/`spotlessCheck`,
+  `openspec validate --all` (27) and `check -PskipITs -Pcoverage.gate.enabled=false` green; `--review-ready` green.
+- **Subject packs** — `gradle-build`.
+- **Limitations** — the Snyk tag's installability and both dispatches remain delivery-stage evidence.
+- **Deadline** — 20 minutes from this record's write.
